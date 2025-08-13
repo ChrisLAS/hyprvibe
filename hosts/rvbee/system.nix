@@ -535,7 +535,8 @@ in
   xdg.portal = {
     enable = true;
     xdgOpenUsePortal = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-hyprland pkgs.xdg-desktop-portal-gtk ];
+    # Hyprland module provides its own portal; include only GTK here to avoid duplicate units
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
     config = {
       common = {
         default = [ "hyprland" "gtk" ];
