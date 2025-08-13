@@ -104,7 +104,6 @@ let
     cliphist
     brightnessctl
     playerctl
-    kdePackages.dolphin
     kdePackages.kwallet
     kdePackages.kwallet-pam
     kdePackages.kate
@@ -144,7 +143,6 @@ let
     networkmanagerapplet
     # Shell history replacement
     atuin
-    swayidle
     ddcutil
     curl
   ];
@@ -180,7 +178,6 @@ let
     gnome-keyring
     signal-desktop
     libreoffice
-    obs-studio
     kdePackages.kdenlive
     xournalpp
     localsend
@@ -188,25 +185,14 @@ let
     # or may have different names in Nix
     _1password-gui
     _1password-cli
-    waybar
-    mako
-    rofi-wayland
-    grim
-    slurp
     hyprpicker
     hyprshot
-    cliphist
     wl-clip-persist
     hyprpaper
-    swaybg
-    playerctl
-    brightnessctl
-    swayosd
     hypridle
     hyprlock
     hyprsunset
     yazi
-    lazygit
     starship
     zoxide
     
@@ -226,6 +212,15 @@ let
   gtkApps = with pkgs; [
     # File manager
     kdePackages.dolphin
+    kdePackages.kio-extras
+    kdePackages.kio-fuse
+    kdePackages.kio-admin
+    kdePackages.kdenetwork-filesharing
+    kdePackages.ffmpegthumbs
+    kdePackages.kdegraphics-thumbnailers
+    kdePackages.kimageformats
+    kdePackages.ark
+    kdePackages.konsole
     # Document viewer
     evince
     # Image viewer
@@ -317,15 +312,6 @@ in
         Restart = "on-failure";
       };
     };
-    user.services.swayidle = {
-      description = "Idle handler to blank displays after inactivity";
-      after = [ "default.target" ];
-      wantedBy = [ "default.target" ];
-      serviceConfig = {
-        ExecStart = "${pkgs.swayidle}/bin/swayidle -w timeout 2700 'hyprctl dispatch dpms off' resume 'hyprctl dispatch dpms on'";
-        Restart = "always";
-      };
-    };
   };
 
   # Networking
@@ -358,6 +344,7 @@ in
     fstrim.enable = true;
     # Ensure brightnessctl udev rules are active
     udev.packages = [ pkgs.brightnessctl ];
+    udisks2.enable = true;
     # Display manager for Hyprland
     displayManager.gdm = {
       enable = true;
@@ -449,6 +436,7 @@ in
     # Render wallpaper path into hyprpaper/hyprlock configs
     ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprpaper.conf} > /home/chrisf/.config/hypr/hyprpaper.conf
     ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprlock.conf} > /home/chrisf/.config/hypr/hyprlock.conf
+    cp ${./hypridle.conf} /home/chrisf/.config/hypr/hypridle.conf
     chown -R chrisf:users /home/chrisf/.config/hypr
     # BTC script for hyprlock
     cp ${./scripts/hyprlock-btc.sh} /home/chrisf/.config/hypr/hyprlock-btc.sh
@@ -541,6 +529,19 @@ in
       ++ applications
       ++ gaming
       ++ gtkApps;
+  };
+
+  # Prefer Hyprland XDG portal
+  xdg.portal = {
+    enable = true;
+    xdgOpenUsePortal = true;
+    extraPortals = [ pkgs.xdg-desktop-portal-hyprland pkgs.xdg-desktop-portal-gtk ];
+    config = {
+      common = {
+        default = [ "hyprland" "gtk" ];
+        "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
+      };
+    };
   };
 
   # Nix settings
