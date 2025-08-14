@@ -246,6 +246,14 @@ let
   ];
   # Centralized wallpaper path used by hyprpaper and hyprlock
   wallpaperPath = "/home/chrisf/build/config/hosts/rvbee/aesthetic_8_bit_art-wallpaper-3840x2160.jpg";
+
+  # Script to import GITHUB_TOKEN into systemd --user environment
+  setGithubTokenScript = pkgs.writeShellScript "set-github-token" ''
+    if [ -r "$HOME/.config/secrets/github_token" ]; then
+      value="$(tr -d '\n' < "$HOME/.config/secrets/github_token")"
+      systemctl --user set-environment GITHUB_TOKEN="$value"
+    fi
+  '';
 in
 {
   imports = [
@@ -321,11 +329,7 @@ in
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-        ExecStart = ''${pkgs.bash}/bin/bash -lc '
-          if [ -r "$HOME/.config/secrets/github_token" ]; then
-            systemctl --user set-environment GITHUB_TOKEN="$(tr -d "\n" < "$HOME/.config/secrets/github_token")"
-          fi
-        '''';
+        ExecStart = "${setGithubTokenScript}";
       };
     };
   };
