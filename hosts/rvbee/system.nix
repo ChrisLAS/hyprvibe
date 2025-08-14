@@ -366,6 +366,12 @@ in
     bluetooth = {
       enable = true;
       powerOnBoot = true;
+      # Enable experimental features (battery, LC3, etc.)
+      settings = {
+        General = {
+          Experimental = true;
+        };
+      };
     };
     graphics = {
       enable = true;
@@ -383,6 +389,8 @@ in
     udisks2.enable = true;
     gvfs.enable = true;
     tumbler.enable = true;
+    # Bluetooth manager (tray + UI)
+    blueman.enable = true;
     # Network service discovery for "Browse Network" in Thunar and SMB service discovery
     avahi = {
       enable = true;

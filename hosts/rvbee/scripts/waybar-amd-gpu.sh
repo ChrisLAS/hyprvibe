@@ -48,7 +48,7 @@ elif [[ -n "${card_index}" && -r "/sys/kernel/debug/dri/${card_index}/amdgpu_pm_
   util=$(grep -iE 'GPU load' <<<"${pm_info}" | awk '{print $(NF-1)}' | tr -d '%')
 fi
 
-text="GPU"
+text=""
 tooltip="AMD GPU"
 
 parts=()
@@ -57,7 +57,7 @@ parts=()
 [[ -n "${power_w}" ]] && parts+=("${power_w}W")
 
 if [[ ${#parts[@]} -gt 0 ]]; then
-  text="GPU ${parts[*]}"
+  text="${parts[*]}"
   tooltip="AMD GPU: ${parts[*]}"
 fi
 

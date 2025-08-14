@@ -23,6 +23,7 @@
     "custom/weather",
     "clock",
     "tray",
+    "bluetooth",
     "idle_inhibitor",
     "custom/brightness_menu",
     "custom/reboot"
@@ -59,10 +60,10 @@
     "max-length": 50
   },
   "pulseaudio": {
-    "format": "{volume}% {icon}",
-    "format-bluetooth": "{volume}% {icon}",
-    "format-bluetooth-muted": " {icon}",
-    "format-muted": " {icon}",
+    "format": "🔊 {volume}%",
+    "format-bluetooth": "🔊 {volume}%",
+    "format-bluetooth-muted": "🔊",
+    "format-muted": "🔊",
     "format-icons": {
       "headphone": "",
       "hands-free": "",
@@ -106,11 +107,11 @@
     "format": "🌍 {}"
   },
   "cpu": {
-    "format": "CPU {usage}% ",
+    "format": "🖥️ {usage}% ",
     "tooltip": false
   },
   "memory": {
-    "format": "MEM {percentage}% ",
+    "format": "🤖 {percentage}% ",
     "tooltip": false
   },
   "custom/amd_gpu": {
@@ -118,7 +119,7 @@
     "exec": "~/.config/waybar/scripts/waybar-amd-gpu.sh",
     "interval": 5,
     "tooltip": true,
-    "format": "{}"
+    "format": "🎮 {}"
   },
   
   "idle_inhibitor": {
@@ -139,7 +140,7 @@
     "format": "GM {count}"
   },
   "clock": {
-    "format": "{:%I:%M %p}",
+    "format": "🕒 {:%I:%M %p}",
     "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
     "format-alt": "{:%Y-%m-%d}"
   },
@@ -147,6 +148,15 @@
     "spacing": 10
   }
   ,
+  "bluetooth": {
+    "format": "🔵 {status}",
+    "format-connected": "🔵 {num_connections}",
+    "format-connected-battery": "🔵 {device_battery_percentage}%",
+    "format-off": "⚪ off",
+    "tooltip": true,
+    "on-click": "blueman-manager"
+  },
+  
   "custom/brightness_menu": {
     "format": "🖥️",
     "tooltip": true,
