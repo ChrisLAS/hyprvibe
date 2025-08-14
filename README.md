@@ -31,7 +31,7 @@ There are no doubt a few ways we could improve this for easier sharing.
 - **Development**: Full development toolchain
 - **Multimedia**: Video/audio editing and playback tools
 
-![Screenshot](screenshot.jpg)
+![Screenshot](screenshot.jpg?cachebust=531171e)
 
 ## Notes:
 
