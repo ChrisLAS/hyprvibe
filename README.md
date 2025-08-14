@@ -22,9 +22,10 @@ There are no doubt a few ways we could improve this for easier sharing.
 └── README.md                    # This file
 ```
 
-## Features
-
 ### Full system overview
+
+![Screenshot](screenshot.jpg)
+
 
 - **Hyprland/Wayland desktop**
   - Hyprland session via GDM (Wayland), `programs.hyprland.enable` with `xwayland.enable`
