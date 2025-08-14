@@ -18,12 +18,12 @@
     "custom/public_ip",
     "cpu",
     "memory",
-    "idle_inhibitor",
     "custom/amd_gpu",
     "gamemode",
     "custom/weather",
     "clock",
     "tray",
+    "idle_inhibitor",
     "custom/brightness_menu",
     "custom/reboot"
   ],
@@ -92,10 +92,10 @@
   },
   "network": {
     "format-wifi": "{essid} ({signalStrength}%) ",
-    "format-ethernet": "{ipaddr}/{cidr} ",
+    "format-ethernet": "🖧 {ipaddr}/{cidr} ",
     "format-linked": "{ifname} (No IP) ",
     "format-disconnected": "Disconnected ⚠",
-    "format-alt": "{ifname}: {ipaddr}/{cidr}",
+    "format-alt": "🖧 {ifname}: {ipaddr}/{cidr}",
     "on-click": "nm-connection-editor"
   },
   "custom/public_ip": {
@@ -103,7 +103,7 @@
     "exec": "~/.config/waybar/scripts/waybar-public-ip.sh",
     "interval": 300,
     "tooltip": true,
-    "format": "{}"
+    "format": "🌍 {}"
   },
   "cpu": {
     "format": "CPU {usage}% ",
