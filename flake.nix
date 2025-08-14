@@ -28,6 +28,22 @@
           inherit hyprland;
         };
       };
+      installer = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          # Graphical ISO with Calamares (Plasma)
+          (nixpkgs + "/nixos/modules/installer/cd-dvd/installation-cd-graphical-calamares-plasma5.nix")
+          # Optional: add extra tools to the live ISO
+          ({ pkgs, ... }: {
+            environment.systemPackages = with pkgs; [
+              neovim
+              git
+              firefox
+              btop
+            ];
+          })
+        ];
+      };
     };
   };
 }

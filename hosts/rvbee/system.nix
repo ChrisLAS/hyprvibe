@@ -146,6 +146,9 @@ let
     atuin
     ddcutil
     curl
+    openssh
+    glib-networking
+    rclone
   ];
 
   systemTools = with pkgs; [
@@ -196,6 +199,7 @@ let
     yazi
     starship
     # zoxide  # deduped; present in utilities
+    rclone-browser
     
   ];
 
@@ -225,6 +229,16 @@ let
     kdePackages.kimageformats
     kdePackages.ark
     kdePackages.konsole
+    # Also include Thunar alongside Dolphin
+    xfce.thunar
+    xfce.tumbler
+    gvfs
+    # Theming packages
+    tokyo-night-gtk
+    papirus-icon-theme
+    bibata-cursors
+    adwaita-qt
+    adwaita-qt6
     # Document viewer
     evince
     # Image viewer
@@ -367,6 +381,17 @@ in
     # Ensure brightnessctl udev rules are active
     udev.packages = [ pkgs.brightnessctl ];
     udisks2.enable = true;
+    gvfs.enable = true;
+    tumbler.enable = true;
+    # Network service discovery for "Browse Network" in Thunar and SMB service discovery
+    avahi = {
+      enable = true;
+      nssmdns4 = true;
+    };
+    # Optional: allow mounting WebDAV as a filesystem (in addition to GVFS WebDAV)
+    davfs2.enable = true;
+    # Secret Service provider for GVFS credentials (SFTP/SMB/WebDAV)
+    gnome.gnome-keyring.enable = true;
     # Display manager for Hyprland
     displayManager.gdm = {
       enable = true;
@@ -413,6 +438,9 @@ in
       gdm.kwallet.enable = true;
       gdm-password.kwallet.enable = true;
       hyprlock = { };
+      # Unlock GNOME Keyring on login for GVFS credentials
+      login.enableGnomeKeyring = true;
+      gdm-password.enableGnomeKeyring = true;
     };
   };
 
@@ -506,6 +534,56 @@ in
     mkdir -p /home/chrisf/.local/bin
     chown -R chrisf:users /home/chrisf/.local
     runuser -l chrisf -c 'GOBIN=$HOME/.local/bin ${pkgs.go}/bin/go install github.com/u3mur4/crypto-price/cmd/crypto-price@latest' || true
+
+    # Apply GTK theming (Tokyo Night Dark + Papirus-Dark + Bibata cursor)
+    mkdir -p /home/chrisf/.config/gtk-3.0
+    cat > /home/chrisf/.config/gtk-3.0/settings.ini << 'EOF'
+    [Settings]
+    gtk-theme-name=Tokyonight-Dark-B
+    gtk-icon-theme-name=Papirus-Dark
+    gtk-cursor-theme-name=Bibata-Modern-Ice
+    gtk-cursor-theme-size=24
+    gtk-application-prefer-dark-theme=true
+    EOF
+    mkdir -p /home/chrisf/.config/gtk-4.0
+    cat > /home/chrisf/.config/gtk-4.0/settings.ini << 'EOF'
+    [Settings]
+    gtk-theme-name=Tokyonight-Dark-B
+    gtk-icon-theme-name=Papirus-Dark
+    gtk-cursor-theme-name=Bibata-Modern-Ice
+    gtk-cursor-theme-size=24
+    gtk-application-prefer-dark-theme=true
+    EOF
+    chown -R chrisf:users /home/chrisf/.config/gtk-3.0 /home/chrisf/.config/gtk-4.0
+
+    # Configure qt6ct to use Adwaita-Dark and Papirus icons for closer match
+    mkdir -p /home/chrisf/.config/qt6ct
+    cat > /home/chrisf/.config/qt6ct/qt6ct.conf << 'EOF'
+    [Appearance]
+    style=adwaita-dark
+    icon_theme=Papirus-Dark
+    standard_dialogs=gtk3
+    palette=
+    [Fonts]
+    fixed=@Variant(\0\0\0\x7f\0\0\0\n\0M\0o\0n\0o\0s\0p\0a\0c\0e\0\0\0\0\0\0\0\0\0\x1e\0\0\0\0\0\0\0\0\0\0\0\0\0\0)
+    general=@Variant(\0\0\0\x7f\0\0\0\n\0I\0n\0t\0e\0r\0\0\0\0\0\0\0\0\0\x1e\0\0\0\0\0\0\0\0\0\0\0\0\0\0)
+    [Interface]
+    double_click_interval=400
+    cursor_flash_time=1000
+    buttonbox_layout=0
+    keyboard_scheme=2
+    gui_effects=@Invalid()
+    wheel_scroll_lines=3
+    resolve_symlinks=true
+    single_click_activate=false
+    tabs_behavior=0
+    [SettingsWindow]
+    geometry=@ByteArray(AdnQywADAAAAAAAAB3wAAAQqAAAADwAAAB9AAAAEKgAAAA8AAAAAAAEAAAHfAAAAAQAAAAQAAAAfAAAABCg=)
+    [Troubleshooting]
+    force_raster_widgets=false
+    ignore_platform_theme=false
+    EOF
+    chown -R chrisf:users /home/chrisf/.config/qt6ct
   '';
 
   # Programs
@@ -515,6 +593,13 @@ in
     virt-manager.enable = true;
     dconf.enable = true;
     gamemode.enable = true;
+    thunar = {
+      enable = true;
+      plugins = with pkgs.xfce; [
+        thunar-archive-plugin
+        thunar-volman
+      ];
+    };
     steam = {
       enable = true;
       gamescopeSession.enable = true;
@@ -552,6 +637,8 @@ in
       GDK_BACKEND = "wayland";
       # Atuin environment variables
       ATUIN_SESSION = "";
+      # Cursor theme for consistency across apps
+      XCURSOR_THEME = "Bibata-Modern-Ice";
     };
     systemPackages =
       devTools
@@ -575,6 +662,13 @@ in
         "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
       };
     };
+  };
+
+  # Make Qt apps follow GNOME/GTK settings for closer match to GTK theme
+  qt = {
+    enable = true;
+    platformTheme = "gnome";
+    style = "adwaita-dark";
   };
 
   # Nix settings
