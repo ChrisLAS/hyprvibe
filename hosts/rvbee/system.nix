@@ -469,6 +469,16 @@ in
     end
     EOF
     chown -R chrisf:users /home/chrisf/.config/fish
+    # GitHub token export for fish, read from local untracked file if present
+    mkdir -p /home/chrisf/.config/secrets
+    chown -R chrisf:users /home/chrisf/.config/secrets
+    chmod 700 /home/chrisf/.config/secrets
+    cat > /home/chrisf/.config/fish/conf.d/github_token.fish << 'EOF'
+    if test -r /home/chrisf/.config/secrets/github_token
+      set -gx GITHUB_TOKEN (string trim (cat /home/chrisf/.config/secrets/github_token))
+    end
+    EOF
+    chown -R chrisf:users /home/chrisf/.config/fish
     # Install crypto-price (u3mur4) for Waybar module
     mkdir -p /home/chrisf/.local/bin
     chown -R chrisf:users /home/chrisf/.local
@@ -517,7 +527,6 @@ in
       MOZ_ENABLE_WAYLAND = "1";
       QT_QPA_PLATFORM = "wayland";
       GDK_BACKEND = "wayland";
-      GITHUB_TOKEN = "$GITHUB_TOKEN"; # Will use system environment variable
       # Atuin environment variables
       ATUIN_SESSION = "";
     };
