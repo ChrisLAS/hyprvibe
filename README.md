@@ -92,3 +92,41 @@ There are no doubt a few ways we could improve this for easier sharing.
 1. You'll need to update the path with your home dir. 
    Search for chrislas, replace with your user.
 	(Would like suggestions for improvement)
+
+### Waybar & Hyprland UX changes
+
+- **Waybar visuals**: Blur + slight transparency enabled (Hyprland `layerrule = blur, waybar` and `ignorealpha 0.1`; CSS background rgba(…, 0.75)).
+- **Module chips**: Each module wrapped with padded, rounded boxes to reduce jitter when values change. Fixed minimum widths for key modules.
+- **Left window title**: `hyprland/window` moved to the left next to workspaces.
+- **Added modules**: MPRIS (media), idle inhibitor (icons: ☀️ active / 🌙 inactive), Gamemode indicator, reboot button (⏻ with rofi confirm), brightness menu icon (🖥️).
+
+### Brightness control (rofi)
+
+- **Keybind**: SUPER+B opens a rofi menu with common steps/presets.
+- **Waybar**: monitor icon launches the same menu.
+- **Script location**: installed to `~/.local/bin/rofi-brightness` (tilde path used in configs for portability).
+- **Backends**: Uses `brightnessctl` for kernel backlight or `ddcutil` for external monitors. For DDC:
+  - Ensure `hardware.i2c.enable = true;`
+  - Add your user to the `i2c` group
+  - Have `ddcutil` installed
+
+### Network mounts (Thunar)
+
+- Requires `services.gvfs.enable = true`, `services.gnome.gnome-keyring.enable = true`, and `glib-networking` package.
+- Avahi mDNS discovery uses `services.avahi.nssmdns4 = true;` (renamed option).
+- Optional: `services.davfs2.enable = true;` for WebDAV filesystem mounts (GVFS WebDAV also available).
+
+### Theming
+
+- GTK theme: Tokyo Night GTK; icons: Papirus; cursor: Bibata.
+- Qt: `qt.platformTheme = "gnome"` with `qt.style = "adwaita-dark"` for consistency; `adwaita-qt{,6}` and `qt6ct` present.
+- GTK4/libadwaita apps mostly follow dark mode + accent; GTK3/Thunar follow the full theme.
+
+### Portability checklist
+
+- `~/.local/bin/rofi-brightness` must be installed (activation script handles this) and `rofi` available.
+- User should be in groups used by this setup: `wheel`, `networkmanager`, `i2c`, `docker`, etc.
+- External monitor brightness: verify `ddcutil detect` sees your display; otherwise only kernel backlight works.
+- Waybar CSS: GTK CSS is strict; avoid unsupported units/properties. This config uses conservative `em` widths and supported rules.
+- Reboot button uses `rofi` for confirmation; adjust to your preferred prompt if you don’t use rofi.
+
