@@ -205,8 +205,11 @@ let
     moonlight-qt
     sunshine
     adwaita-icon-theme
-    lutris-free
+    lutris
     playonlinux
+    wineWowPackages.staging
+    winetricks
+    vulkan-tools
   ];
 
   # GTK applications (replacing GNOME apps)
@@ -355,6 +358,7 @@ in
       enable32Bit = true;
     };
     i2c.enable = true;
+    steam-hardware.enable = true;
   };
 
   # Services
