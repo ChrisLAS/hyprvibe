@@ -515,6 +515,7 @@ in
     # CoinGecko BTC-only
     cp ${./scripts/waybar-btc-coingecko.sh} /home/chrisf/.config/waybar/scripts/waybar-btc-coingecko.sh
     cp ${./scripts/waybar-reboot.sh} /home/chrisf/.config/waybar/scripts/waybar-reboot.sh
+    cp ${./scripts/waybar-mpris.sh} /home/chrisf/.config/waybar/scripts/waybar-mpris.sh
     chmod +x /home/chrisf/.config/waybar/scripts/*.sh
     chmod +x /home/chrisf/.config/waybar/scripts/*.py || true
     chown -R chrisf:users /home/chrisf/.config/waybar

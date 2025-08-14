@@ -13,7 +13,7 @@
     "custom/dunst",
     "custom/btc_price",
     "pulseaudio",
-    "mpris",
+    "custom/mpris",
     "network",
     "custom/public_ip",
     "cpu",
@@ -64,24 +64,17 @@
     "format-bluetooth": "🔊 {volume}%",
     "format-bluetooth-muted": "🔊",
     "format-muted": "🔊",
-    "format-icons": {
-      "headphone": "",
-      "hands-free": "",
-      "headset": "",
-      "phone": "",
-      "portable": "",
-      "car": "",
-      "default": ["", "", ""]
-    },
     "on-click": "pavucontrol"
   },
-  "mpris": {
-    "format": "{title}",
-    "max-length": 40,
+  "custom/mpris": {
+    "return-type": "json",
+    "exec": "~/.config/waybar/scripts/waybar-mpris.sh",
+    "interval": 1,
     "tooltip": true,
-    "on-click": "playerctl play-pause",
-    "on-scroll-up": "playerctl next",
-    "on-scroll-down": "playerctl previous"
+    "format": "{}",
+    "on-click": "playerctl -p playerctld play-pause",
+    "on-scroll-up": "playerctl -p playerctld next",
+    "on-scroll-down": "playerctl -p playerctld previous"
   },
   "custom/dunst": {
     "return-type": "json",
