@@ -10,13 +10,23 @@ format_output() {
   echo "{\"text\": \"${text}\", \"tooltip\": \"${tooltip}\"}"
 }
 
-# Try sysfs hwmon sensors for temp and power
-gpu_path="/sys/class/drm/card0/device"
+# Locate AMD GPU card index and path dynamically (vendor 0x1002)
+card_index=""
+for dev in /sys/class/drm/card*/device; do
+  [[ -e "$dev" ]] || continue
+  if [[ -r "$dev/vendor" ]] && grep -qi "0x1002" "$dev/vendor"; then
+    card_index=$(basename "$(dirname "$dev")" | sed 's/card//')
+    gpu_path="$dev"
+    break
+  fi
+done
+
 temp_c=""
 power_w=""
 util=""
 
-if [[ -r "${gpu_path}/hwmon" ]]; then
+# Try sysfs hwmon sensors for temp and power
+if [[ -n "${gpu_path:-}" && -r "${gpu_path}/hwmon" ]]; then
   hwmon_dir=$(readlink -f "${gpu_path}/hwmon"/* 2>/dev/null || true)
   if [[ -n "${hwmon_dir}" ]]; then
     if [[ -r "${hwmon_dir}/temp1_input" ]]; then
@@ -30,9 +40,11 @@ if [[ -r "${gpu_path}/hwmon" ]]; then
   fi
 fi
 
-# Util via busy percent from amdgpu_pm_info if present
-if [[ -r "/sys/kernel/debug/dri/0/amdgpu_pm_info" ]]; then
-  pm_info=$(cat /sys/kernel/debug/dri/0/amdgpu_pm_info 2>/dev/null || true)
+# Utilization via gpu_busy_percent if available; fallback to amdgpu_pm_info
+if [[ -n "${gpu_path:-}" && -r "${gpu_path}/gpu_busy_percent" ]]; then
+  util=$(cat "${gpu_path}/gpu_busy_percent" 2>/dev/null | tr -dc '0-9')
+elif [[ -n "${card_index}" && -r "/sys/kernel/debug/dri/${card_index}/amdgpu_pm_info" ]]; then
+  pm_info=$(cat "/sys/kernel/debug/dri/${card_index}/amdgpu_pm_info" 2>/dev/null || true)
   util=$(grep -iE 'GPU load' <<<"${pm_info}" | awk '{print $(NF-1)}' | tr -d '%')
 fi
 

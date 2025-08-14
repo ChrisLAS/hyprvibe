@@ -506,6 +506,7 @@ in
     cp ${./scripts/waybar-btc.py} /home/chrisf/.config/waybar/scripts/waybar-btc.py
     # CoinGecko BTC-only
     cp ${./scripts/waybar-btc-coingecko.sh} /home/chrisf/.config/waybar/scripts/waybar-btc-coingecko.sh
+    cp ${./scripts/waybar-reboot.sh} /home/chrisf/.config/waybar/scripts/waybar-reboot.sh
     chmod +x /home/chrisf/.config/waybar/scripts/*.sh
     chmod +x /home/chrisf/.config/waybar/scripts/*.py || true
     chown -R chrisf:users /home/chrisf/.config/waybar
@@ -584,6 +585,9 @@ in
     ignore_platform_theme=false
     EOF
     chown -R chrisf:users /home/chrisf/.config/qt6ct
+    # Install rofi brightness menu
+    install -m 0755 ${./scripts/rofi-brightness.sh} /home/chrisf/.local/bin/rofi-brightness
+    chown chrisf:users /home/chrisf/.local/bin/rofi-brightness
   '';
 
   # Programs

@@ -7,21 +7,25 @@
   "margin-bottom": 0,
   "margin-left": 0,
   "margin-right": 0,
-  "modules-left": ["hyprland/workspaces"],
-  "modules-center": ["hyprland/window"],
+  "modules-left": ["hyprland/workspaces", "hyprland/window"],
+  "modules-center": [],
   "modules-right": [
     "custom/dunst",
     "custom/btc_price",
     "pulseaudio",
+    "mpris",
     "network",
     "custom/public_ip",
     "cpu",
     "memory",
-    "custom/brightness",
+    "idle_inhibitor",
     "custom/amd_gpu",
+    "gamemode",
     "custom/weather",
     "clock",
-    "tray"
+    "tray",
+    "custom/brightness_menu",
+    "custom/reboot"
   ],
   "hyprland/workspaces": {
     "disable-scroll": true,
@@ -70,6 +74,14 @@
     },
     "on-click": "pavucontrol"
   },
+  "mpris": {
+    "format": "{title}",
+    "max-length": 40,
+    "tooltip": true,
+    "on-click": "playerctl play-pause",
+    "on-scroll-up": "playerctl next",
+    "on-scroll-down": "playerctl previous"
+  },
   "custom/dunst": {
     "return-type": "json",
     "exec": "~/.config/waybar/scripts/waybar-dunst.sh",
@@ -94,11 +106,11 @@
     "format": "{}"
   },
   "cpu": {
-    "format": "{usage}% ",
+    "format": "CPU {usage}% ",
     "tooltip": false
   },
   "memory": {
-    "format": "{}% ",
+    "format": "MEM {percentage}% ",
     "tooltip": false
   },
   "custom/amd_gpu": {
@@ -108,14 +120,13 @@
     "tooltip": true,
     "format": "{}"
   },
-  "custom/brightness": {
-    "return-type": "json",
-    "exec": "~/.config/waybar/scripts/waybar-brightness.sh",
-    "interval": 2,
-    "format": "{}",
-    "on-click": "~/.config/waybar/scripts/waybar-brightness.sh --up 10",
-    "on-scroll-up": "~/.config/waybar/scripts/waybar-brightness.sh --up 5",
-    "on-scroll-down": "~/.config/waybar/scripts/waybar-brightness.sh --down 5"
+  
+  "idle_inhibitor": {
+    "format": "{icon}",
+    "format-icons": {
+      "activated": "☀️",
+      "deactivated": "🌙"
+    }
   },
   "custom/weather": {
     "return-type": "json",
@@ -124,6 +135,9 @@
     "tooltip": true,
     "format": "{}"
   },
+  "gamemode": {
+    "format": "GM {count}"
+  },
   "clock": {
     "format": "{:%I:%M %p}",
     "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
@@ -131,5 +145,25 @@
   },
   "tray": {
     "spacing": 10
+  }
+  ,
+  "custom/brightness_menu": {
+    "format": "🖥️",
+    "tooltip": true,
+    "tooltip-format": "Brightness menu",
+    "on-click": "rofi-brightness",
+    "return-type": "json",
+    "exec": "echo '{\"text\": \"🖥️\"}'",
+    "interval": 0
+  },
+  
+  "custom/reboot": {
+    "format": "⏻",
+    "tooltip": true,
+    "tooltip-format": "Reboot",
+    "on-click": "~/.config/waybar/scripts/waybar-reboot.sh",
+    "return-type": "json",
+    "exec": "echo '{\"text\": \"⏻\"}'",
+    "interval": 0
   }
 } 

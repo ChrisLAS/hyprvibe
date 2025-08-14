@@ -5,7 +5,7 @@
 }
 
 window#waybar {
-  background: rgba(10, 10, 16, 0.85);
+  background: rgba(10, 10, 16, 0.75);
   color: #e6e6e6;
   border-bottom: 2px solid #00ffd2; /* neon cyan */
 }
@@ -76,4 +76,29 @@ tooltip {
   color: #f2f2f2;
   border: 1px solid #00ffd2;
 }
+
+/* Module “chips”: add subtle boxes with padding so width changes don't jitter neighbors */
+.modules-left > widget,
+.modules-center > widget,
+.modules-right > widget {
+  background-color: rgba(20, 20, 32, 0.55);
+  border: 1px solid rgba(0, 255, 210, 0.35);
+  border-radius: 8px;
+  padding: 2px 10px;
+  margin: 2px 4px;
+}
+
+/* Avoid double-styling workspaces block; buttons already styled above */
+#workspaces {
+  background: transparent;
+  border: none;
+  padding: 0 8px;
+  margin: 0 4px;
+}
+
+/* Fix widths for metrics to reduce layout shift */
+#cpu { min-width: 8em; }
+#memory { min-width: 8em; }
+#network { min-width: 14em; }
+#pulseaudio { min-width: 8em; }
 
