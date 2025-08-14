@@ -10,7 +10,6 @@
   "modules-left": ["hyprland/workspaces", "hyprland/window", "custom/mpris"],
   "modules-center": [],
   "modules-right": [
-    "custom/dunst",
     "custom/btc_price",
     "pulseaudio",
     
@@ -23,6 +22,7 @@
     "custom/weather",
     "tray",
     "bluetooth",
+    "custom/dunst",
     "idle_inhibitor",
     "custom/brightness_menu",
     "clock",

@@ -82,7 +82,7 @@ tooltip {
 .modules-center > widget,
 .modules-right > widget {
   background-color: rgba(20, 20, 32, 0.55);
-  border: 1px solid rgba(0, 255, 210, 0.35);
+  border: none;
   border-radius: 8px;
   padding: 2px 10px;
   margin: 2px 4px;
