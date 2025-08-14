@@ -130,3 +130,43 @@ There are no doubt a few ways we could improve this for easier sharing.
 - Waybar CSS: GTK CSS is strict; avoid unsupported units/properties. This config uses conservative `em` widths and supported rules.
 - Reboot button uses `rofi` for confirmation; adjust to your preferred prompt if you don’t use rofi.
 
+## Keybindings
+
+| Category | Keys | Action | Command/Notes |
+|---|---|---|---|
+| Launchers | SUPER+RETURN | Launch terminal | `$terminal` (alacritty) |
+| Launchers | SUPER+SPACE | App launcher | `$menu` (rofi run/drun) |
+| Launchers | SUPER+F | Launch browser | `$browser` (firefox) |
+| Launchers | SUPER+E | File manager | `dolphin` |
+| Launchers | SUPER+O | Obsidian | `flatpak run md.obsidian.Obsidian` |
+| Brightness | SUPER+B | Brightness menu | `~/.local/bin/rofi-brightness` (rofi menu) |
+| Session | SUPER+M | Exit Hyprland | `exit` |
+| Session | SUPER+L | Lock | `hyprlock` |
+| Rofi | SUPER+SHIFT+SPACE | Rofi drun | `rofi -show drun -modi drun,run,filebrowser` |
+| Rofi | SUPER+ALT+SPACE | Rofi file browser | `rofi -show filebrowser -modi drun,run,filebrowser` |
+| Rofi | SUPER+CTRL+SPACE | Rofi keys | `rofi -show keys -modi drun,run,filebrowser,keys` |
+| Windows | SUPER+V | Toggle floating | `togglefloating` |
+| Windows | SUPER+left/right/up/down | Move focus | `movefocus l/r/u/d` |
+| Layout (dwindle) | SUPER+P | Pseudotile | `pseudo` |
+| Layout (dwindle) | SUPER+J | Toggle split | `togglesplit` |
+| Workspaces | SUPER+1..0 | Switch workspace 1–10 | `workspace 1..10` |
+| Workspaces | SUPER+SHIFT+1..0 | Move window to ws 1–10 | `movetoworkspace 1..10` |
+| Workspaces | SUPER+mouse_down | Next workspace | `workspace e+1` |
+| Workspaces | SUPER+mouse_up | Previous workspace | `workspace e-1` |
+| Special ws | SUPER+S | Toggle special | `togglespecialworkspace magic` |
+| Special ws | SUPER+SHIFT+S | Move to special | `movetoworkspace special:magic` |
+| Mouse | SUPER + LMB drag | Move window | `bindm … movewindow` |
+| Mouse | SUPER + RMB drag | Resize window | `bindm … resizewindow` |
+| Display power | SUPER+SHIFT+L | Screen off (DPMS) | `hyprctl dispatch dpms off` |
+| Display power | SUPER+ALT+L | Screen on (DPMS) | `hyprctl dispatch dpms on` |
+| Screenshot | Print | Region to clipboard | `grim -g "$(slurp)" - | wl-copy` |
+| Screenshot | SHIFT+Print | Region to file | `grim -g "$(slurp)" ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png` |
+| Audio | XF86AudioRaiseVolume | Volume up +5% | `wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+` |
+| Audio | XF86AudioLowerVolume | Volume down -5% | `wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-` |
+| Audio | XF86AudioMute | Toggle mute | `wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle` |
+| Media | XF86AudioPlay | Play/Pause | `playerctl play-pause` |
+| Media | XF86AudioNext | Next track | `playerctl next` |
+| Media | XF86AudioPrev | Previous track | `playerctl previous` |
+| Brightness | XF86MonBrightnessUp | Increase brightness | `brightnessctl set +5%` |
+| Brightness | XF86MonBrightnessDown | Decrease brightness | `brightnessctl set 5%-` |
+
