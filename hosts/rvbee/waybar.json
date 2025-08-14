@@ -151,7 +151,7 @@
     "format": "🖥️",
     "tooltip": true,
     "tooltip-format": "Brightness menu",
-    "on-click": "rofi-brightness",
+    "on-click": "~/.local/bin/rofi-brightness",
     "return-type": "json",
     "exec": "echo '{\"text\": \"🖥️\"}'",
     "interval": 0
