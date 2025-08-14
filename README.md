@@ -31,6 +31,8 @@ There are no doubt a few ways we could improve this for easier sharing.
 - **Development**: Full development toolchain
 - **Multimedia**: Video/audio editing and playback tools
 
+![Screenshot](screenshot.jpg)
+
 ## Notes:
 
 1. You'll need to update the path with your home dir. 
