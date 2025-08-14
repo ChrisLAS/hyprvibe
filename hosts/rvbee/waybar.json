@@ -7,13 +7,13 @@
   "margin-bottom": 0,
   "margin-left": 0,
   "margin-right": 0,
-  "modules-left": ["hyprland/workspaces", "hyprland/window"],
+  "modules-left": ["hyprland/workspaces", "hyprland/window", "custom/mpris"],
   "modules-center": [],
   "modules-right": [
     "custom/dunst",
     "custom/btc_price",
     "pulseaudio",
-    "custom/mpris",
+    
     "network",
     "custom/public_ip",
     "cpu",
@@ -21,11 +21,11 @@
     "custom/amd_gpu",
     "gamemode",
     "custom/weather",
-    "clock",
     "tray",
     "bluetooth",
     "idle_inhibitor",
     "custom/brightness_menu",
+    "clock",
     "custom/reboot"
   ],
   "hyprland/workspaces": {

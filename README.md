@@ -24,7 +24,7 @@ There are no doubt a few ways we could improve this for easier sharing.
 
 ### Full system overview
 
-![Screenshot](screenshot-2025-08-13.jpg)
+![Screenshot](screenshotv3.jpg)
 
 
 - **Hyprland/Wayland desktop**
