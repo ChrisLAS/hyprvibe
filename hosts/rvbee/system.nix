@@ -120,7 +120,7 @@ let
     xmlstarlet
     tldr
     plocate
-    man
+    # man  # removed since manpages are disabled
     less
     whois
     bash-completion
@@ -133,12 +133,13 @@ let
     nautilus
     sushi
     # Additional Hyprland utilities from Omarchy
-    polkit_gnome
+    # polkit_gnome  # removed to avoid duplicate agents; using KDE polkit agent
     libqalculate
     mako
     swaybg
     swayosd
     rofi-wayland
+    qt6ct
     pavucontrol
     networkmanagerapplet
     # Shell history replacement
@@ -194,7 +195,7 @@ let
     hyprsunset
     yazi
     starship
-    zoxide
+    # zoxide  # deduped; present in utilities
     
   ];
 
@@ -352,9 +353,6 @@ in
     graphics = {
       enable = true;
       enable32Bit = true;
-      extraPackages = with pkgs; [
-        amdvlk
-      ];
     };
     i2c.enable = true;
   };
@@ -410,6 +408,7 @@ in
       login.kwallet.enable = true;
       gdm.kwallet.enable = true;
       gdm-password.kwallet.enable = true;
+      hyprlock = { };
     };
   };
 
