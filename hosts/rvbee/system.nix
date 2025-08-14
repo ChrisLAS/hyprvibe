@@ -312,6 +312,22 @@ in
         Restart = "on-failure";
       };
     };
+
+    # Load GITHUB_TOKEN into the systemd user manager environment from a local secret file
+    user.services.set-github-token = {
+      description = "Set GITHUB_TOKEN in systemd --user environment from ~/.config/secrets/github_token";
+      after = [ "default.target" ];
+      wantedBy = [ "default.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = ''${pkgs.bash}/bin/bash -lc '
+          if [ -r "$HOME/.config/secrets/github_token" ]; then
+            systemctl --user set-environment GITHUB_TOKEN="$(tr -d "\n" < "$HOME/.config/secrets/github_token")"
+          fi
+        '''';
+      };
+    };
   };
 
   # Networking
