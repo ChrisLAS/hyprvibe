@@ -2,12 +2,9 @@
 
 A flake-based NixOS configuration with Hyprland window manager support.
 
-Tuned to squeeze every bit of performance out of your system.
+Tuned to squeeze every bit of performance out of your system. It's not in a drop-and-go state, but if you're willing to tweak a few things *(like replacing my username)*. You should be mostly set. 
 
-It's not in a drop-and-go state, but if you're willing, tweak a few things.
- (like replace my username) You should be mostly set. 
-
-There are a few ways we could improve this for easier sharing. I'd appreciate suggestions/PRs. 
+There are a few ways we could improve for easier sharing. I'd appreciate suggestions/PRs. 
 
 
 ## Structure
