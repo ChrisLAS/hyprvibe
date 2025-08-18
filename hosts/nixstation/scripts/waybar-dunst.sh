@@ -10,11 +10,11 @@ if dunstctl is-paused >/dev/null 2>&1; then
   fi
 fi
 
-icon="🔔"
+icon="󰂚"
 case "$state" in
-  paused) icon="🔕" ;;
-  on) icon="🔔" ;;
-  off) icon="🔔" ;;
+  paused) icon="󰂛" ;;
+  on) icon="󰂚" ;;
+  off) icon="󰂚" ;;
 esac
 
 echo "{\"text\": \"$icon\", \"tooltip\": \"Notifications: $state (click to toggle)\"}"
