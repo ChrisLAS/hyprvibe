@@ -42,30 +42,30 @@
     "max-length": 50
   },
   "pulseaudio": {
-    "format": "🔊 {volume}%",
-    "format-bluetooth": "🔊 {volume}%",
-    "format-bluetooth-muted": "🔇",
-    "format-muted": "🔇",
+    "format": "󰕾 {volume}%",
+    "format-bluetooth": "󰕾 {volume}%",
+    "format-bluetooth-muted": "󰖁",
+    "format-muted": "󰖁",
     "on-click": "pavucontrol"
   },
   "network": {
-    "format-wifi": "📶 {essid} ({signalStrength}%) ",
-    "format-ethernet": "🌐 {ipaddr}/{cidr} ",
-    "format-linked": "🔗 {ifname} (No IP) ",
-    "format-disconnected": "❌ Disconnected",
-    "format-alt": "🌐 {ifname}: {ipaddr}/{cidr}",
+    "format-wifi": "󰖩 {essid} ({signalStrength}%) ",
+    "format-ethernet": "󰈀 {ipaddr}/{cidr} ",
+    "format-linked": "󰈁 {ifname} (No IP) ",
+    "format-disconnected": "󰈂 Disconnected",
+    "format-alt": "󰈀 {ifname}: {ipaddr}/{cidr}",
     "on-click": "nm-connection-editor"
   },
   "cpu": {
-    "format": "💻 {usage}% ",
+    "format": "󰘚 {usage}% ",
     "tooltip": false
   },
   "memory": {
-    "format": "🧠 {percentage}% ",
+    "format": "󰍛 {percentage}% ",
     "tooltip": false
   },
   "clock": {
-    "format": "⏰ {:%H:%M}",
+    "format": "󰅐 {:%H:%M}",
     "tooltip": false
   },
   "tray": {

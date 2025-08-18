@@ -915,6 +915,7 @@ in
     corefonts
     hack-font
     twemoji-color-font
+    (nerdfonts.override { fonts = [ "FiraCode" "Hack" "Ubuntu" ]; })
   ];
 
   # Font configuration for better emoji support
