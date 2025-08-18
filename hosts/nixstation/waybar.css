@@ -1,6 +1,6 @@
 /* Cyberpunk-inspired, high-contrast, readable */
 * {
-  font-family: "DejaVu Sans", "Liberation Sans", "Arial", sans-serif;
+  font-family: "DejaVu Sans", "Liberation Sans", "Arial", "Noto Color Emoji", "Twemoji", sans-serif;
   font-size: 12px;
   color: #ffffff;
 }
