@@ -758,6 +758,7 @@ in
     # Install Hyprland scripts
     mkdir -p /home/chrisf/.config/hypr/scripts
     cp ${./scripts/launch-communication.sh} /home/chrisf/.config/hypr/scripts/launch-communication.sh
+    cp ${./scripts/launch-development.sh} /home/chrisf/.config/hypr/scripts/launch-development.sh
     chmod +x /home/chrisf/.config/hypr/scripts/*.sh
     chown -R chrisf:users /home/chrisf/.config/hypr
     
