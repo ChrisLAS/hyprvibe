@@ -14,6 +14,7 @@ let
     binutils
     nixfmt-rfc-style
     zed-editor
+    cursor
     cargo
     clang
     llvm
@@ -599,9 +600,9 @@ in
     };
     i2c.enable = true;
     steam-hardware.enable = true;
-    opengl = {
+    graphics = {
       enable = true;
-      driSupport32Bit = true;
+      enable32Bit = true;
       extraPackages = with pkgs; [
         vaapiVdpau
         libvdpau-va-gl
@@ -626,7 +627,7 @@ in
     };
     
     # Enable touchpad support
-    xserver.libinput.enable = true;
+    libinput.enable = true;
     
     # Enable Flatpak - PRESERVING YOUR EXISTING CONFIG
     flatpak.enable = true;
@@ -1018,8 +1019,8 @@ in
   };
 
   # Enable/Disable automatic login for the user - PRESERVING YOUR EXISTING CONFIG
-  services.xserver.displayManager.autoLogin.enable = true;
-  services.xserver.displayManager.autoLogin.user = "chrisf";
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = "chrisf";
 
   # Workaround for GNOME autologin - PRESERVING YOUR EXISTING CONFIG
   systemd.services."getty@tty1".enable = false;
