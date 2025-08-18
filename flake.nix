@@ -27,6 +27,16 @@
         specialArgs = {
           inherit hyprland;
         };
+            };
+      nixstation = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/nixstation/system.nix
+          prettyswitch.nixosModules.default
+        ];
+        specialArgs = {
+          inherit hyprland;
+        };
       };
       installer = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";

@@ -1,0 +1,172 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 30,
+  "spacing": 4,
+  "margin-top": 0,
+  "margin-bottom": 0,
+  "margin-left": 0,
+  "margin-right": 0,
+  "modules-left": ["hyprland/workspaces", "hyprland/window", "custom/mpris"],
+  "modules-center": [],
+  "modules-right": [
+    "custom/btc_price",
+    "pulseaudio",
+    
+    "network",
+    "custom/public_ip",
+    "cpu",
+    "memory",
+    "custom/amd_gpu",
+    "gamemode",
+    "custom/weather",
+    "tray",
+    "bluetooth",
+    "custom/dunst",
+    "idle_inhibitor",
+    "custom/brightness_menu",
+    "clock",
+    "custom/reboot"
+  ],
+  "hyprland/workspaces": {
+    "disable-scroll": true,
+    "all-outputs": true,
+    "format": "{name}",
+    "format-icons": {
+      "1": "1",
+      "2": "2", 
+      "3": "3",
+      "4": "4",
+      "5": "5",
+      "6": "6",
+      "7": "7",
+      "8": "8",
+      "9": "9",
+      "10": "10",
+      "urgent": "urgent",
+      "focused": "focused",
+      "default": "default"
+    }
+  },
+  "custom/btc_price": {
+    "return-type": "json",
+    "exec": "~/.config/waybar/scripts/waybar-btc-coingecko.sh",
+    "interval": 60,
+    "format": "{}",
+    "tooltip": true
+  },
+  "hyprland/window": {
+    "format": "{}",
+    "max-length": 50
+  },
+  "pulseaudio": {
+    "format": "🔊 {volume}%",
+    "format-bluetooth": "🔊 {volume}%",
+    "format-bluetooth-muted": "🔊",
+    "format-muted": "🔊",
+    "on-click": "pavucontrol"
+  },
+  "custom/mpris": {
+    "return-type": "json",
+    "exec": "~/.config/waybar/scripts/waybar-mpris.sh",
+    "interval": 1,
+    "tooltip": true,
+    "format": "{}",
+    "on-click": "playerctl -p playerctld play-pause",
+    "on-scroll-up": "playerctl -p playerctld next",
+    "on-scroll-down": "playerctl -p playerctld previous"
+  },
+  "custom/dunst": {
+    "return-type": "json",
+    "exec": "~/.config/waybar/scripts/waybar-dunst.sh",
+    "interval": 5,
+    "on-click": "dunstctl set-paused toggle",
+    "tooltip": true,
+    "format": "{}"
+  },
+  "network": {
+    "format-wifi": "{essid} ({signalStrength}%) ",
+    "format-ethernet": "🖧 {ipaddr}/{cidr} ",
+    "format-linked": "{ifname} (No IP) ",
+    "format-disconnected": "Disconnected ⚠",
+    "format-alt": "🖧 {ifname}: {ipaddr}/{cidr}",
+    "on-click": "nm-connection-editor"
+  },
+  "custom/public_ip": {
+    "return-type": "json",
+    "exec": "~/.config/waybar/scripts/waybar-public-ip.sh",
+    "interval": 300,
+    "tooltip": true,
+    "format": "🌍 {}"
+  },
+  "cpu": {
+    "format": "🖥️ {usage}% ",
+    "tooltip": false
+  },
+  "memory": {
+    "format": "🤖 {percentage}% ",
+    "tooltip": false
+  },
+  "custom/amd_gpu": {
+    "return-type": "json",
+    "exec": "~/.config/waybar/scripts/waybar-amd-gpu.sh",
+    "interval": 5,
+    "tooltip": true,
+    "format": "🎮 {}"
+  },
+  
+  "idle_inhibitor": {
+    "format": "{icon}",
+    "format-icons": {
+      "activated": "☀️",
+      "deactivated": "🌙"
+    }
+  },
+  "custom/weather": {
+    "return-type": "json",
+    "exec": "~/.config/waybar/scripts/waybar-weather.sh",
+    "interval": 600,
+    "tooltip": true,
+    "format": "{}"
+  },
+  "gamemode": {
+    "format": "GM {count}"
+  },
+  "clock": {
+    "format": "🕒 {:%I:%M %p}",
+    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+    "format-alt": "{:%Y-%m-%d}"
+  },
+  "tray": {
+    "spacing": 10
+  }
+  ,
+  "bluetooth": {
+    "format": "🔵 {status}",
+    "format-connected": "🔵 {num_connections}",
+    "format-connected-battery": "🔵 {device_battery_percentage}%",
+    "format-off": "⚪ off",
+    "tooltip": true,
+    "on-click": "blueman-manager"
+  },
+  
+  "custom/brightness_menu": {
+    "format": "🖥️",
+    "tooltip": true,
+    "tooltip-format": "Brightness menu",
+    "on-click": "~/.local/bin/rofi-brightness",
+    "return-type": "json",
+    "exec": "echo '{\"text\": \"🖥️\"}'",
+    "interval": 0
+  },
+  
+  "custom/reboot": {
+    "format": "⏻",
+    "tooltip": true,
+    "tooltip-format": "Reboot",
+    "on-click": "~/.config/waybar/scripts/waybar-reboot.sh",
+    "return-type": "json",
+    "exec": "echo '{\"text\": \"⏻\"}'",
+    "interval": 0
+  }
+} 
