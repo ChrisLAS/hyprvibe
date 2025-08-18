@@ -811,6 +811,10 @@ in
     # Copy waybar switch script
     cp ${../../scripts/waybar-switch.sh} /home/chrisf/.local/bin/waybar-switch
     chmod +x /home/chrisf/.local/bin/waybar-switch
+    
+    # Copy per-monitor waybar script
+    cp ${../../scripts/waybar-per-monitor.sh} /home/chrisf/.local/bin/waybar-per-monitor
+    chmod +x /home/chrisf/.local/bin/waybar-per-monitor
 
 
     # Apply GTK theming

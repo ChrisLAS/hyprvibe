@@ -1,7 +1,7 @@
 {
   "layer": "top",
   "position": "top",
-  "height": 30,
+  "height": 38,
   "spacing": 4,
   "margin-top": 0,
   "margin-bottom": 0,
@@ -139,8 +139,7 @@
   },
   "tray": {
     "spacing": 10
-  }
-  ,
+  },
   "bluetooth": {
     "format": "🔵 {status}",
     "format-connected": "🔵 {num_connections}",
