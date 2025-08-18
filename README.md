@@ -57,7 +57,7 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
   - Nix store auto-optimise; weekly GC
   - systemd OOM tuning for `nix-daemon`
   - Btrfs root with fstrim and autoscrub
-  - CPU governor set to “performance”
+  - CPU governor set to "performance"
 
 - **Graphics**
   - Wayland + XWayland
@@ -127,7 +127,7 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
 - User should be in groups used by this setup: `wheel`, `networkmanager`, `i2c`, `docker`, etc.
 - External monitor brightness: verify `ddcutil detect` sees your display; otherwise only kernel backlight works.
 - Waybar CSS: GTK CSS is strict; avoid unsupported units/properties. This config uses conservative `em` widths and supported rules.
-- Reboot button uses `rofi` for confirmation; adjust to your preferred prompt if you don’t use rofi.
+- Reboot button uses `rofi` for confirmation; adjust to your preferred prompt if you don't use rofi.
 
 ## Keybindings
 
@@ -168,4 +168,33 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
 | Media | XF86AudioPrev | Previous track | `playerctl previous` |
 | Brightness | XF86MonBrightnessUp | Increase brightness | `brightnessctl set +5%` |
 | Brightness | XF86MonBrightnessDown | Decrease brightness | `brightnessctl set 5%-` |
+
+### Multi-Monitor Keybindings (Nixstation 4-Monitor Setup)
+
+The following keybindings are available on nixstation for managing the 4-monitor layout:
+
+| Category | Keys | Action | Description |
+|---|---|---|---|
+| **Monitor Focus** | SUPER+CTRL+left/right/up/down | Move focus between monitors | Navigate focus in the direction of the arrow |
+| **Monitor Focus** | SUPER+F1 | Focus Screen 1 (above center) | Quick focus to GIGA-BYTE M27Q |
+| **Monitor Focus** | SUPER+F2 | Focus Screen 2 (left vertical) | Quick focus to left ASUS PB278 |
+| **Monitor Focus** | SUPER+F3 | Focus Screen 3 (center/main) | Quick focus to center ASUS PB278 |
+| **Monitor Focus** | SUPER+F4 | Focus Screen 4 (right vertical) | Quick focus to right ASUS PB277 |
+| **Window Movement** | SUPER+SHIFT+CTRL+left/right/up/down | Move window between monitors | Move active window in the direction of the arrow |
+| **Window Movement** | SUPER+SHIFT+F1 | Move window to Screen 1 | Move active window to above center monitor |
+| **Window Movement** | SUPER+SHIFT+F2 | Move window to Screen 2 | Move active window to left vertical monitor |
+| **Window Movement** | SUPER+SHIFT+F3 | Move window to Screen 3 | Move active window to center main monitor |
+| **Window Movement** | SUPER+SHIFT+F4 | Move window to Screen 4 | Move active window to right vertical monitor |
+
+**Monitor Layout:**
+- **Screen 1**: Above center (GIGA-BYTE M27Q) - 2560x1440
+- **Screen 2**: Left vertical (ASUS PB278) - 1440x2560 (rotated 90°)
+- **Screen 3**: Center/main (ASUS PB278) - 2560x1440
+- **Screen 4**: Right vertical (ASUS PB277) - 1440x2560 (rotated 90°)
+
+**Workspace Support:**
+- Each monitor supports its own set of workspaces (1-10)
+- `SUPER+1..0` switches to workspace 1-10 on the currently focused monitor
+- `SUPER+SHIFT+1..0` moves the active window to workspace 1-10 on the currently focused monitor
+- Workspaces are independent per monitor, allowing for complex multi-monitor workflows
 
