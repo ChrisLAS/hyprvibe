@@ -901,6 +901,7 @@ in
     noto-fonts
     ubuntu_font_family
     noto-fonts-emoji
+    noto-fonts-color-emoji
     liberation_ttf
     fira-code
     fira-code-symbols
@@ -909,7 +910,20 @@ in
     fira
     corefonts
     hack-font
+    twemoji-color-font
   ];
+
+  # Font configuration for better emoji support
+  fonts.fontconfig = {
+    enable = true;
+    defaultFonts = {
+      monospace = [ "Fira Code" "Noto Color Emoji" ];
+      sansSerif = [ "Ubuntu" "Noto Color Emoji" ];
+      serif = [ "Noto Serif" "Noto Color Emoji" ];
+      emoji = [ "Noto Color Emoji" "Twemoji" ];
+    };
+    localConf = builtins.readFile ./fonts.conf;
+  };
 
   # Environment - PRESERVING YOUR EXISTING CONFIG
   environment = {
