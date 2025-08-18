@@ -1,0 +1,12 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 38,
+  "modules-left": ["custom/test"],
+  "modules-center": [],
+  "modules-right": [],
+  "custom/test": {
+    "format": "TEST TEXT",
+    "interval": 0
+  }
+}

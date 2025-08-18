@@ -1,7 +1,8 @@
 /* Cyberpunk-inspired, high-contrast, readable */
 * {
-  font-family: "FiraCode Nerd Font", "Fira Code", "Noto Color Emoji", "Twemoji", "Segoe UI Emoji", "Apple Color Emoji", "Noto Emoji", "EmojiOne Mozilla", "EmojiSymbols", monospace;
-  font-size: 12pt;
+  font-family: "DejaVu Sans", "Liberation Sans", "Arial", sans-serif;
+  font-size: 12px;
+  color: #ffffff;
 }
 
 window#waybar {
@@ -15,21 +16,24 @@ window#waybar {
 }
 
 #workspaces button {
-  padding: 4px 10px;
-  color: #9ae6ff; /* soft cyan */
-  border: 1px solid transparent;
-  margin: 2px;
+  padding: 0 5px;
+  background-color: transparent;
+  color: #ffffff;
+  border-bottom: 3px solid transparent;
+}
+
+#workspaces button:hover {
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 -3px #ffffff;
 }
 
 #workspaces button.active {
-  color: #0a0a10;
-  background: linear-gradient(135deg, #00ffd2, #ff00aa);
-  border-color: #00ffd2;
+  background-color: #64727D;
+  border-bottom: 3px solid #ffffff;
 }
 
 #workspaces button.urgent {
-  background: #ff0055;
-  color: #fff;
+  background-color: #eb4d4b;
 }
 
 /* Large, readable workspace indicator */
@@ -38,20 +42,43 @@ window#waybar {
   font-size: 14pt;
 }
 
-#clock, #memory, #cpu, #tray, #network, #pulseaudio, #custom-public_ip, #custom-amd_gpu, #custom-weather, #custom-dunst, #window {
+#clock {
+  background-color: transparent;
+  color: #ffffff;
   padding: 0 10px;
 }
 
-#clock {
-  color: #ffe86b; /* warm */
+#memory {
+  background-color: transparent;
+  color: #ffffff;
+  padding: 0 10px;
+}
+
+#cpu {
+  background-color: transparent;
+  color: #ffffff;
+  padding: 0 10px;
+}
+
+#tray {
+  background-color: transparent;
+  padding: 0 10px;
 }
 
 #network {
-  color: #7af7a7;
+  background-color: transparent;
+  color: #ffffff;
+  padding: 0 10px;
 }
 
-#pulseaudio.muted {
-  color: #888;
+#pulseaudio {
+  background-color: transparent;
+  color: #ffffff;
+  padding: 0 10px;
+}
+
+#custom-public_ip {
+  color: #ff8bd1; /* neon pink */
 }
 
 #custom-amd_gpu {
@@ -67,7 +94,9 @@ window#waybar {
 }
 
 #window {
-  color: #e6e6e6;
+  background-color: transparent;
+  color: #ffffff;
+  padding: 0 10px;
 }
 
 /* Tooltips */

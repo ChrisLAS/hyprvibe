@@ -1,0 +1,45 @@
+* {
+  font-family: "DejaVu Sans", sans-serif;
+  font-size: 12px;
+  color: white;
+}
+
+#workspaces button {
+  padding: 5px;
+  background: transparent;
+  color: white;
+}
+
+#workspaces button.active {
+  background: #64727D;
+}
+
+#clock {
+  padding: 5px;
+  color: white;
+}
+
+#cpu {
+  padding: 5px;
+  color: white;
+}
+
+#memory {
+  padding: 5px;
+  color: white;
+}
+
+#pulseaudio {
+  padding: 5px;
+  color: white;
+}
+
+#network {
+  padding: 5px;
+  color: white;
+}
+
+#window {
+  padding: 5px;
+  color: white;
+}
