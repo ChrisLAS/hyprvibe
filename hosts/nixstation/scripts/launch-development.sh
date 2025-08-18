@@ -10,12 +10,16 @@ hyprctl dispatch focusmonitor DP-2
 # Launch Cursor editor and position it on top half
 cursor &
 sleep 2
+# Move to DP-2 monitor first, then position
+hyprctl dispatch movewindow mon:DP-2
 hyprctl dispatch movewindow exact 0 0
 hyprctl dispatch resizeactive exact 1440 1280
 
 # Launch terminal and position it on bottom half
 kitty &
 sleep 2
+# Move to DP-2 monitor first, then position
+hyprctl dispatch movewindow mon:DP-2
 hyprctl dispatch movewindow exact 0 1280
 hyprctl dispatch resizeactive exact 1440 1280
 
