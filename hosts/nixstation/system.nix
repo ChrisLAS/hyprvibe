@@ -597,18 +597,14 @@ in
     graphics = {
       enable = true;
       enable32Bit = true;
-    };
-    i2c.enable = true;
-    steam-hardware.enable = true;
-    graphics = {
-      enable = true;
-      enable32Bit = true;
       extraPackages = with pkgs; [
         vaapiVdpau
         libvdpau-va-gl
       ];
       extraPackages32 = with pkgs.pkgsi686Linux; [ vaapiVdpau ];
     };
+    i2c.enable = true;
+    steam-hardware.enable = true;
   };
 
   # Services - PRESERVING YOUR EXISTING CONFIG
