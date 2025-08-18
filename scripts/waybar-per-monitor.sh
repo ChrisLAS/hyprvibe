@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Per-Monitor Waybar Launcher
 # This script launches different waybar configurations for different monitors
