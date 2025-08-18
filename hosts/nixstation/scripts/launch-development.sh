@@ -11,13 +11,13 @@ hyprctl dispatch focusmonitor DP-2
 cursor &
 sleep 2
 hyprctl dispatch movewindow exact 0 0
-hyprctl dispatch resizeactive exact 1440 720
+hyprctl dispatch resizeactive exact 1440 1280
 
 # Launch terminal and position it on bottom half
 kitty &
 sleep 2
-hyprctl dispatch movewindow exact 0 720
-hyprctl dispatch resizeactive exact 1440 720
+hyprctl dispatch movewindow exact 0 1280
+hyprctl dispatch resizeactive exact 1440 1280
 
 # Focus back to the main monitor (DP-3)
 hyprctl dispatch focusmonitor DP-3
