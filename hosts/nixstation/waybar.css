@@ -44,7 +44,7 @@ window#waybar {
 
 #clock {
   background-color: transparent;
-  color: #ffffff;
+  color: #ffe86b; /* warm */
   padding: 0 10px;
 }
 
@@ -67,7 +67,7 @@ window#waybar {
 
 #network {
   background-color: transparent;
-  color: #ffffff;
+  color: #7af7a7;
   padding: 0 10px;
 }
 
@@ -75,6 +75,10 @@ window#waybar {
   background-color: transparent;
   color: #ffffff;
   padding: 0 10px;
+}
+
+#pulseaudio.muted {
+  color: #888;
 }
 
 #custom-public_ip {
@@ -106,7 +110,7 @@ tooltip {
   border: 1px solid #00ffd2;
 }
 
-/* Module “chips”: add subtle boxes with padding so width changes don't jitter neighbors */
+/* Module "chips": add subtle boxes with padding so width changes don't jitter neighbors */
 .modules-left > widget,
 .modules-center > widget,
 .modules-right > widget {
