@@ -1,73 +1,15 @@
 * {
-  font-family: "DejaVu Sans", "Liberation Sans", "Arial", sans-serif;
-  font-size: 12pt;
+  font-family: "DejaVu Sans", sans-serif;
+  font-size: 14px;
   color: #ffffff;
 }
 
-#workspaces button {
-  padding: 0 5px;
-  background-color: transparent;
+window#waybar {
+  background: rgba(0, 0, 0, 0.8);
   color: #ffffff;
-  border-bottom: 3px solid transparent;
-}
-
-#workspaces button:hover {
-  background: rgba(0, 0, 0, 0.2);
-  box-shadow: inset 0 -3px #ffffff;
-}
-
-#workspaces button.active {
-  background-color: #64727D;
-  border-bottom: 3px solid #ffffff;
-}
-
-#workspaces button.urgent {
-  background-color: #eb4d4b;
 }
 
 #clock {
-  background-color: transparent;
-  color: #ffffff;
   padding: 0 10px;
-}
-
-#cpu {
-  background-color: transparent;
-  color: #ffffff;
-  padding: 0 10px;
-}
-
-#memory {
-  background-color: transparent;
-  color: #ffffff;
-  padding: 0 10px;
-}
-
-#pulseaudio {
-  background-color: transparent;
-  color: #ffffff;
-  padding: 0 10px;
-}
-
-#network {
-  background-color: transparent;
-  color: #ffffff;
-  padding: 0 10px;
-}
-
-#tray {
-  background-color: transparent;
-  padding: 0 10px;
-}
-
-#window {
-  background-color: transparent;
-  color: #ffffff;
-  padding: 0 10px;
-}
-
-#custom-test {
-  background-color: transparent;
-  color: #ffffff;
-  padding: 0 10px;
+  background: transparent;
 }
