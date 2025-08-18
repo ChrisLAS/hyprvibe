@@ -14,7 +14,7 @@ let
     binutils
     nixfmt-rfc-style
     zed-editor
-    cursor-editor
+    code-cursor-fhs
     cargo
     clang
     llvm
