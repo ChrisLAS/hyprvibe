@@ -7,7 +7,7 @@
   "margin-bottom": 0,
   "margin-left": 0,
   "margin-right": 0,
-  "output": ["DP-1", "DP-2", "HDMI-A-1"],
+  "output": "DP-2",
   "modules-left": ["hyprland/workspaces", "hyprland/window"],
   "modules-center": [],
   "modules-right": ["clock"],

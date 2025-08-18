@@ -7,6 +7,7 @@
   "margin-bottom": 0,
   "margin-left": 0,
   "margin-right": 0,
+  "output": ["DP-3"],
   "modules-left": ["hyprland/workspaces", "hyprland/window", "custom/mpris"],
   "modules-center": [],
   "modules-right": [

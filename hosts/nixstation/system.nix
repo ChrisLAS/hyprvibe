@@ -763,6 +763,9 @@ in
     mkdir -p /home/chrisf/.config/waybar
     cp ${./waybar.json} /home/chrisf/.config/waybar/config
     cp ${./waybar-simple.json} /home/chrisf/.config/waybar/waybar-simple.json
+    cp ${./waybar-simple-dp1.json} /home/chrisf/.config/waybar/waybar-simple-dp1.json
+    cp ${./waybar-simple-dp2.json} /home/chrisf/.config/waybar/waybar-simple-dp2.json
+    cp ${./waybar-simple-hdmi.json} /home/chrisf/.config/waybar/waybar-simple-hdmi.json
     cp ${./waybar.css} /home/chrisf/.config/waybar/style.css
     # Install waybar scripts
     mkdir -p /home/chrisf/.config/waybar/scripts
