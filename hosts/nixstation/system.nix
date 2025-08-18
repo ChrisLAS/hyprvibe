@@ -759,10 +759,12 @@ in
     cp ${./hypridle.conf} /home/chrisf/.config/hypr/hypridle.conf
     chown -R chrisf:users /home/chrisf/.config/hypr
     
+    # Install waybar configuration
     mkdir -p /home/chrisf/.config/waybar
     cp ${./waybar.json} /home/chrisf/.config/waybar/config
-    cp ${./waybar-simple.json} /home/chrisf/.config/waybar/simple-config
+    cp ${./waybar-simple.json} /home/chrisf/.config/waybar/waybar-simple.json
     cp ${./waybar.css} /home/chrisf/.config/waybar/style.css
+    # Install waybar scripts
     mkdir -p /home/chrisf/.config/waybar/scripts
     cp ${./scripts/waybar-dunst.sh} /home/chrisf/.config/waybar/scripts/waybar-dunst.sh
     cp ${./scripts/waybar-public-ip.sh} /home/chrisf/.config/waybar/scripts/waybar-public-ip.sh
@@ -773,6 +775,7 @@ in
     cp ${./scripts/waybar-btc-coingecko.sh} /home/chrisf/.config/waybar/scripts/waybar-btc-coingecko.sh
     cp ${./scripts/waybar-reboot.sh} /home/chrisf/.config/waybar/scripts/waybar-reboot.sh
     cp ${./scripts/waybar-mpris.sh} /home/chrisf/.config/waybar/scripts/waybar-mpris.sh
+    cp ${./scripts/waybar-per-monitor.sh} /home/chrisf/.config/waybar/scripts/waybar-per-monitor.sh
     chmod +x /home/chrisf/.config/waybar/scripts/*.sh
     chmod +x /home/chrisf/.config/waybar/scripts/*.py || true
     chown -R chrisf:users /home/chrisf/.config/waybar
