@@ -754,6 +754,11 @@ in
     ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprpaper.conf} > /home/chrisf/.config/hypr/hyprpaper.conf
     ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprlock.conf} > /home/chrisf/.config/hypr/hyprlock.conf
     cp ${./hypridle.conf} /home/chrisf/.config/hypr/hypridle.conf
+    
+    # Install Hyprland scripts
+    mkdir -p /home/chrisf/.config/hypr/scripts
+    cp ${./scripts/launch-communication.sh} /home/chrisf/.config/hypr/scripts/launch-communication.sh
+    chmod +x /home/chrisf/.config/hypr/scripts/*.sh
     chown -R chrisf:users /home/chrisf/.config/hypr
     
     # Install waybar configuration
