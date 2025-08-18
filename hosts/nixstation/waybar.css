@@ -1,6 +1,6 @@
 /* Cyberpunk-inspired, high-contrast, readable */
 * {
-  font-family: "FiraCode Nerd Font", "Fira Code", monospace;
+  font-family: "FiraCode Nerd Font", "Fira Code", "Noto Color Emoji", "Segoe UI Emoji", "Apple Color Emoji", monospace;
   font-size: 12pt;
 }
 

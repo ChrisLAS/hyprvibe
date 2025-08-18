@@ -761,6 +761,7 @@ in
     
     mkdir -p /home/chrisf/.config/waybar
     cp ${./waybar.json} /home/chrisf/.config/waybar/config
+    cp ${./waybar-simple.json} /home/chrisf/.config/waybar/simple-config
     cp ${./waybar.css} /home/chrisf/.config/waybar/style.css
     mkdir -p /home/chrisf/.config/waybar/scripts
     cp ${./scripts/waybar-dunst.sh} /home/chrisf/.config/waybar/scripts/waybar-dunst.sh
@@ -806,6 +807,10 @@ in
     # Copy monitor setup helper script
     cp ${../../scripts/setup-monitors.sh} /home/chrisf/.local/bin/setup-monitors
     chmod +x /home/chrisf/.local/bin/setup-monitors
+    
+    # Copy waybar switch script
+    cp ${../../scripts/waybar-switch.sh} /home/chrisf/.local/bin/waybar-switch
+    chmod +x /home/chrisf/.local/bin/waybar-switch
 
 
     # Apply GTK theming
@@ -995,4 +1000,4 @@ in
 
   # System version
   system.stateVersion = "24.05";
-} 
+}
