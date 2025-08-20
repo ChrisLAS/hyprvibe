@@ -1019,8 +1019,6 @@ in
       # Logitech device support
       LOGITECH_DEVICE_DEBUG = "1";
       # XDG integration for proper file associations
-      XDG_DATA_DIRS = "$XDG_DATA_DIRS:/run/current-system/sw/share";
-      XDG_CONFIG_DIRS = "$XDG_CONFIG_DIRS:/run/current-system/sw/etc/xdg";
     };
     systemPackages =
       devTools
