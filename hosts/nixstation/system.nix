@@ -466,6 +466,17 @@ let
     kdePackages.kimageformats
     kdePackages.ark
     kdePackages.konsole
+    # KDE System Components for file associations
+    kdePackages.systemsettings
+    kdePackages.kinfocenter
+    kdePackages.kfilemetadata
+    kdePackages.baloo
+    kdePackages.baloo-widgets
+    kdePackages.kservice
+    kdePackages.kded
+    kdePackages.kio-extras-kf5
+    shared-mime-info
+    desktop-file-utils
     xfce.thunar
     xfce.tumbler
     gvfs
@@ -1007,6 +1018,9 @@ in
       BLUETOOTH_HID_DEBUG = "1";
       # Logitech device support
       LOGITECH_DEVICE_DEBUG = "1";
+      # XDG integration for proper file associations
+      XDG_DATA_DIRS = "$XDG_DATA_DIRS:/run/current-system/sw/share";
+      XDG_CONFIG_DIRS = "$XDG_CONFIG_DIRS:/run/current-system/sw/etc/xdg";
     };
     systemPackages =
       devTools
