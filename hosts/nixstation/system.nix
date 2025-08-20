@@ -14,7 +14,7 @@ let
     binutils
     nixfmt-rfc-style
     zed-editor
-    cursor
+    code-cursor
     cargo
     clang
     llvm
@@ -593,7 +593,34 @@ in
 
   # Hardware configuration - PRESERVING YOUR EXISTING CONFIG
   hardware = {
-    bluetooth.enable = true;
+    bluetooth = {
+      enable = true;
+      # Enhanced settings for Logitech mice
+      settings = {
+        General = {
+          # Enable experimental features for better HID support
+          Experimental = true;
+          # Enable battery reporting
+          BatteryReporting = true;
+          # Enable HID over GATT
+          HIDOverGATT = true;
+        };
+        Policy = {
+          # Auto-enable Bluetooth on boot
+          AutoEnable = true;
+          # Allow pairing without PIN for trusted devices
+          ReconnectAttempts = 7;
+          ReconnectIntervals = "1,2,4,8,16,32,64";
+        };
+        GATT = {
+          # Enable HID over GATT for better mouse support
+          Key = "HIDOverGATT";
+          Value = true;
+        };
+      };
+      # Additional packages for Logitech support
+      package = pkgs.bluez5-experimental;
+    };
     graphics = {
       enable = true;
       enable32Bit = true;
@@ -664,7 +691,12 @@ in
     };
     
     # Additional services from GitHub config
-    udev.packages = [ pkgs.brightnessctl ];
+    udev.packages = [ 
+      pkgs.brightnessctl 
+      pkgs.logitech-udev-rules
+      # Additional udev rules for better HID support
+      pkgs.bluez5-experimental
+    ];
     udisks2.enable = true;
     gvfs.enable = true;
     tumbler.enable = true;
@@ -719,7 +751,18 @@ in
   };
 
   # Boot kernel modules - PRESERVING YOUR EXISTING CONFIG
-  boot.kernelModules = [ "kvm-amd" "kvm-intel" ];
+  boot.kernelModules = [ 
+    "kvm-amd" 
+    "kvm-intel" 
+    # Additional modules for better Bluetooth HID support
+    "hid_logitech"
+    "hid_logitech_dj"
+    "hid_logitech_hidpp"
+    "btusb"
+    "bluetooth"
+    "hid_generic"
+    "uhid"
+  ];
 
   # No man pages
   documentation.man.enable = false;
@@ -759,6 +802,7 @@ in
     mkdir -p /home/chrisf/.config/hypr/scripts
     cp ${./scripts/launch-communication.sh} /home/chrisf/.config/hypr/scripts/launch-communication.sh
     cp ${./scripts/launch-development.sh} /home/chrisf/.config/hypr/scripts/launch-development.sh
+    cp ${./scripts/logitech-bluetooth.sh} /home/chrisf/.config/hypr/scripts/logitech-bluetooth.sh
     chmod +x /home/chrisf/.config/hypr/scripts/*.sh
     chown -R chrisf:users /home/chrisf/.config/hypr
     
@@ -824,6 +868,10 @@ in
     # Copy per-monitor waybar script
     cp ${../../scripts/waybar-per-monitor.sh} /home/chrisf/.local/bin/waybar-per-monitor
     chmod +x /home/chrisf/.local/bin/waybar-per-monitor
+
+    # Copy Logitech Bluetooth management script
+    cp ${./scripts/logitech-bluetooth.sh} /home/chrisf/.local/bin/logitech-bluetooth
+    chmod +x /home/chrisf/.local/bin/logitech-bluetooth
 
 
     # Apply GTK theming
@@ -955,6 +1003,10 @@ in
       ATUIN_SESSION = "";
       # Cursor theme for consistency across apps
       XCURSOR_THEME = "Bibata-Modern-Ice";
+      # Bluetooth HID support
+      BLUETOOTH_HID_DEBUG = "1";
+      # Logitech device support
+      LOGITECH_DEVICE_DEBUG = "1";
     };
     systemPackages =
       devTools
@@ -1017,6 +1069,19 @@ in
       Type = "oneshot";
       RemainAfterExit = true;
       ExecStart = "${setGithubTokenScript}";
+    };
+  };
+
+  # Solaar service for Logitech device management
+  systemd.user.services.solaar = {
+    description = "Solaar - Logitech device manager";
+    after = [ "graphical-session.target" ];
+    wantedBy = [ "graphical-session.target" ];
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${pkgs.solaar}/bin/solaar --window=hide";
+      Restart = "on-failure";
+      RestartSec = 5;
     };
   };
 
