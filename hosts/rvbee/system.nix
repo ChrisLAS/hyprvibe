@@ -201,6 +201,7 @@ let
     starship
     # zoxide  # deduped; present in utilities
     rclone-browser
+    cursor
     
   ];
 
