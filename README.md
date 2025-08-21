@@ -89,8 +89,8 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
 ## Notes:
 
 1. You'll need to update the path with your home dir. 
-   Search for chrislas, replace with your user.
-	(Would like suggestions for improvement)
+   Uncomment and update hosts/rvbee/system.nix variables LOCALUSER and LOCALNAME  
+2. Replace hardware-configuration.nix with your original /etc/nixos/hardware-configuration.nix
 
 ### Waybar & Hyprland UX changes
 

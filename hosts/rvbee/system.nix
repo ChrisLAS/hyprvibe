@@ -1,6 +1,11 @@
 { config, pkgs, hyprland, ... }:
 
 let
+  # Change these for your local system
+#  LOCALUSER = "chrisf";
+#  LOCALNAME = "Chris Fisher";
+  LOCALHOME = "/home/${LOCALUSER}";
+
   # Package groups
   devTools = with pkgs; [
     git
@@ -263,7 +268,7 @@ let
     drawing
   ];
   # Centralized wallpaper path used by hyprpaper and hyprlock
-  wallpaperPath = "/home/chrisf/build/config/hosts/rvbee/aesthetic_8_bit_art-wallpaper-3840x2160.jpg";
+  wallpaperPath = "${LOCALHOME}/build/config/hosts/rvbee/aesthetic_8_bit_art-wallpaper-3840x2160.jpg";
 
   # Script to import GITHUB_TOKEN into systemd --user environment
   setGithubTokenScript = pkgs.writeShellScript "set-github-token" ''
@@ -468,10 +473,10 @@ in
   documentation.man.enable = false;
 
   # User configuration
-  users.users.chrisf = {
+  users.users.${LOCALUSER} = {
     isNormalUser = true;
     shell = pkgs.fish;
-    description = "Chris Fisher";
+    description = "${LOCALNAME}";
     linger = true;
     extraGroups = [
       "networkmanager"
@@ -485,69 +490,69 @@ in
       "i2c"
     ];
     # Create Hyprland configuration directory and copy config
-    home = "/home/chrisf";
+    home = "${LOCALHOME}";
   };
 
   # Copy Hyprland configuration to user's home
   system.activationScripts.copyHyprlandConfig = ''
-    mkdir -p /home/chrisf/.config/hypr
-    cp ${./hyprland.conf} /home/chrisf/.config/hypr/hyprland.conf
+    mkdir -p ${LOCALHOME}/.config/hypr
+    cp ${./hyprland.conf} ${LOCALHOME}/.config/hypr/hyprland.conf
     # Render wallpaper path into hyprpaper/hyprlock configs
-    ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprpaper.conf} > /home/chrisf/.config/hypr/hyprpaper.conf
-    ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprlock.conf} > /home/chrisf/.config/hypr/hyprlock.conf
-    cp ${./hypridle.conf} /home/chrisf/.config/hypr/hypridle.conf
-    chown -R chrisf:users /home/chrisf/.config/hypr
+    ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprpaper.conf} > ${LOCALHOME}/.config/hypr/hyprpaper.conf
+    ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprlock.conf} > ${LOCALHOME}/.config/hypr/hyprlock.conf
+    cp ${./hypridle.conf} ${LOCALHOME}/.config/hypr/hypridle.conf
+    chown -R ${LOCALUSER}:users ${LOCALHOME}/.config/hypr
     # BTC script for hyprlock
-    cp ${./scripts/hyprlock-btc.sh} /home/chrisf/.config/hypr/hyprlock-btc.sh
-    chmod +x /home/chrisf/.config/hypr/hyprlock-btc.sh
+    cp ${./scripts/hyprlock-btc.sh} ${LOCALHOME}/.config/hypr/hyprlock-btc.sh
+    chmod +x ${LOCALHOME}/.config/hypr/hyprlock-btc.sh
     
-    mkdir -p /home/chrisf/.config/waybar
-    cp ${./waybar.json} /home/chrisf/.config/waybar/config
+    mkdir -p ${LOCALHOME}/.config/waybar
+    cp ${./waybar.json} ${LOCALHOME}/.config/waybar/config
     # Theme and scripts for Waybar (cyberpunk aesthetic + custom modules)
-    cp ${./waybar.css} /home/chrisf/.config/waybar/style.css
-    mkdir -p /home/chrisf/.config/waybar/scripts
-    cp ${./scripts/waybar-dunst.sh} /home/chrisf/.config/waybar/scripts/waybar-dunst.sh
-    cp ${./scripts/waybar-public-ip.sh} /home/chrisf/.config/waybar/scripts/waybar-public-ip.sh
-    cp ${./scripts/waybar-amd-gpu.sh} /home/chrisf/.config/waybar/scripts/waybar-amd-gpu.sh
-    cp ${./scripts/waybar-weather.sh} /home/chrisf/.config/waybar/scripts/waybar-weather.sh
-    cp ${./scripts/waybar-brightness.sh} /home/chrisf/.config/waybar/scripts/waybar-brightness.sh
-    cp ${./scripts/waybar-btc.py} /home/chrisf/.config/waybar/scripts/waybar-btc.py
+    cp ${./waybar.css} ${LOCALHOME}/.config/waybar/style.css
+    mkdir -p ${LOCALHOME}/.config/waybar/scripts
+    cp ${./scripts/waybar-dunst.sh} ${LOCALHOME}/.config/waybar/scripts/waybar-dunst.sh
+    cp ${./scripts/waybar-public-ip.sh} ${LOCALHOME}/.config/waybar/scripts/waybar-public-ip.sh
+    cp ${./scripts/waybar-amd-gpu.sh} ${LOCALHOME}/.config/waybar/scripts/waybar-amd-gpu.sh
+    cp ${./scripts/waybar-weather.sh} ${LOCALHOME}/.config/waybar/scripts/waybar-weather.sh
+    cp ${./scripts/waybar-brightness.sh} ${LOCALHOME}/.config/waybar/scripts/waybar-brightness.sh
+    cp ${./scripts/waybar-btc.py} ${LOCALHOME}/.config/waybar/scripts/waybar-btc.py
     # CoinGecko BTC-only
-    cp ${./scripts/waybar-btc-coingecko.sh} /home/chrisf/.config/waybar/scripts/waybar-btc-coingecko.sh
-    cp ${./scripts/waybar-reboot.sh} /home/chrisf/.config/waybar/scripts/waybar-reboot.sh
-    cp ${./scripts/waybar-mpris.sh} /home/chrisf/.config/waybar/scripts/waybar-mpris.sh
-    chmod +x /home/chrisf/.config/waybar/scripts/*.sh
-    chmod +x /home/chrisf/.config/waybar/scripts/*.py || true
-    chown -R chrisf:users /home/chrisf/.config/waybar
+    cp ${./scripts/waybar-btc-coingecko.sh} ${LOCALHOME}/.config/waybar/scripts/waybar-btc-coingecko.sh
+    cp ${./scripts/waybar-reboot.sh} ${LOCALHOME}/.config/waybar/scripts/waybar-reboot.sh
+    cp ${./scripts/waybar-mpris.sh} ${LOCALHOME}/.config/waybar/scripts/waybar-mpris.sh
+    chmod +x ${LOCALHOME}/.config/waybar/scripts/*.sh
+    chmod +x ${LOCALHOME}/.config/waybar/scripts/*.py || true
+    chown -R ${LOCALUSER}:users ${LOCALHOME}/.config/waybar
     
     # Create Atuin Fish configuration
-    mkdir -p /home/chrisf/.config/fish/conf.d
-    cat > /home/chrisf/.config/fish/conf.d/atuin.fish << 'EOF'
+    mkdir -p ${LOCALHOME}/.config/fish/conf.d
+    cat > ${LOCALHOME}/.config/fish/conf.d/atuin.fish << 'EOF'
     # Atuin shell history integration
     if command -q atuin
       set -g ATUIN_SESSION (atuin uuid)
       atuin init fish | source
     end
     EOF
-    chown -R chrisf:users /home/chrisf/.config/fish
+    chown -R ${LOCALUSER}:users ${LOCALHOME}/.config/fish
     # GitHub token export for fish, read from local untracked file if present
-    mkdir -p /home/chrisf/.config/secrets
-    chown -R chrisf:users /home/chrisf/.config/secrets
-    chmod 700 /home/chrisf/.config/secrets
-    cat > /home/chrisf/.config/fish/conf.d/github_token.fish << 'EOF'
-    if test -r /home/chrisf/.config/secrets/github_token
-      set -gx GITHUB_TOKEN (string trim (cat /home/chrisf/.config/secrets/github_token))
+    mkdir -p ${LOCALHOME}/.config/secrets
+    chown -R ${LOCALUSER}:users ${LOCALHOME}/.config/secrets
+    chmod 700 ${LOCALHOME}/.config/secrets
+    cat > ${LOCALHOME}/.config/fish/conf.d/github_token.fish << 'EOF'
+    if test -r ${LOCALHOME}/.config/secrets/github_token
+      set -gx GITHUB_TOKEN (string trim (cat ${LOCALHOME}/.config/secrets/github_token))
     end
     EOF
-    chown -R chrisf:users /home/chrisf/.config/fish
+    chown -R ${LOCALUSER}:users ${LOCALHOME}/.config/fish
     # Install crypto-price (u3mur4) for Waybar module
-    mkdir -p /home/chrisf/.local/bin
-    chown -R chrisf:users /home/chrisf/.local
-    runuser -l chrisf -c 'GOBIN=$HOME/.local/bin ${pkgs.go}/bin/go install github.com/u3mur4/crypto-price/cmd/crypto-price@latest' || true
+    mkdir -p ${LOCALHOME}/.local/bin
+    chown -R ${LOCALUSER}:users ${LOCALHOME}/.local
+    runuser -l ${LOCALUSER} -c 'GOBIN=$HOME/.local/bin ${pkgs.go}/bin/go install github.com/u3mur4/crypto-price/cmd/crypto-price@latest' || true
 
     # Apply GTK theming (Tokyo Night Dark + Papirus-Dark + Bibata cursor)
-    mkdir -p /home/chrisf/.config/gtk-3.0
-    cat > /home/chrisf/.config/gtk-3.0/settings.ini << 'EOF'
+    mkdir -p ${LOCALHOME}/.config/gtk-3.0
+    cat > ${LOCALHOME}/.config/gtk-3.0/settings.ini << 'EOF'
     [Settings]
     gtk-theme-name=Tokyonight-Dark-B
     gtk-icon-theme-name=Papirus-Dark
@@ -555,8 +560,8 @@ in
     gtk-cursor-theme-size=24
     gtk-application-prefer-dark-theme=true
     EOF
-    mkdir -p /home/chrisf/.config/gtk-4.0
-    cat > /home/chrisf/.config/gtk-4.0/settings.ini << 'EOF'
+    mkdir -p ${LOCALHOME}/.config/gtk-4.0
+    cat > ${LOCALHOME}/.config/gtk-4.0/settings.ini << 'EOF'
     [Settings]
     gtk-theme-name=Tokyonight-Dark-B
     gtk-icon-theme-name=Papirus-Dark
@@ -564,11 +569,11 @@ in
     gtk-cursor-theme-size=24
     gtk-application-prefer-dark-theme=true
     EOF
-    chown -R chrisf:users /home/chrisf/.config/gtk-3.0 /home/chrisf/.config/gtk-4.0
+    chown -R ${LOCALUSER}:users ${LOCALHOME}/.config/gtk-3.0 ${LOCALHOME}/.config/gtk-4.0
 
     # Configure qt6ct to use Adwaita-Dark and Papirus icons for closer match
-    mkdir -p /home/chrisf/.config/qt6ct
-    cat > /home/chrisf/.config/qt6ct/qt6ct.conf << 'EOF'
+    mkdir -p ${LOCALHOME}/.config/qt6ct
+    cat > ${LOCALHOME}/.config/qt6ct/qt6ct.conf << 'EOF'
     [Appearance]
     style=adwaita-dark
     icon_theme=Papirus-Dark
@@ -593,10 +598,10 @@ in
     force_raster_widgets=false
     ignore_platform_theme=false
     EOF
-    chown -R chrisf:users /home/chrisf/.config/qt6ct
+    chown -R ${LOCALUSER}:users ${LOCALHOME}/.config/qt6ct
     # Install rofi brightness menu
-    install -m 0755 ${./scripts/rofi-brightness.sh} /home/chrisf/.local/bin/rofi-brightness
-    chown chrisf:users /home/chrisf/.local/bin/rofi-brightness
+    install -m 0755 ${./scripts/rofi-brightness.sh} ${LOCALHOME}/.local/bin/rofi-brightness
+    chown ${LOCALUSER}:users ${LOCALHOME}/.local/bin/rofi-brightness
   '';
 
   # Programs
