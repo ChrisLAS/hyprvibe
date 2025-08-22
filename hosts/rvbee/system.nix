@@ -173,7 +173,6 @@ let
     element-desktop
     nextcloud-client
     trayscale
-    alacritty
     maestral-gui
     qownnotes
     libation
@@ -1371,6 +1370,25 @@ in
     EOF
     chmod +x /home/chrisf/.local/bin/switch-oh-my-posh-theme
     chown chrisf:users /home/chrisf/.local/bin/switch-oh-my-posh-theme
+    
+    # Set Kitty as default terminal in desktop environment
+    mkdir -p /home/chrisf/.local/share/applications
+    cat > /home/chrisf/.local/share/applications/kitty.desktop << 'EOF'
+    [Desktop Entry]
+    Version=1.0
+    Type=Application
+    Name=Kitty
+    GenericName=Terminal
+    Comment=Fast, feature-rich, GPU based terminal emulator
+    Exec=kitty
+    Icon=kitty
+    Terminal=false
+    Categories=System;TerminalEmulator;
+    EOF
+    chown chrisf:users /home/chrisf/.local/share/applications/kitty.desktop
+    
+    # Update desktop database to register Kitty
+    runuser -l chrisf -c 'update-desktop-database ~/.local/share/applications' || true
   '';
 
   # Programs
@@ -1426,6 +1444,11 @@ in
       ATUIN_SESSION = "";
       # Cursor theme for consistency across apps
       XCURSOR_THEME = "Bibata-Modern-Ice";
+      # Set Kitty as default terminal
+      TERMINAL = "kitty";
+      # Additional terminal-related environment variables
+      KITTY_CONFIG_DIRECTORY = "~/.config/kitty";
+      KITTY_SHELL_INTEGRATION = "enabled";
     };
     systemPackages =
       devTools

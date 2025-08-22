@@ -43,7 +43,6 @@ let
     aspell
     gnumake
     patchelf
-    alacritty
     glxinfo
     roc-toolkit
     binutils
@@ -273,7 +272,6 @@ let
     element-desktop
     nextcloud-client
     trayscale
-    alacritty
     maestral-gui
     qownnotes
     libation
@@ -407,7 +405,6 @@ let
     aspell
     gnumake
     patchelf
-    alacritty
     glxinfo
     roc-toolkit
     binutils
@@ -900,6 +897,25 @@ in
     cp ${../../scripts/setup-monitors.sh} /home/chrisf/.local/bin/setup-monitors
     chmod +x /home/chrisf/.local/bin/setup-monitors
     
+    # Set Kitty as default terminal in desktop environment
+    mkdir -p /home/chrisf/.local/share/applications
+    cat > /home/chrisf/.local/share/applications/kitty.desktop << 'EOF'
+    [Desktop Entry]
+    Version=1.0
+    Type=Application
+    Name=Kitty
+    GenericName=Terminal
+    Comment=Fast, feature-rich, GPU based terminal emulator
+    Exec=kitty
+    Icon=kitty
+    Terminal=false
+    Categories=System;TerminalEmulator;
+    EOF
+    chown chrisf:users /home/chrisf/.local/share/applications/kitty.desktop
+    
+    # Update desktop database to register Kitty
+    runuser -l chrisf -c 'update-desktop-database ~/.local/share/applications' || true
+    
     # Copy waybar switch script
     cp ${../../scripts/waybar-switch.sh} /home/chrisf/.local/bin/waybar-switch
     chmod +x /home/chrisf/.local/bin/waybar-switch
@@ -1268,6 +1284,11 @@ in
       # Logitech device support
       LOGITECH_DEVICE_DEBUG = "1";
       # XDG integration for proper file associations
+      # Set Kitty as default terminal
+      TERMINAL = "kitty";
+      # Additional terminal-related environment variables
+      KITTY_CONFIG_DIRECTORY = "~/.config/kitty";
+      KITTY_SHELL_INTEGRATION = "enabled";
     };
     systemPackages =
       devTools
