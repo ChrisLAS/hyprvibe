@@ -25,7 +25,6 @@ let
     github-cli
     lazygit
     kitty
-    oh-my-posh
     lazydocker
     # Additional dev tools from your current config
     yarn
@@ -138,7 +137,6 @@ let
     vdhcoapp
     ulauncher
     wmctrl
-    oh-my-posh
     # Hyprland utilities
     waybar
     wl-clipboard
@@ -468,17 +466,6 @@ let
     kdePackages.kimageformats
     kdePackages.ark
     kdePackages.konsole
-    # KDE System Components for file associations
-    kdePackages.systemsettings
-    kdePackages.kinfocenter
-    kdePackages.kfilemetadata
-    kdePackages.baloo
-    kdePackages.baloo-widgets
-    kdePackages.kservice
-    kdePackages.kded
-    kdePackages.kio-extras-kf5
-    shared-mime-info
-    desktop-file-utils
     xfce.thunar
     xfce.tumbler
     gvfs
@@ -676,7 +663,7 @@ in
     xserver.config = ''
       Section "Device"
         Identifier "sw-mouse"
-        Driver     "amdgpu"
+        Driver     "admgpu"
         Option "SWCursor" "true"
       EndSection
     '';
@@ -852,33 +839,7 @@ in
       atuin init fish | source
     end
     EOF
-    
-    # Create Oh My Posh Fish configuration
-    cat > /home/chrisf/.config/fish/conf.d/oh-my-posh.fish << 'EOF'
-    # Oh My Posh prompt configuration
-    if command -q oh-my-posh
-      # Disable Fish default prompt
-      function fish_prompt
-        # This will be overridden by Oh My Posh
-      end
-      
-      # Initialize Oh My Posh with a custom theme
-      oh-my-posh init fish --config ~/.config/oh-my-posh/config.json | source
-    end
-    EOF
     chown -R chrisf:users /home/chrisf/.config/fish
-    
-    # Additional Fish configuration for better integration
-    cat > /home/chrisf/.config/fish/conf.d/kitty-integration.fish << 'EOF'
-    # Kitty terminal integration
-    if test "$TERM" = "xterm-kitty"
-      # Enable kitty shell integration
-      kitty + complete setup fish | source
-      
-      # Set kitty-specific environment variables
-      set -gx KITTY_SHELL_INTEGRATION enabled
-    end
-    EOF
     
     # GitHub token export for fish
     mkdir -p /home/chrisf/.config/secrets
@@ -966,227 +927,6 @@ in
     # Install rofi brightness menu
     install -m 0755 ${./scripts/rofi-brightness.sh} /home/chrisf/.local/bin/rofi-brightness
     chown chrisf:users /home/chrisf/.local/bin/rofi-brightness
-    
-    # Configure Kitty terminal
-    mkdir -p /home/chrisf/.config/kitty
-    cat > /home/chrisf/.config/kitty/kitty.conf << 'EOF'
-    # Kitty Terminal Configuration
-    
-    # Font configuration
-    font_family Fira Code
-    font_size 12
-    bold_font auto
-    italic_font auto
-    bold_italic_font auto
-    
-    # Colors - Tokyo Night inspired
-    background #1a1b26
-    foreground #c0caf5
-    selection_background #28344a
-    selection_foreground #c0caf5
-    url_color #7aa2f7
-    cursor #c0caf5
-    cursor_text_color #1a1b26
-    
-    # Tabs
-    active_tab_background #7aa2f7
-    active_tab_foreground #1a1b26
-    inactive_tab_background #1a1b26
-    inactive_tab_foreground #c0caf5
-    tab_bar_background #16161e
-    
-    # Window settings
-    window_padding_width 10
-    window_margin_width 0
-    window_border_width 0
-    background_opacity 0.95
-    
-    # Shell integration
-    shell_integration enabled
-    
-    # Copy on select
-    copy_on_select yes
-    
-    # URL detection and hyperlinks
-    detect_urls yes
-    show_hyperlink_targets yes
-    underline_hyperlinks always
-    
-    # Mouse settings
-    mouse_hide_while_typing yes
-    focus_follows_mouse yes
-    
-    # Performance
-    sync_to_monitor yes
-    repaint_delay 10
-    input_delay 3
-    
-    # Key bindings
-    map ctrl+shift+equal change_font_size all +1.0
-    map ctrl+shift+minus change_font_size all -1.0
-    map ctrl+shift+0 change_font_size all 0
-    
-    # Fish shell integration
-    shell fish
-    
-    # Terminal bell
-    enable_audio_bell no
-    visual_bell_duration 0.5
-    visual_bell_color #f7768e
-    
-    # Cursor
-    cursor_shape beam
-    cursor_beam_thickness 2
-    
-    # Scrollback
-    scrollback_lines 10000
-    scrollback_pager less --chop-long-lines --RAW-CONTROL-CHARS +INPUT_LINE_NUMBER
-    
-    # Clipboard
-    clipboard_control write-clipboard write-primary read-clipboard read-primary
-    
-    # Allow remote control
-    allow_remote_control yes
-    listen_on unix:/tmp/kitty
-    EOF
-    chown -R chrisf:users /home/chrisf/.config/kitty
-    
-    # Configure Oh My Posh
-    mkdir -p /home/chrisf/.config/oh-my-posh
-    cat > /home/chrisf/.config/oh-my-posh/config.json << 'EOF'
-    {
-      "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
-      "version": 1,
-      "final_space": true,
-      "blocks": [
-        {
-          "type": "prompt",
-          "alignment": "left",
-          "segments": [
-            {
-              "type": "path",
-              "style": "plain",
-              "properties": {
-                "style": "folder",
-                "max_depth": 2,
-                "max_width": 50
-              },
-              "foreground": "#7aa2f7",
-              "background": "#1a1b26"
-            },
-            {
-              "type": "git",
-              "style": "plain",
-              "properties": {
-                "display_stash_count": true,
-                "display_upstream_icon": true,
-                "fetch_stash_count": true,
-                "fetch_status": true,
-                "fetch_upstream": true
-              },
-              "foreground": "#bb9af7",
-              "background": "#1a1b26"
-            },
-            {
-              "type": "node",
-              "style": "plain",
-              "properties": {
-                "fetch_version": true,
-                "display_mode": "files"
-              },
-              "foreground": "#7dcfff",
-              "background": "#1a1b26"
-            },
-            {
-              "type": "python",
-              "style": "plain",
-              "properties": {
-                "fetch_virtual_env": true,
-                "display_version": true,
-                "display_mode": "files"
-              },
-              "foreground": "#7dcfff",
-              "background": "#1a1b26"
-            },
-            {
-              "type": "go",
-              "style": "plain",
-              "properties": {
-                "fetch_version": true,
-                "display_mode": "files"
-              },
-              "foreground": "#7dcfff",
-              "background": "#1a1b26"
-            },
-            {
-              "type": "rust",
-              "style": "plain",
-              "properties": {
-                "fetch_version": true,
-                "display_mode": "files"
-              },
-              "foreground": "#ff9e64",
-              "background": "#1a1b26"
-            },
-            {
-              "type": "docker_context",
-              "style": "plain",
-              "properties": {
-                "display_default": false
-              },
-              "foreground": "#7aa2f7",
-              "background": "#1a1b26"
-            },
-            {
-              "type": "execution_time",
-              "style": "plain",
-              "properties": {
-                "threshold": 5000,
-                "style": "text"
-              },
-              "foreground": "#9aa5ce",
-              "background": "#1a1b26"
-            },
-            {
-              "type": "exit",
-              "style": "plain",
-              "properties": {
-                "display_exit_code": true,
-                "error_color": "#f7768e",
-                "success_color": "#9ece6a"
-              },
-              "foreground": "#c0caf5",
-              "background": "#1a1b26"
-            }
-          ]
-        },
-        {
-          "type": "prompt",
-          "alignment": "right",
-          "segments": [
-            {
-              "type": "text",
-              "style": "plain",
-              "properties": {
-                "text": " "
-              }
-            },
-            {
-              "type": "time",
-              "style": "plain",
-              "properties": {
-                "time_format": "15:04",
-                "display_date": false
-              },
-              "foreground": "#9aa5ce",
-              "background": "#1a1b26"
-            }
-          ]
-        }
-      ]
-    }
-    EOF
-    chown -R chrisf:users /home/chrisf/.config/oh-my-posh
   '';
 
   # Programs - PRESERVING YOUR EXISTING CONFIG
@@ -1267,7 +1007,6 @@ in
       BLUETOOTH_HID_DEBUG = "1";
       # Logitech device support
       LOGITECH_DEVICE_DEBUG = "1";
-      # XDG integration for proper file associations
     };
     systemPackages =
       devTools
@@ -1276,8 +1015,7 @@ in
       ++ systemTools
       ++ applications
       ++ gaming
-      ++ gtkApps
-      ++ [ pkgs.oh-my-posh ];
+      ++ gtkApps;
   };
 
   # Prefer Hyprland XDG portal

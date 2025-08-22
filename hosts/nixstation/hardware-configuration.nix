@@ -12,7 +12,13 @@
   boot.initrd.kernelModules = [ "amdgpu" ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
-  boot.kernelParams = [ "elevator=none" ];
+  boot.kernelParams = [ 
+    "elevator=none"
+    # AMD GPU parameters for better HDMI DPMS support
+    "amdgpu.dc=1"
+    "amdgpu.dmcu=1"
+    "amdgpu.ppfeaturemask=0xffffffff"
+  ];
 
   boot.kernel.sysctl = {
     "vm.min_free_kbytes" = 65536;  # Ensure there's always some free memory

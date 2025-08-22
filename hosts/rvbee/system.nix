@@ -25,6 +25,7 @@ let
     github-cli
     lazygit
     kitty
+    oh-my-posh
     lazydocker
   ];
 
@@ -144,6 +145,7 @@ let
     networkmanagerapplet
     # Shell history replacement
     atuin
+    oh-my-posh
     ddcutil
     curl
     openssh
@@ -522,6 +524,645 @@ in
     chmod +x /home/chrisf/.config/waybar/scripts/*.py || true
     chown -R chrisf:users /home/chrisf/.config/waybar
     
+    # Configure Kitty terminal
+    mkdir -p /home/chrisf/.config/kitty
+    cat > /home/chrisf/.config/kitty/kitty.conf << 'EOF'
+    # Kitty Terminal Configuration
+    
+    # Font configuration
+    font_family Fira Code
+    font_size 12
+    bold_font auto
+    italic_font auto
+    bold_italic_font auto
+    
+    # Colors - Tokyo Night inspired
+    background #1a1b26
+    foreground #c0caf5
+    selection_background #28344a
+    selection_foreground #c0caf5
+    url_color #7aa2f7
+    cursor #c0caf5
+    cursor_text_color #1a1b26
+    
+    # Tabs
+    active_tab_background #7aa2f7
+    active_tab_foreground #1a1b26
+    inactive_tab_background #1a1b26
+    inactive_tab_foreground #c0caf5
+    tab_bar_background #16161e
+    
+    # Window settings
+    window_padding_width 10
+    window_margin_width 0
+    window_border_width 0
+    background_opacity 0.95
+    
+    # Shell integration
+    shell_integration enabled
+    
+    # Copy on select
+    copy_on_select yes
+    
+    # URL detection and hyperlinks
+    detect_urls yes
+    show_hyperlink_targets yes
+    underline_hyperlinks always
+    
+    # Mouse settings
+    mouse_hide_while_typing yes
+    focus_follows_mouse yes
+    
+    # Performance
+    sync_to_monitor yes
+    repaint_delay 10
+    input_delay 3
+    
+    # Key bindings
+    map ctrl+shift+equal change_font_size all +1.0
+    map ctrl+shift+minus change_font_size all -1.0
+    map ctrl+shift+0 change_font_size all 0
+    
+    # Fish shell integration
+    shell fish
+    
+    # Terminal bell
+    enable_audio_bell no
+    visual_bell_duration 0.5
+    visual_bell_color #f7768e
+    
+    # Cursor
+    cursor_shape beam
+    cursor_beam_thickness 2
+    
+    # Scrollback
+    scrollback_lines 10000
+    scrollback_pager less --chop-long-lines --RAW-CONTROL-CHARS +INPUT_LINE_NUMBER
+    
+    # Clipboard
+    clipboard_control write-clipboard write-primary read-clipboard read-primary
+    
+    # Allow remote control
+    allow_remote_control yes
+    listen_on unix:/tmp/kitty
+    EOF
+    chown -R chrisf:users /home/chrisf/.config/kitty
+    
+    # Configure Oh My Posh
+    mkdir -p /home/chrisf/.config/oh-my-posh
+    cat > /home/chrisf/.config/oh-my-posh/config.json << 'EOF'
+    {
+      "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+      "version": 3,
+      "final_space": true,
+      "blocks": [
+        {
+          "type": "prompt",
+          "alignment": "left",
+          "segments": [
+            {
+              "type": "path",
+              "style": "plain",
+              "properties": {
+                "style": "folder",
+                "max_depth": 2,
+                "max_width": 50
+              },
+              "foreground": "#7aa2f7",
+              "background": "#1a1b26"
+            },
+            {
+              "type": "git",
+              "style": "plain",
+              "properties": {
+                "display_stash_count": true,
+                "display_upstream_icon": true,
+                "fetch_stash_count": true,
+                "fetch_status": true,
+                "fetch_upstream": true
+              },
+              "foreground": "#bb9af7",
+              "background": "#1a1b26"
+            },
+            {
+              "type": "node",
+              "style": "plain",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "foreground": "#7dcfff",
+              "background": "#1a1b26"
+            },
+            {
+              "type": "python",
+              "style": "plain",
+              "properties": {
+                "fetch_virtual_env": true,
+                "display_version": true,
+                "display_mode": "files"
+              },
+              "foreground": "#7dcfff",
+              "background": "#1a1b26"
+            },
+            {
+              "type": "go",
+              "style": "plain",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "foreground": "#7dcfff",
+              "background": "#1a1b26"
+            },
+            {
+              "type": "rust",
+              "style": "plain",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "foreground": "#ff9e64",
+              "background": "#1a1b26"
+            },
+            {
+              "type": "docker_context",
+              "style": "plain",
+              "properties": {
+                "display_default": false
+              },
+              "foreground": "#7aa2f7",
+              "background": "#1a1b26"
+            },
+            {
+              "type": "execution_time",
+              "style": "plain",
+              "properties": {
+                "threshold": 5000,
+                "style": "text"
+              },
+              "foreground": "#9aa5ce",
+              "background": "#1a1b26"
+            },
+            {
+              "type": "exit",
+              "style": "plain",
+              "properties": {
+                "display_exit_code": true,
+                "error_color": "#f7768e",
+                "success_color": "#9ece6a"
+              },
+              "foreground": "#c0caf5",
+              "background": "#1a1b26"
+            }
+          ]
+        },
+        {
+          "type": "prompt",
+          "alignment": "right",
+          "segments": [
+            {
+              "type": "text",
+              "style": "plain",
+              "properties": {
+                "text": " "
+              }
+            },
+            {
+              "type": "time",
+              "style": "plain",
+              "properties": {
+                "time_format": "15:04",
+                "display_date": false
+              },
+              "foreground": "#9aa5ce",
+              "background": "#1a1b26"
+            }
+          ]
+        }
+      ]
+    }
+    EOF
+    
+    # Create additional Oh My Posh theme configurations
+    cat > /home/chrisf/.config/oh-my-posh/config-enhanced.json << 'EOF'
+    {
+      "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+      "version": 3,
+      "final_space": true,
+      "blocks": [
+        {
+          "type": "prompt",
+          "alignment": "left",
+          "segments": [
+            {
+              "type": "root",
+              "style": "powerline",
+              "background": "#ffe9aa",
+              "foreground": "#100e23",
+              "powerline_symbol": "\ue0b0",
+              "template": " \uf0e7 "
+            },
+            {
+              "type": "session",
+              "style": "powerline",
+              "background": "#ffffff",
+              "foreground": "#100e23",
+              "powerline_symbol": "\ue0b0",
+              "template": " {{ .UserName }}@{{ .HostName }} "
+            },
+            {
+              "type": "path",
+              "style": "powerline",
+              "background": "#91ddff",
+              "foreground": "#100e23",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "style": "agnoster",
+                "max_depth": 2,
+                "max_width": 50,
+                "folder_icon": "\uf115",
+                "home_icon": "\ueb06",
+                "folder_separator_icon": " \ue0b1 "
+              },
+              "template": " {{ .Path }} "
+            },
+            {
+              "type": "git",
+              "style": "powerline",
+              "background": "#95ffa4",
+              "background_templates": [
+                "{{ if or (.Working.Changed) (.Staging.Changed) }}#FF9248{{ end }}",
+                "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#ff4500{{ end }}",
+                "{{ if gt .Ahead 0 }}#B388FF{{ end }}",
+                "{{ if gt .Behind 0 }}#B388FF{{ end }}"
+              ],
+              "foreground": "#193549",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_status": true,
+                "fetch_upstream": true,
+                "fetch_upstream_icon": true,
+                "display_stash_count": true,
+                "branch_template": "{{ trunc 25 .Branch }}"
+              },
+              "template": " {{ .UpstreamIcon }}{{ .HEAD }}{{ if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }} \uf044 {{ .Working.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Staging.Changed }} \uf046 {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} \ueb4b {{ .StashCount }}{{ end }} "
+            },
+            {
+              "type": "node",
+              "style": "powerline",
+              "background": "#6CA35E",
+              "foreground": "#ffffff",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "template": " \ue718 {{ if .PackageManagerIcon }}{{ .PackageManagerIcon }} {{ end }}{{ .Full }} "
+            },
+            {
+              "type": "python",
+              "style": "powerline",
+              "background": "#FFDE57",
+              "foreground": "#111111",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_virtual_env": true,
+                "display_version": true,
+                "display_mode": "files"
+              },
+              "template": " \ue235 {{ if .Venv }}{{ .Venv }} {{ end }}{{ .Full }} "
+            },
+            {
+              "type": "go",
+              "style": "powerline",
+              "background": "#8ED1F7",
+              "foreground": "#111111",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "template": " \ue626 {{ .Full }} "
+            },
+            {
+              "type": "rust",
+              "style": "powerline",
+              "background": "#FF9E64",
+              "foreground": "#111111",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "template": " \ue7a8 {{ .Full }} "
+            },
+            {
+              "type": "docker_context",
+              "style": "powerline",
+              "background": "#7aa2f7",
+              "foreground": "#1a1b26",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "display_default": false
+              },
+              "template": " \uf308 {{ .Context }} "
+            },
+            {
+              "type": "execution_time",
+              "style": "powerline",
+              "background": "#9aa5ce",
+              "foreground": "#1a1b26",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "threshold": 5000,
+                "style": "text"
+              },
+              "template": " {{ .FormattedMs }} "
+            },
+            {
+              "type": "exit",
+              "style": "powerline",
+              "background": "#f7768e",
+              "foreground": "#ffffff",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "display_exit_code": true,
+                "error_color": "#f7768e",
+                "success_color": "#9ece6a"
+              },
+              "template": " {{ if gt .Code 0 }}\uf071 {{ .Code }}{{ end }} "
+            }
+          ]
+        },
+        {
+          "type": "rprompt",
+          "segments": [
+            {
+              "type": "text",
+              "style": "plain",
+              "properties": {
+                "text": " "
+              }
+            },
+            {
+              "type": "time",
+              "style": "plain",
+              "foreground": "#9aa5ce",
+              "background": "#1a1b26",
+              "properties": {
+                "time_format": "15:04",
+                "display_date": false
+              },
+              "template": " {{ .CurrentDate | date .Format }} "
+            }
+          ]
+        }
+      ]
+    }
+    EOF
+    
+    cat > /home/chrisf/.config/oh-my-posh/config-minimal.json << 'EOF'
+    {
+      "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+      "version": 3,
+      "final_space": true,
+      "blocks": [
+        {
+          "type": "prompt",
+          "alignment": "left",
+          "segments": [
+            {
+              "type": "text",
+              "style": "plain",
+              "foreground": "#98C379",
+              "template": "\u279c"
+            },
+            {
+              "type": "path",
+              "style": "plain",
+              "foreground": "#56B6C2",
+              "properties": {
+                "style": "folder",
+                "max_depth": 2,
+                "max_width": 40
+              },
+              "template": "  {{ .Path }}"
+            },
+            {
+              "type": "git",
+              "style": "plain",
+              "foreground": "#D0666F",
+              "properties": {
+                "fetch_status": true,
+                "display_stash_count": true
+              },
+              "template": " <#5FAAE8>git:(</>{{ .HEAD }}<#5FAAE8>)</>"
+            },
+            {
+              "type": "exit",
+              "style": "plain",
+              "foreground": "#BF616A",
+              "template": " {{ if gt .Code 0 }}\u2717{{ end }}"
+            }
+          ]
+        },
+        {
+          "type": "rprompt",
+          "segments": [
+            {
+              "type": "time",
+              "style": "plain",
+              "foreground": "#9aa5ce",
+              "properties": {
+                "time_format": "15:04",
+                "display_date": false
+              },
+              "template": " {{ .CurrentDate | date .Format }}"
+            }
+          ]
+        }
+      ]
+    }
+    EOF
+    
+    cat > /home/chrisf/.config/oh-my-posh/config-professional.json << 'EOF'
+    {
+      "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+      "version": 3,
+      "final_space": true,
+      "blocks": [
+        {
+          "type": "prompt",
+          "alignment": "left",
+          "segments": [
+            {
+              "type": "shell",
+              "style": "diamond",
+              "background": "#0077c2",
+              "foreground": "#ffffff",
+              "leading_diamond": "\u256d\u2500\ue0b6",
+              "template": "\uf120 {{ .Name }} "
+            },
+            {
+              "type": "root",
+              "style": "diamond",
+              "background": "#ef5350",
+              "foreground": "#FFFB38",
+              "template": "<parentBackground>\ue0b0</> \uf292 "
+            },
+            {
+              "type": "path",
+              "style": "powerline",
+              "background": "#FF9248",
+              "foreground": "#2d3436",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "style": "folder",
+                "max_depth": 2,
+                "max_width": 50,
+                "folder_icon": " \uf07b ",
+                "home_icon": "\ue617"
+              },
+              "template": " \uf07b\uea9c {{ .Path }} "
+            },
+            {
+              "type": "git",
+              "style": "powerline",
+              "background": "#FFFB38",
+              "background_templates": [
+                "{{ if or (.Working.Changed) (.Staging.Changed) }}#ffeb95{{ end }}",
+                "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#c5e478{{ end }}",
+                "{{ if gt .Ahead 0 }}#C792EA{{ end }}",
+                "{{ if gt .Behind 0 }}#C792EA{{ end }}"
+              ],
+              "foreground": "#011627",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_status": true,
+                "fetch_upstream": true,
+                "fetch_upstream_icon": true,
+                "display_stash_count": true,
+                "branch_icon": "\ue725 "
+              },
+              "template": " {{ .UpstreamIcon }}{{ .HEAD }}{{ if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }} \uf044 {{ .Working.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Staging.Changed }} \uf046 {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} \ueb4b {{ .StashCount }}{{ end }} "
+            },
+            {
+              "type": "node",
+              "style": "powerline",
+              "background": "#6CA35E",
+              "foreground": "#ffffff",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "template": " \ue718 {{ .Full }} "
+            },
+            {
+              "type": "python",
+              "style": "powerline",
+              "background": "#FFDE57",
+              "foreground": "#111111",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_virtual_env": true,
+                "display_version": true,
+                "display_mode": "files"
+              },
+              "template": " \ue235 {{ if .Venv }}{{ .Venv }} {{ end }}{{ .Full }} "
+            },
+            {
+              "type": "go",
+              "style": "powerline",
+              "background": "#8ED1F7",
+              "foreground": "#111111",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "template": " \ue626 {{ .Full }} "
+            },
+            {
+              "type": "rust",
+              "style": "powerline",
+              "background": "#FF9E64",
+              "foreground": "#111111",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "template": " \ue7a8 {{ .Full }} "
+            },
+            {
+              "type": "docker_context",
+              "style": "powerline",
+              "background": "#7aa2f7",
+              "foreground": "#1a1b26",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "display_default": false
+              },
+              "template": " \uf308 {{ .Context }} "
+            },
+            {
+              "type": "execution_time",
+              "style": "powerline",
+              "background": "#9aa5ce",
+              "foreground": "#1a1b26",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "threshold": 5000,
+                "style": "text"
+              },
+              "template": " {{ .FormattedMs }} "
+            },
+            {
+              "type": "exit",
+              "style": "powerline",
+              "background": "#f7768e",
+              "foreground": "#ffffff",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "display_exit_code": true,
+                "error_color": "#f7768e",
+                "success_color": "#9ece6a"
+              },
+              "template": " {{ if gt .Code 0 }}\uf071 {{ .Code }}{{ end }} "
+            }
+          ]
+        },
+        {
+          "type": "rprompt",
+          "segments": [
+            {
+              "type": "text",
+              "style": "plain",
+              "properties": {
+                "text": " "
+              }
+            },
+            {
+              "type": "time",
+              "style": "plain",
+              "foreground": "#9aa5ce",
+              "background": "#1a1b26",
+              "properties": {
+                "time_format": "15:04",
+                "display_date": false
+              },
+              "template": " {{ .CurrentDate | date .Format }} "
+            }
+          ]
+        }
+      ]
+    }
+    EOF
+    
+    chown -R chrisf:users /home/chrisf/.config/oh-my-posh
+    
     # Create Atuin Fish configuration
     mkdir -p /home/chrisf/.config/fish/conf.d
     cat > /home/chrisf/.config/fish/conf.d/atuin.fish << 'EOF'
@@ -531,6 +1172,33 @@ in
       atuin init fish | source
     end
     EOF
+    
+    # Create Oh My Posh Fish configuration
+    cat > /home/chrisf/.config/fish/conf.d/oh-my-posh.fish << 'EOF'
+    # Oh My Posh prompt configuration
+    if command -q oh-my-posh
+      # Disable Fish default prompt
+      function fish_prompt
+        # This will be overridden by Oh My Posh
+      end
+      
+      # Initialize Oh My Posh with a custom theme
+      oh-my-posh init fish --config ~/.config/oh-my-posh/config.json | source
+    end
+    EOF
+    
+    # Additional Fish configuration for better integration
+    cat > /home/chrisf/.config/fish/conf.d/kitty-integration.fish << 'EOF'
+    # Kitty terminal integration
+    if test "$TERM" = "xterm-kitty"
+      # Enable kitty shell integration
+      kitty + complete setup fish | source
+      
+      # Set kitty-specific environment variables
+      set -gx KITTY_SHELL_INTEGRATION enabled
+    end
+    EOF
+    
     chown -R chrisf:users /home/chrisf/.config/fish
     # GitHub token export for fish, read from local untracked file if present
     mkdir -p /home/chrisf/.config/secrets
@@ -604,6 +1272,105 @@ in
     # Install rofi brightness menu
     install -m 0755 ${./scripts/rofi-brightness.sh} /home/chrisf/.local/bin/rofi-brightness
     chown chrisf:users /home/chrisf/.local/bin/rofi-brightness
+    
+    # Install Oh My Posh theme switcher
+    cat > /home/chrisf/.local/bin/switch-oh-my-posh-theme << 'EOF'
+    #!/run/current-system/sw/bin/bash
+
+    # Oh My Posh Theme Switcher
+    # Easily switch between different Oh My Posh themes
+
+    THEME_DIR="$HOME/.config/oh-my-posh"
+    CURRENT_CONFIG="$THEME_DIR/config.json"
+
+    # Available themes
+    THEMES=(
+        "default"      # Your current Tokyo Night theme
+        "enhanced"     # Feature-rich Agnoster-inspired theme
+        "minimal"      # Clean Robby Russell-inspired theme
+        "professional" # Modern Atomic-inspired diamond theme
+    )
+
+    show_usage() {
+        echo "Oh My Posh Theme Switcher"
+        echo "========================="
+        echo
+        echo "Usage: $0 [theme_name]"
+        echo
+        echo "Available themes:"
+        for theme in "${THEMES[@]}"; do
+            echo "  - $theme"
+        done
+        echo
+        echo "Examples:"
+        echo "  $0 enhanced    # Switch to enhanced development theme"
+        echo "  $0 minimal     # Switch to minimalist theme"
+        echo "  $0 professional # Switch to professional diamond theme"
+        echo "  $0 default     # Switch back to default theme"
+        echo
+        echo "Current theme: $(basename $(readlink -f "$CURRENT_CONFIG" 2>/dev/null || echo "config.json"))"
+    }
+
+    switch_theme() {
+        local theme_name="$1"
+        local theme_file="$THEME_DIR/config-${theme_name}.json"
+        
+        if [[ "$theme_name" == "default" ]]; then
+            theme_file="$THEME_DIR/config.json"
+        fi
+        
+        if [[ ! -f "$theme_file" ]]; then
+            echo "Error: Theme '$theme_name' not found at $theme_file"
+            echo "Available themes:"
+            for theme in "${THEMES[@]}"; do
+                if [[ -f "$THEME_DIR/config-${theme}.json" ]] || [[ "$theme" == "default" && -f "$CURRENT_CONFIG" ]]; then
+                    echo "  - $theme"
+                fi
+            done
+            exit 1
+        fi
+        
+        # Create backup of current config
+        if [[ -f "$CURRENT_CONFIG" ]]; then
+            cp "$CURRENT_CONFIG" "$THEME_DIR/config-backup-$(date +%Y%m%d-%H%M%S).json"
+        fi
+        
+        # Switch to new theme
+        if [[ "$theme_name" == "default" ]]; then
+            # Restore original config
+            if [[ -f "$THEME_DIR/config-original.json" ]]; then
+                cp "$THEME_DIR/config-original.json" "$CURRENT_CONFIG"
+            fi
+        else
+            # Copy theme to main config
+            cp "$theme_file" "$CURRENT_CONFIG"
+        fi
+        
+        echo "✅ Switched to '$theme_name' theme"
+        echo "🔄 Restart your terminal or run 'exec fish' to see changes"
+        echo
+        echo "Theme descriptions:"
+        echo "  default     - Tokyo Night inspired, balanced features"
+        echo "  enhanced    - Feature-rich with comprehensive dev tools"
+        echo "  minimal     - Clean, distraction-free for productivity"
+        echo "  professional - Modern diamond style for presentations"
+    }
+
+    # Main script logic
+    if [[ $# -eq 0 ]]; then
+        show_usage
+        exit 0
+    fi
+
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        show_usage
+        exit 0
+    fi
+
+    switch_theme "$1"
+    EOF
+    chmod +x /home/chrisf/.local/bin/switch-oh-my-posh-theme
+    chown chrisf:users /home/chrisf/.local/bin/switch-oh-my-posh-theme
   '';
 
   # Programs
@@ -667,7 +1434,8 @@ in
       ++ systemTools
       ++ applications
       ++ gaming
-      ++ gtkApps;
+      ++ gtkApps
+      ++ [ pkgs.oh-my-posh ];
   };
 
   # Prefer Hyprland XDG portal
