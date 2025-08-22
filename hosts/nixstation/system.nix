@@ -989,7 +989,7 @@ in
     # Kitty Terminal Configuration
     
     # Font configuration
-    font_family Fira Code
+    font_family FiraCode Nerd Font
     font_size 12
     bold_font auto
     italic_font auto

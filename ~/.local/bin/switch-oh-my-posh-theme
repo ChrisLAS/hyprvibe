@@ -1,0 +1,70 @@
+#!/run/current-system/sw/bin/bash
+
+# Oh My Posh Theme Switcher
+# Available themes: default, enhanced, minimal, professional
+
+THEME_DIR="$HOME/.config/oh-my-posh"
+DEFAULT_CONFIG="$THEME_DIR/config.json"
+
+# Available themes
+declare -A THEMES=(
+    ["default"]="config.json"
+    ["enhanced"]="config-enhanced.json"
+    ["minimal"]="config-minimal.json"
+    ["professional"]="config-professional.json"
+)
+
+# Function to show usage
+show_usage() {
+    echo "Usage: $0 [theme]"
+    echo ""
+    echo "Available themes:"
+    for theme in "${!THEMES[@]}"; do
+        echo "  $theme"
+    done
+    echo ""
+    echo "Examples:"
+    echo "  $0 enhanced"
+    echo "  $0 minimal"
+    echo "  $0 professional"
+    echo "  $0 default"
+}
+
+# Function to switch theme
+switch_theme() {
+    local theme_name="$1"
+    local source_file="$THEME_DIR/${THEMES[$theme_name]}"
+    
+    if [[ ! -f "$source_file" ]]; then
+        echo "Error: Theme file '$source_file' not found!"
+        return 1
+    fi
+    
+    # Create backup of current config
+    if [[ -f "$DEFAULT_CONFIG" ]]; then
+        cp "$DEFAULT_CONFIG" "$DEFAULT_CONFIG.bak.$(date +%Y%m%d-%H%M%S)"
+    fi
+    
+    # Copy the selected theme to config.json
+    cp "$source_file" "$DEFAULT_CONFIG"
+    
+    echo "✅ Switched to '$theme_name' theme!"
+    echo "🔄 Restart your terminal or run 'source ~/.config/fish/conf.d/oh-my-posh.fish' to see changes."
+}
+
+# Main script logic
+if [[ $# -eq 0 ]]; then
+    show_usage
+    exit 1
+fi
+
+theme="$1"
+
+if [[ ! ${THEMES[$theme]+_} ]]; then
+    echo "Error: Unknown theme '$theme'"
+    echo ""
+    show_usage
+    exit 1
+fi
+
+switch_theme "$theme"
