@@ -201,7 +201,7 @@ let
     starship
     # zoxide  # deduped; present in utilities
     rclone-browser
-    cursor
+    code-cursor
     
   ];
 
@@ -306,9 +306,12 @@ in
     algorithm = "zstd";
   };
 
-  # Automatic system updates
+  # Automatic system updates (use flake to avoid channel-based reverts)
   system.autoUpgrade = {
     enable = true;
+    flake = "github:ChrisLAS/hyprvibe#rvbee";
+    operation = "boot";
+    randomizedDelaySec = "45min";
     allowReboot = false;
     dates = "02:00";
   };
@@ -613,7 +616,7 @@ in
     cat > /home/chrisf/.config/oh-my-posh/config.json << 'EOF'
     {
       "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
-      "version": 3,
+      "version": 1,
       "final_space": true,
       "blocks": [
         {
@@ -1298,7 +1301,7 @@ in
         echo "Usage: $0 [theme_name]"
         echo
         echo "Available themes:"
-        for theme in "${THEMES[@]}"; do
+        for theme in "''${THEMES[@]}"; do
             echo "  - $theme"
         done
         echo
@@ -1313,7 +1316,7 @@ in
 
     switch_theme() {
         local theme_name="$1"
-        local theme_file="$THEME_DIR/config-${theme_name}.json"
+        local theme_file="$THEME_DIR/config-''${theme_name}.json"
         
         if [[ "$theme_name" == "default" ]]; then
             theme_file="$THEME_DIR/config.json"
@@ -1322,8 +1325,8 @@ in
         if [[ ! -f "$theme_file" ]]; then
             echo "Error: Theme '$theme_name' not found at $theme_file"
             echo "Available themes:"
-            for theme in "${THEMES[@]}"; do
-                if [[ -f "$THEME_DIR/config-${theme}.json" ]] || [[ "$theme" == "default" && -f "$CURRENT_CONFIG" ]]; then
+            for theme in "''${THEMES[@]}"; do
+                if [[ -f "$THEME_DIR/config-''${theme}.json" ]] || [[ "$theme" == "default" && -f "$CURRENT_CONFIG" ]]; then
                     echo "  - $theme"
                 fi
             done
@@ -1426,9 +1429,13 @@ in
     noto-fonts
     ubuntu_font_family
     noto-fonts-emoji
+    noto-fonts-color-emoji
     liberation_ttf
     fira-code
     fira-code-symbols
+    nerd-fonts.fira-code
+    nerd-fonts.hack
+    nerd-fonts.ubuntu
     mplus-outline-fonts.githubRelease
     dina-font
     fira
