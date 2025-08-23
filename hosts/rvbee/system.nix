@@ -266,7 +266,8 @@ let
     drawing
   ];
   # Centralized wallpaper path used by hyprpaper and hyprlock
-  wallpaperPath = "/home/chrisf/build/config/hosts/rvbee/aesthetic_8_bit_art-wallpaper-3840x2160.jpg";
+  # Using the path (not in quotes) makes it use the path in the nix store
+  wallpaperPath = ./aesthetic_8_bit_art-wallpaper-3840x2160.jpg;
 
   # Script to import GITHUB_TOKEN into systemd --user environment
   setGithubTokenScript = pkgs.writeShellScript "set-github-token" ''
