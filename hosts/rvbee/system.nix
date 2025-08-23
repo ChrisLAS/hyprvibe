@@ -334,11 +334,18 @@ in
         OOMScoreAdjust = 1000;
       };
     };
+    # Keep Netdata unit installed but do not enable it at boot
+    services.netdata.wantedBy = pkgs.lib.mkForce [];
+    services.netdata.restartIfChanged = false;
     user.services.kwalletd = {
       description = "KWallet user daemon";
-      after = [ "default.target" ];
-      wantedBy = [ "default.target" ];
+      after = [ "graphical-session.target" ];
+      wantedBy = [ "graphical-session.target" ];
       serviceConfig = {
+        Environment = [
+          "QT_QPA_PLATFORM=wayland"
+          "XDG_RUNTIME_DIR=%t"
+        ];
         ExecStart = "${pkgs.kdePackages.kwallet}/bin/kwalletd6";
         Restart = "on-failure";
       };
@@ -361,6 +368,7 @@ in
   networking = {
     hostName = "rvbee";
     networkmanager.enable = true;
+    networkmanager.dns = "systemd-resolved";
     firewall = {
       enable = false;
     };
@@ -389,6 +397,7 @@ in
   # Services
   services = {
     fstrim.enable = true;
+    resolved.enable = true;
     # Ensure brightnessctl udev rules are active
     udev.packages = [ pkgs.brightnessctl ];
     udisks2.enable = true;
@@ -423,7 +432,19 @@ in
     };
     openssh.enable = true;
     tailscale.enable = true;
-    netdata.enable = true;
+    netdata = {
+      enable = true;
+      # Drop-in config to disable the Postgres collector (go.d plugin)
+      configDir = {
+        "go.d.conf" = pkgs.writeText "go.d.conf" ''
+          modules:
+            postgres: no
+        '';
+        "go.d/postgres.conf" = pkgs.writeText "postgres.conf" ''
+          enabled: no
+        '';
+      };
+    };
     flatpak.enable = true;
     # Atuin shell history service
     atuin = {
