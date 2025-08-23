@@ -96,6 +96,7 @@ let
     xdg-desktop-portal-hyprland
     xdg-desktop-portal-gtk
     xdg-utils
+    desktop-file-utils
     kdePackages.polkit-kde-agent-1
     qt6.qtbase
     qt6.qtwayland
@@ -383,6 +384,7 @@ in
       settings = {
         General = {
           Experimental = true;
+          Enable = "Source,Sink,Media,Socket";
         };
       };
     };
@@ -443,6 +445,15 @@ in
         "go.d/postgres.conf" = pkgs.writeText "postgres.conf" ''
           enabled: no
         '';
+      };
+      config = {
+        plugins = {
+          "logs-management" = "no";
+          "ioping" = "no";
+          "perf" = "no";
+          "freeipmi" = "no";
+          "charts.d" = "no";
+        };
       };
     };
     flatpak.enable = true;
@@ -1413,7 +1424,7 @@ in
     chown chrisf:users /home/chrisf/.local/share/applications/kitty.desktop
     
     # Update desktop database to register Kitty
-    runuser -l chrisf -c 'update-desktop-database ~/.local/share/applications' || true
+    runuser -l chrisf -c '${pkgs.desktop-file-utils}/bin/update-desktop-database ~/.local/share/applications' || true
   '';
 
   # Programs

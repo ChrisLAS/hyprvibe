@@ -1,3 +1,13 @@
+## Recent Fixes and Changes (2025-08-22)
+
+- Enabled `systemd-resolved` and pointed `NetworkManager` DNS to it to eliminate DBus resolve1 activation errors at boot.
+- Fixed `kwalletd` on Wayland: user service now starts on `graphical-session.target` with `QT_QPA_PLATFORM=wayland`.
+- Netdata tuning:
+  - Disabled Postgres collector (go.d) and silenced several noisy plugins (`logs-management`, `ioping`, `perf`, `freeipmi`, `charts.d`).
+  - Kept Netdata installed but not auto-started; also prevented auto-restart on rebuilds. Start manually via `sudo systemctl start netdata`.
+- Reduced Bluetooth HFP log spam by limiting BlueZ `General.Enable` to `Source,Sink,Media,Socket`.
+- Activation script fix: call `${pkgs.desktop-file-utils}/bin/update-desktop-database` directly to avoid PATH-related errors.
+
 # RVBEE Update Summary: Oh My Posh & Kitty Configuration
 
 ## Overview
