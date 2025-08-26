@@ -283,12 +283,7 @@ in
     # Import your hardware configuration
     ./hardware-configuration.nix
     # Shared scaffolding (non-host-specific)
-    ../../modules/shared/packages.nix
-    ../../modules/shared/desktop.nix
-    ../../modules/shared/hyprland.nix
-    ../../modules/shared/waybar.nix
-    ../../modules/shared/shell.nix
-    ../../modules/shared/services.nix
+    ../../modules/shared
   ];
 
   # Enable shared module toggles
@@ -298,7 +293,7 @@ in
   };
   shared.hyprland.enable = true;
   shared.waybar.enable = true;
-  shared.shell.enable = true;
+  shared.shell = { enable = true; kittyAsDefault = true; };
   shared.services = {
     enable = true;
     openssh.enable = true;

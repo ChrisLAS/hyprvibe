@@ -3,6 +3,12 @@ let cfg = config.shared.shell;
 in {
   options.shared.shell = {
     enable = lib.mkEnableOption "Fish + Oh My Posh + Atuin basics";
+    kittyAsDefault = lib.mkEnableOption "Set kitty as default terminal and env";
+    ohMyPoshDefault = lib.mkOption {
+      type = lib.types.lines;
+      default = ''{"$schema":"https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json","version":1,"final_space":true,"blocks":[]}'';
+      description = "Default OMP config JSON when user config is missing";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -24,11 +30,17 @@ in {
       EOF
       mkdir -p /home/chrisf/.config/oh-my-posh
       cat > /home/chrisf/.config/oh-my-posh/config-default.json << 'EOF'
-      {"$schema":"https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json","version":1,"final_space":true,"blocks":[]}
+      ${cfg.ohMyPoshDefault}
       EOF
       [ -f /home/chrisf/.config/oh-my-posh/config.json ] || cp /home/chrisf/.config/oh-my-posh/config-default.json /home/chrisf/.config/oh-my-posh/config.json
       chown -R chrisf:users /home/chrisf/.config/fish /home/chrisf/.config/oh-my-posh
     '';
+
+    environment.sessionVariables = lib.mkIf cfg.kittyAsDefault {
+      TERMINAL = "kitty";
+      KITTY_CONFIG_DIRECTORY = "~/.config/kitty";
+      KITTY_SHELL_INTEGRATION = "enabled";
+    };
   };
 }
 

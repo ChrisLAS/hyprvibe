@@ -18,6 +18,7 @@
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
 
     nixosModules = {
+      shared = import ./modules/shared;
       shared-packages = import ./modules/shared/packages.nix;
       shared-desktop = import ./modules/shared/desktop.nix;
       shared-hyprland = import ./modules/shared/hyprland.nix;
