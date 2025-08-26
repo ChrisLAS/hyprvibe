@@ -17,6 +17,15 @@
     # Formatter (optional)
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
 
+    nixosModules = {
+      shared-packages = import ./modules/shared/packages.nix;
+      shared-desktop = import ./modules/shared/desktop.nix;
+      shared-hyprland = import ./modules/shared/hyprland.nix;
+      shared-waybar = import ./modules/shared/waybar.nix;
+      shared-shell = import ./modules/shared/shell.nix;
+      shared-services = import ./modules/shared/services.nix;
+    };
+
     nixosConfigurations = {
       rvbee = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";

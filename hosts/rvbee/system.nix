@@ -282,6 +282,13 @@ in
     hyprland.nixosModules.default
     # Import your hardware configuration
     ./hardware-configuration.nix
+    # Shared scaffolding (non-host-specific)
+    ../../modules/shared/packages.nix
+    ../../modules/shared/desktop.nix
+    ../../modules/shared/hyprland.nix
+    ../../modules/shared/waybar.nix
+    ../../modules/shared/shell.nix
+    ../../modules/shared/services.nix
   ];
 
   # Boot configuration
@@ -643,9 +650,9 @@ in
     EOF
     chown -R chrisf:users /home/chrisf/.config/kitty
     
-    # Configure Oh My Posh
+    # Configure Oh My Posh default (preserve user-selected theme if present)
     mkdir -p /home/chrisf/.config/oh-my-posh
-    cat > /home/chrisf/.config/oh-my-posh/config.json << 'EOF'
+    cat > /home/chrisf/.config/oh-my-posh/config-default.json << 'EOF'
     {
       "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
       "version": 1,
@@ -778,6 +785,7 @@ in
       ]
     }
     EOF
+    [ -f /home/chrisf/.config/oh-my-posh/config.json ] || cp /home/chrisf/.config/oh-my-posh/config-default.json /home/chrisf/.config/oh-my-posh/config.json
     
     # Create additional Oh My Posh theme configurations
     cat > /home/chrisf/.config/oh-my-posh/config-enhanced.json << 'EOF'
@@ -1212,11 +1220,6 @@ in
     cat > /home/chrisf/.config/fish/conf.d/oh-my-posh.fish << 'EOF'
     # Oh My Posh prompt configuration
     if command -q oh-my-posh
-      # Disable Fish default prompt
-      function fish_prompt
-        # This will be overridden by Oh My Posh
-      end
-      
       # Initialize Oh My Posh with a custom theme
       oh-my-posh init fish --config ~/.config/oh-my-posh/config.json | source
     end
@@ -1235,6 +1238,32 @@ in
     EOF
     
     chown -R chrisf:users /home/chrisf/.config/fish
+
+    # Hard-override fish prompt to bootstrap Oh My Posh on first prompt draw
+    mkdir -p /home/chrisf/.config/fish/functions
+    cat > /home/chrisf/.config/fish/functions/fish_prompt.fish << 'EOF'
+    function fish_prompt
+      if command -q oh-my-posh
+        oh-my-posh print primary --config ~/.config/oh-my-posh/config.json
+        return
+      end
+      printf '%s> ' (prompt_pwd)
+    end
+    EOF
+    chown -R chrisf:users /home/chrisf/.config/fish/functions
+
+    # Ensure Oh My Posh is initialized for all interactive Fish sessions
+    mkdir -p /home/chrisf/.config/fish
+    if ! grep -q "oh-my-posh init fish" /home/chrisf/.config/fish/config.fish 2>/dev/null; then
+      cat >> /home/chrisf/.config/fish/config.fish << 'EOF'
+    # Initialize Oh My Posh (fallback to ensure prompt loads)
+    if status is-interactive
+      if command -q oh-my-posh
+        oh-my-posh init fish --config ~/.config/oh-my-posh/config.json | source
+      end
+    end
+    EOF
+    fi
     # GitHub token export for fish, read from local untracked file if present
     mkdir -p /home/chrisf/.config/secrets
     chown -R chrisf:users /home/chrisf/.config/secrets
@@ -1244,11 +1273,18 @@ in
       set -gx GITHUB_TOKEN (string trim (cat /home/chrisf/.config/secrets/github_token))
     end
     EOF
+
+    # Ensure ~/.local/bin is on PATH for user-installed scripts
+    cat > /home/chrisf/.config/fish/conf.d/local-bin.fish << 'EOF'
+    if test -d "$HOME/.local/bin"
+      fish_add_path "$HOME/.local/bin"
+    end
+    EOF
     chown -R chrisf:users /home/chrisf/.config/fish
     # Install crypto-price (u3mur4) for Waybar module
     mkdir -p /home/chrisf/.local/bin
     chown -R chrisf:users /home/chrisf/.local
-    runuser -l chrisf -c 'GOBIN=$HOME/.local/bin ${pkgs.go}/bin/go install github.com/u3mur4/crypto-price/cmd/crypto-price@latest' || true
+    runuser -s ${pkgs.bash}/bin/bash -l chrisf -c 'GOBIN=$HOME/.local/bin ${pkgs.go}/bin/go install github.com/u3mur4/crypto-price/cmd/crypto-price@latest' || true
     
     # Copy monitor setup helper script
     cp ${../../scripts/setup-monitors.sh} /home/chrisf/.local/bin/setup-monitors
@@ -1424,7 +1460,7 @@ in
     chown chrisf:users /home/chrisf/.local/share/applications/kitty.desktop
     
     # Update desktop database to register Kitty
-    runuser -l chrisf -c '${pkgs.desktop-file-utils}/bin/update-desktop-database ~/.local/share/applications' || true
+    runuser -s ${pkgs.bash}/bin/bash -l chrisf -c '${pkgs.desktop-file-utils}/bin/update-desktop-database ~/.local/share/applications' || true
   '';
 
   # Programs
@@ -1476,10 +1512,6 @@ in
   # Environment
   environment = {
     sessionVariables = {
-      NIXOS_OZONE_WL = "1";
-      MOZ_ENABLE_WAYLAND = "1";
-      QT_QPA_PLATFORM = "wayland";
-      GDK_BACKEND = "wayland";
       # Atuin environment variables
       ATUIN_SESSION = "";
       # Cursor theme for consistency across apps
@@ -1499,6 +1531,13 @@ in
       ++ gaming
       ++ gtkApps
       ++ [ pkgs.oh-my-posh ];
+    # Disable Orca in GDM greeter to silence missing TryExec logs
+    etc = {
+      "xdg/autostart/orca-autostart.desktop".text = ''
+        [Desktop Entry]
+        Hidden=true
+      '';
+    };
   };
 
   # Prefer Hyprland XDG portal
