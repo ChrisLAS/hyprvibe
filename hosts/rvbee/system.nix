@@ -291,6 +291,22 @@ in
     ../../modules/shared/services.nix
   ];
 
+  # Enable shared module toggles
+  shared.desktop = {
+    enable = true;
+    fonts.enable = true;
+  };
+  shared.hyprland.enable = true;
+  shared.waybar.enable = true;
+  shared.shell.enable = true;
+  shared.services = {
+    enable = true;
+    openssh.enable = true;
+    tailscale.enable = true;
+    virt.enable = true;
+    docker.enable = true;
+  };
+
   # Boot configuration
   boot = {
     loader = {

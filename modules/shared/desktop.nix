@@ -3,6 +3,7 @@ let cfg = config.shared.desktop;
 in {
   options.shared.desktop = {
     enable = lib.mkEnableOption "Shared desktop (Wayland env, portals, fonts, GTK/Qt)";
+    fonts.enable = lib.mkEnableOption "Install recommended Nerd/base fonts";
   };
 
   config = lib.mkIf cfg.enable {
@@ -19,6 +20,21 @@ in {
       extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
       config.common.default = [ "hyprland" "gtk" ];
     };
+
+    fonts.packages = lib.mkIf cfg.fonts.enable (
+      with pkgs; [
+        fira-code
+        fira-code-symbols
+        nerd-fonts.fira-code
+        nerd-fonts.hack
+        nerd-fonts.ubuntu
+        noto-fonts
+        noto-fonts-emoji
+        noto-fonts-color-emoji
+        ubuntu_font_family
+        liberation_ttf
+      ]
+    );
   };
 }
 
