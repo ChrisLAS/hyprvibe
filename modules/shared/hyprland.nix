@@ -5,13 +5,13 @@ in {
     enable = lib.mkEnableOption "Hyprland base setup";
     waybar.enable = lib.mkEnableOption "Waybar autostart integration";
     monitorsFile = lib.mkOption {
-      type = lib.types.path;
+      type = lib.types.nullOr lib.types.path;
       default = null;
       description = "Per-host Hyprland monitors config file path";
     };
     wallpaper = lib.mkOption {
-      type = lib.types.str;
-      default = "";
+      type = lib.types.nullOr lib.types.path;
+      default = null;
       description = "Wallpaper file path for hyprpaper/hyprlock generation";
     };
   };
@@ -27,7 +27,7 @@ in {
       mkdir -p /home/chrisf/.config/hypr
       ln -sf ${../../configs/hyprland-base.conf} /home/chrisf/.config/hypr/hyprland-base.conf
       ${lib.optionalString (cfg.monitorsFile != null) ''
-        ln -sf ${cfg.monitorsFile} /home/chrisf/.config/hypr/hyprland-monitors.conf
+        ln -sf ${cfg.monitorsFile} /home/chrisf/.config/hypr/$(basename ${cfg.monitorsFile})
       ''}
       chown -R chrisf:users /home/chrisf/.config/hypr
     '';

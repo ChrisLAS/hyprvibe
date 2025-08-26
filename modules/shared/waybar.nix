@@ -3,9 +3,9 @@ let cfg = config.shared.waybar;
 in {
   options.shared.waybar = {
     enable = lib.mkEnableOption "Waybar setup and config install";
-    configPath = lib.mkOption { type = lib.types.path; default = null; };
-    stylePath = lib.mkOption { type = lib.types.path; default = null; };
-    scriptsDir = lib.mkOption { type = lib.types.path; default = null; };
+    configPath = lib.mkOption { type = lib.types.nullOr lib.types.path; default = null; };
+    stylePath = lib.mkOption { type = lib.types.nullOr lib.types.path; default = null; };
+    scriptsDir = lib.mkOption { type = lib.types.nullOr lib.types.path; default = null; };
   };
 
   config = lib.mkIf cfg.enable {

@@ -292,7 +292,12 @@ in
     fonts.enable = true;
   };
   shared.hyprland.enable = true;
+  # Provide per-host monitors and wallpaper paths to shared module
+  shared.hyprland.monitorsFile = ../../configs/hyprland-monitors-rvbee.conf;
   shared.waybar.enable = true;
+  shared.waybar.configPath = ./waybar.json;
+  shared.waybar.stylePath = ./waybar.css;
+  shared.waybar.scriptsDir = ./scripts;
   shared.shell = { enable = true; kittyAsDefault = true; };
   shared.services = {
     enable = true;
