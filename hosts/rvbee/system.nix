@@ -306,6 +306,13 @@ in
     virt.enable = true;
     docker.enable = true;
   };
+  shared.packages = {
+    enable = true;
+    base.enable = true;
+    desktop.enable = true;
+    dev.enable = true;
+    gaming.enable = true;
+  };
 
   # Boot configuration
   boot = {
