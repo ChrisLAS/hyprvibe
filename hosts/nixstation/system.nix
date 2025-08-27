@@ -514,7 +514,39 @@ in
     hyprland.nixosModules.default
     # Import your hardware configuration
     ./hardware-configuration.nix
+    # Shared scaffolding (non-host-specific)
+    ../../modules/shared
   ];
+
+  # Enable shared module toggles
+  shared.desktop = {
+    enable = true;
+    fonts.enable = true;
+  };
+  shared.hyprland.enable = true;
+  # Provide per-host monitors and wallpaper paths to shared module
+  shared.hyprland.monitorsFile = ../../configs/hyprland-monitors-nixstation.conf;
+  shared.waybar.enable = true;
+  shared.waybar.configPath = ./waybar.json;
+  shared.waybar.stylePath = ./waybar.css;
+  shared.waybar.scriptsDir = ./scripts;
+  shared.shell = { enable = true; kittyAsDefault = true; };
+  shared.services = {
+    enable = true;
+    openssh.enable = true;
+    tailscale.enable = true;
+    virt.enable = true;
+    docker.enable = true;
+  };
+  shared.packages = {
+    enable = true;
+    base.enable = true;
+    desktop.enable = true;
+    dev.enable = true;
+    gaming.enable = true;
+    # Add NIXSTATION-specific packages as extra packages
+    extraPackages = devTools ++ multimedia ++ utilities ++ systemTools ++ applications ++ gaming ++ gtkApps;
+  };
 
   # Boot configuration - PRESERVING YOUR EXISTING CONFIG
   boot = {
@@ -1290,15 +1322,6 @@ in
       KITTY_CONFIG_DIRECTORY = "~/.config/kitty";
       KITTY_SHELL_INTEGRATION = "enabled";
     };
-    systemPackages =
-      devTools
-      ++ multimedia
-      ++ utilities
-      ++ systemTools
-      ++ applications
-      ++ gaming
-      ++ gtkApps
-      ++ [ pkgs.oh-my-posh ];
   };
 
   # Prefer Hyprland XDG portal
