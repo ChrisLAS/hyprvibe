@@ -829,18 +829,17 @@ in
     home = "/home/chrisf";
   };
 
-  # Copy Hyprland configuration to user's home
-  system.activationScripts.copyHyprlandConfig = ''
+  # NIXSTATION-specific activation scripts (complementing shared modules)
+  system.activationScripts.nixstationSpecific = ''
+    # Copy NIXSTATION-specific Hyprland configs
     mkdir -p /home/chrisf/.config/hypr
     cp ${./hyprland.conf} /home/chrisf/.config/hypr/hyprland.conf
-    cp ${../../configs/hyprland-base.conf} /home/chrisf/.config/hypr/hyprland-base.conf
-    cp ${../../configs/hyprland-monitors-nixstation.conf} /home/chrisf/.config/hypr/hyprland-monitors-nixstation.conf
     # Render wallpaper path into hyprpaper/hyprlock configs
     ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprpaper.conf} > /home/chrisf/.config/hypr/hyprpaper.conf
     ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprlock.conf} > /home/chrisf/.config/hypr/hyprlock.conf
     cp ${./hypridle.conf} /home/chrisf/.config/hypr/hypridle.conf
     
-    # Install Hyprland scripts
+    # Install NIXSTATION-specific Hyprland scripts
     mkdir -p /home/chrisf/.config/hypr/scripts
     cp ${./scripts/launch-communication.sh} /home/chrisf/.config/hypr/scripts/launch-communication.sh
     cp ${./scripts/launch-development.sh} /home/chrisf/.config/hypr/scripts/launch-development.sh
@@ -848,28 +847,12 @@ in
     chmod +x /home/chrisf/.config/hypr/scripts/*.sh
     chown -R chrisf:users /home/chrisf/.config/hypr
     
-    # Install waybar configuration
+    # Copy additional waybar configs (shared module handles main config)
     mkdir -p /home/chrisf/.config/waybar
-    cp ${./waybar.json} /home/chrisf/.config/waybar/config
     cp ${./waybar-simple.json} /home/chrisf/.config/waybar/waybar-simple.json
     cp ${./waybar-simple-dp1.json} /home/chrisf/.config/waybar/waybar-simple-dp1.json
     cp ${./waybar-simple-dp2.json} /home/chrisf/.config/waybar/waybar-simple-dp2.json
     cp ${./waybar-simple-hdmi.json} /home/chrisf/.config/waybar/waybar-simple-hdmi.json
-    cp ${./waybar.css} /home/chrisf/.config/waybar/style.css
-    # Install waybar scripts
-    mkdir -p /home/chrisf/.config/waybar/scripts
-    cp ${./scripts/waybar-dunst.sh} /home/chrisf/.config/waybar/scripts/waybar-dunst.sh
-    cp ${./scripts/waybar-public-ip.sh} /home/chrisf/.config/waybar/scripts/waybar-public-ip.sh
-    cp ${./scripts/waybar-amd-gpu.sh} /home/chrisf/.config/waybar/scripts/waybar-amd-gpu.sh
-    cp ${./scripts/waybar-weather.sh} /home/chrisf/.config/waybar/scripts/waybar-weather.sh
-    cp ${./scripts/waybar-brightness.sh} /home/chrisf/.config/waybar/scripts/waybar-brightness.sh
-    cp ${./scripts/waybar-btc.py} /home/chrisf/.config/waybar/scripts/waybar-btc.py
-    cp ${./scripts/waybar-btc-coingecko.sh} /home/chrisf/.config/waybar/scripts/waybar-btc-coingecko.sh
-    cp ${./scripts/waybar-reboot.sh} /home/chrisf/.config/waybar/scripts/waybar-reboot.sh
-    cp ${./scripts/waybar-mpris.sh} /home/chrisf/.config/waybar/scripts/waybar-mpris.sh
-    cp ${./scripts/waybar-per-monitor.sh} /home/chrisf/.config/waybar/scripts/waybar-per-monitor.sh
-    chmod +x /home/chrisf/.config/waybar/scripts/*.sh
-    chmod +x /home/chrisf/.config/waybar/scripts/*.py || true
     chown -R chrisf:users /home/chrisf/.config/waybar
     
     # Create Atuin Fish configuration
@@ -881,21 +864,6 @@ in
       atuin init fish | source
     end
     EOF
-    
-    # Create Oh My Posh Fish configuration
-    cat > /home/chrisf/.config/fish/conf.d/oh-my-posh.fish << 'EOF'
-    # Oh My Posh prompt configuration
-    if command -q oh-my-posh
-      # Disable Fish default prompt
-      function fish_prompt
-        # This will be overridden by Oh My Posh
-      end
-      
-      # Initialize Oh My Posh with a custom theme
-      oh-my-posh init fish --config ~/.config/oh-my-posh/config.json | source
-    end
-    EOF
-    chown -R chrisf:users /home/chrisf/.config/fish
     
     # Additional Fish configuration for better integration
     cat > /home/chrisf/.config/fish/conf.d/kitty-integration.fish << 'EOF'

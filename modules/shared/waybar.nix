@@ -12,6 +12,9 @@ in {
     environment.systemPackages = [ pkgs.waybar ];
     system.activationScripts.waybar = lib.mkAfter ''
       mkdir -p /home/chrisf/.config/waybar/scripts
+      # Remove existing files/symlinks before creating new ones
+      rm -f /home/chrisf/.config/waybar/config
+      rm -f /home/chrisf/.config/waybar/style.css
       ${lib.optionalString (cfg.configPath != null) ''ln -sf ${cfg.configPath} /home/chrisf/.config/waybar/config''}
       ${lib.optionalString (cfg.stylePath != null) ''ln -sf ${cfg.stylePath} /home/chrisf/.config/waybar/style.css''}
       ${lib.optionalString (cfg.scriptsDir != null) ''cp -f ${cfg.scriptsDir}/* /home/chrisf/.config/waybar/scripts/ 2>/dev/null || true''}
