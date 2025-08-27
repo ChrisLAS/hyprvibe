@@ -29,10 +29,13 @@ in {
       end
       EOF
       mkdir -p /home/chrisf/.config/oh-my-posh
-      cat > /home/chrisf/.config/oh-my-posh/config-default.json << 'EOF'
-      ${cfg.ohMyPoshDefault}
-      EOF
-      [ -f /home/chrisf/.config/oh-my-posh/config.json ] || cp /home/chrisf/.config/oh-my-posh/config-default.json /home/chrisf/.config/oh-my-posh/config.json
+      # Only create default config if no config.json exists (preserve user configs)
+      if [ ! -f /home/chrisf/.config/oh-my-posh/config.json ]; then
+        cat > /home/chrisf/.config/oh-my-posh/config-default.json << 'EOF'
+        ${cfg.ohMyPoshDefault}
+        EOF
+        cp /home/chrisf/.config/oh-my-posh/config-default.json /home/chrisf/.config/oh-my-posh/config.json
+      fi
       chown -R chrisf:users /home/chrisf/.config/fish /home/chrisf/.config/oh-my-posh
     '';
 
