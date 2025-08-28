@@ -44,8 +44,8 @@ Time Zones:
 Calendar:
 ${calendar}"
 
-# Escape the tooltip content for JSON (preserve formatting with \n)
-escaped_tooltip=$(echo "$tooltip" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed 's/\n/\\n/g')
-
-# Output JSON for Waybar
-echo "{\"text\": \"󰅐 ${current_time}\", \"tooltip\": \"${escaped_tooltip}\"}"
+# Use jq to properly format JSON with escaped newlines
+jq -n \
+  --arg text "󰅐 $current_time" \
+  --arg tooltip "$tooltip" \
+  '{"text": $text, "tooltip": $tooltip}'
