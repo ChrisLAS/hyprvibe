@@ -31,7 +31,7 @@ calendar=$(cal | sed 's/^/  /')
 tooltip="${day_of_week}, ${current_date} | ${current_time_24}
 
 Time Zones:
-🌅 Pacific (${pacific_tz}): ${pacific_time}
+☀️ Pacific (${pacific_tz}): ${pacific_time}
 🌆 Central (${central_tz}): ${central_time}
 🌃 Eastern (${eastern_tz}): ${eastern_time}
 🌍 London (${london_tz}): ${london_time}
@@ -42,6 +42,6 @@ ${calendar}"
 
 # Use jq to properly format JSON with escaped newlines (compact output)
 jq -n -c \
-  --arg text "󰅐 $current_time" \
+  --arg text "🕐 $current_time" \
   --arg tooltip "$tooltip" \
   '{"text": $text, "tooltip": $tooltip}'
