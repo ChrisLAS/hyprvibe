@@ -853,6 +853,11 @@ in
     cp ${./waybar-simple-dp1.json} /home/chrisf/.config/waybar/waybar-simple-dp1.json
     cp ${./waybar-simple-dp2.json} /home/chrisf/.config/waybar/waybar-simple-dp2.json
     cp ${./waybar-simple-hdmi.json} /home/chrisf/.config/waybar/waybar-simple-hdmi.json
+    
+    # Copy waybar scripts
+    mkdir -p /home/chrisf/.config/waybar/scripts
+    cp ${./scripts/waybar-timezones.sh} /home/chrisf/.config/waybar/scripts/waybar-timezones.sh
+    
     # Ensure waybar scripts are executable
     chmod +x /home/chrisf/.config/waybar/scripts/*.sh 2>/dev/null || true
     chmod +x /home/chrisf/.config/waybar/scripts/*.py 2>/dev/null || true
