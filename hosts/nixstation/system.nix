@@ -853,6 +853,9 @@ in
     cp ${./waybar-simple-dp1.json} /home/chrisf/.config/waybar/waybar-simple-dp1.json
     cp ${./waybar-simple-dp2.json} /home/chrisf/.config/waybar/waybar-simple-dp2.json
     cp ${./waybar-simple-hdmi.json} /home/chrisf/.config/waybar/waybar-simple-hdmi.json
+    # Ensure waybar scripts are executable
+    chmod +x /home/chrisf/.config/waybar/scripts/*.sh 2>/dev/null || true
+    chmod +x /home/chrisf/.config/waybar/scripts/*.py 2>/dev/null || true
     chown -R chrisf:users /home/chrisf/.config/waybar
     
     # Create Atuin Fish configuration
