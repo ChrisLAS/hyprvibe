@@ -5,10 +5,6 @@
 
 # Get current time in local timezone
 current_time=$(date '+%I:%M %p')
-current_date=$(date '+%Y-%m-%d')
-
-# Get current time in local timezone
-current_time=$(date '+%I:%M %p')
 
 # Get times in different timezones
 pacific_time=$(TZ='America/Los_Angeles' date '+%I:%M %p')
@@ -44,8 +40,8 @@ Time Zones:
 Calendar:
 ${calendar}"
 
-# Use jq to properly format JSON with escaped newlines
-jq -n \
+# Use jq to properly format JSON with escaped newlines (compact output)
+jq -n -c \
   --arg text "󰅐 $current_time" \
   --arg tooltip "$tooltip" \
   '{"text": $text, "tooltip": $tooltip}'
