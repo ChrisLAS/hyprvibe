@@ -5,6 +5,16 @@
   color: #ffffff;
 }
 
+/* Ensure emoji fonts are available for tooltips and custom modules */
+#custom-clock {
+  font-family: "FiraCode Nerd Font", "Hack Nerd Font", "Ubuntu Nerd Font", "Noto Color Emoji", "Twemoji", "Liberation Sans", "Arial", "Helvetica", sans-serif;
+}
+
+/* Tooltip font configuration for emoji support */
+tooltip {
+  font-family: "FiraCode Nerd Font", "Hack Nerd Font", "Ubuntu Nerd Font", "Noto Color Emoji", "Twemoji", "Liberation Sans", "Arial", "Helvetica", sans-serif;
+}
+
 window#waybar {
   background: rgba(10, 10, 16, 0.75);
   color: #e6e6e6;
