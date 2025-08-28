@@ -26,6 +26,6 @@ UTC: ${utc_time}"
 
 # Use jq to properly format JSON
 jq -n -c \
-  --arg text "🌍" \
+  --arg text "TZ" \
   --arg tooltip "$tooltip" \
   '{"text": $text, "tooltip": $tooltip}'
