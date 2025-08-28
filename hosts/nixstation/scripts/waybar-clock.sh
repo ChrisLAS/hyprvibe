@@ -31,11 +31,11 @@ calendar=$(cal | sed 's/^/  /')
 tooltip="${day_of_week}, ${current_date} | ${current_time_24}
 
 Time Zones:
-☀️ Pacific (${pacific_tz}): ${pacific_time}
-🌆 Central (${central_tz}): ${central_time}
-🌃 Eastern (${eastern_tz}): ${eastern_time}
-🌍 London (${london_tz}): ${london_time}
-🌐 UTC: ${utc_time}
+Pacific (${pacific_tz}): ${pacific_time}
+Central (${central_tz}): ${central_time}
+Eastern (${eastern_tz}): ${eastern_time}
+London (${london_tz}): ${london_time}
+UTC: ${utc_time}
 
 Calendar:
 ${calendar}"
