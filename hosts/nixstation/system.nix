@@ -498,7 +498,7 @@ let
   ];
 
   # Centralized wallpaper path
-  wallpaperPath = "/home/chrisf/build/config/hyprvibe/hosts/nixstation/wallpaper.jpg";
+  wallpaperPath = ./wallpaper.jpg;
 
   # Script to import GITHUB_TOKEN into systemd --user environment
   setGithubTokenScript = pkgs.writeShellScript "set-github-token" ''
