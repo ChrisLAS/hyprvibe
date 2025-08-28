@@ -25,7 +25,7 @@
     "custom/dunst",
     "idle_inhibitor",
     "custom/brightness_menu",
-    "custom/clock",
+    "clock",
     "custom/reboot"
   ],
   "hyprland/workspaces": {
@@ -131,12 +131,10 @@
   "gamemode": {
     "format": "󰊄 {count}"
   },
-  "custom/clock": {
-    "return-type": "json",
-    "exec": "~/.config/waybar/scripts/waybar-clock.sh",
-    "interval": 1,
-    "tooltip": true,
-    "format": "{}"
+  "clock": {
+    "format": "🕒 {:%I:%M %p}",
+    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+    "format-alt": "{:%Y-%m-%d}"
   },
   "tray": {
     "spacing": 10
