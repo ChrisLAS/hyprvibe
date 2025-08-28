@@ -31,22 +31,21 @@ current_time_24=$(date '+%H:%M:%S')
 # Generate calendar (simple version)
 calendar=$(cal | sed 's/^/  /')
 
-# Create tooltip content with proper escaping
-tooltip="<big><b>${day_of_week}, ${current_date}</b></big>
-<big><b>${current_time_24}</b></big>
+# Create tooltip content with proper escaping (simplified HTML)
+tooltip="${day_of_week}, ${current_date} | ${current_time_24}
 
-<b>Time Zones:</b>
+Time Zones:
 🌅 Pacific (${pacific_tz}): ${pacific_time}
 🌆 Central (${central_tz}): ${central_time}
 🌃 Eastern (${eastern_tz}): ${eastern_time}
 🌍 London (${london_tz}): ${london_time}
 🌐 UTC: ${utc_time}
 
-<b>Calendar:</b>
-<tt><small>${calendar}</small></tt>"
+Calendar:
+${calendar}"
 
-# Escape the tooltip content for JSON (preserve line breaks as <br>)
-escaped_tooltip=$(echo "$tooltip" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed 's/$/<br>/g' | tr '\n' ' ' | sed 's/<br> /<br>/g' | sed 's/  */ /g')
+# Escape the tooltip content for JSON (convert newlines to spaces)
+escaped_tooltip=$(echo "$tooltip" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | tr '\n' ' ' | sed 's/  */ /g')
 
 # Output JSON for Waybar
 echo "{\"text\": \"󰅐 ${current_time}\", \"tooltip\": \"${escaped_tooltip}\"}"
