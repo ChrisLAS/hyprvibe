@@ -26,6 +26,7 @@
     "idle_inhibitor",
     "custom/brightness_menu",
     "clock",
+    "custom/timezones",
     "custom/reboot"
   ],
   "hyprland/workspaces": {
@@ -135,6 +136,13 @@
     "format": "🕒 {:%I:%M %p}",
     "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
     "format-alt": "{:%Y-%m-%d}"
+  },
+  "custom/timezones": {
+    "return-type": "json",
+    "exec": "~/.config/waybar/scripts/waybar-timezones.sh",
+    "interval": 1,
+    "tooltip": true,
+    "format": "{}"
   },
   "tray": {
     "spacing": 10
