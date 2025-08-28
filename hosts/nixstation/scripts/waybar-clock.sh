@@ -42,6 +42,6 @@ ${calendar}"
 
 # Use jq to properly format JSON with escaped newlines (compact output)
 jq -n -c \
-  --arg text "🕐 $current_time" \
+  --arg text "$current_time" \
   --arg tooltip "$tooltip" \
   '{"text": $text, "tooltip": $tooltip}'
