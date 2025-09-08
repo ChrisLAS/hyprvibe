@@ -170,7 +170,7 @@ let
     brave
     google-chrome
     slack
-    telegram-desktop
+    # telegram-desktop (moved to Flatpak)
     element-desktop
     nextcloud-client
     trayscale
@@ -254,14 +254,10 @@ let
     celluloid
     # Torrent client
     fragments
-    # Ebook reader
-    foliate
+    # Ebook reader (moved to Flatpak)
     # Background sounds
     blanket
-    # Metadata cleaner
-    metadata-cleaner
-    # Translation app
-    dialect
+    # Translation app (moved to Flatpak)
     # Drawing app
     drawing
   ];
@@ -306,6 +302,13 @@ in
     virt.enable = true;
     docker.enable = true;
   };
+
+  # Android ADB and udev support
+  services.udev.packages = [ pkgs.android-udev-rules pkgs.brightnessctl ];
+  services.udev.extraRules = ''
+    # Google (Pixel/Nexus) generic USB (MTP/ADB)
+    SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", MODE="0666", GROUP="adbusers"
+  '';
   shared.packages = {
     enable = true;
     base.enable = true;
@@ -430,8 +433,6 @@ in
   services = {
     fstrim.enable = true;
     resolved.enable = true;
-    # Ensure brightnessctl udev rules are active
-    udev.packages = [ pkgs.brightnessctl ];
     udisks2.enable = true;
     gvfs.enable = true;
     tumbler.enable = true;
@@ -1589,6 +1590,21 @@ in
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.permittedInsecurePackages = [
     "libsoup-2.74.3"
+  ];
+  # Workaround: upstream mat2 test regression (breaks metadata-cleaner)
+  nixpkgs.overlays = [
+    (final: prev: {
+      python3Packages = prev.python3Packages.override {
+        overrides = self: super: {
+          mat2 = super.mat2.overridePythonAttrs (old: { doCheck = false; });
+        };
+      };
+      python313Packages = prev.python313Packages.override {
+        overrides = self: super: {
+          mat2 = super.mat2.overridePythonAttrs (old: { doCheck = false; });
+        };
+      };
+    })
   ];
 
   # System version
