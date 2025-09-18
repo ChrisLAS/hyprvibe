@@ -301,6 +301,7 @@ in
     tailscale.enable = true;
     virt.enable = true;
     docker.enable = true;
+    direnv.enable = true;
   };
 
   # Android ADB and udev support
