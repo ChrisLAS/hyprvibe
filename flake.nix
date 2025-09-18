@@ -11,9 +11,11 @@
     
     hyprland.url = "github:hyprwm/Hyprland";
     hyprland.inputs.nixpkgs.follows = "nixpkgs";
+
+    impermanence.url = "github:nix-community/impermanence";
   };
 
-  outputs = { self, nixpkgs, prettyswitch, hyprland, ... }: {
+  outputs = { self, nixpkgs, prettyswitch, hyprland, impermanence, ... }: {
     # Formatter (optional)
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
 
@@ -33,6 +35,7 @@
         modules = [
           ./hosts/rvbee/system.nix
           prettyswitch.nixosModules.default
+          impermanence.nixosModules.impermanence
         ];
         specialArgs = {
           inherit hyprland;
@@ -43,6 +46,7 @@
         modules = [
           ./hosts/nixstation/system.nix
           prettyswitch.nixosModules.default
+          impermanence.nixosModules.impermanence
         ];
         specialArgs = {
           inherit hyprland;

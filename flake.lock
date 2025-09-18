@@ -332,6 +332,21 @@
         "type": "github"
       }
     },
+    "impermanence": {
+      "locked": {
+        "lastModified": 1737831083,
+        "narHash": "sha256-LJggUHbpyeDvNagTUrdhe/pRVp4pnS6wVKALS782gRI=",
+        "owner": "nix-community",
+        "repo": "impermanence",
+        "rev": "4b3e914cdf97a5b536a889e939fb2fd2b043a170",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "impermanence",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1757068644,
@@ -394,6 +409,7 @@
     "root": {
       "inputs": {
         "hyprland": "hyprland",
+        "impermanence": "impermanence",
         "nixpkgs": "nixpkgs",
         "prettyswitch": "prettyswitch"
       }

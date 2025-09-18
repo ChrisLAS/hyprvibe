@@ -222,7 +222,7 @@ let
     libvdpau
     moonlight-qt
     sunshine
-    plasma5Packages.kdeconnect-kde
+    kdePackages.kdeconnect-kde
     virt-manager
     fuse
     fuse3
@@ -243,7 +243,7 @@ let
     pwvucontrol
     pipecontrol
     wireplumber
-    libsForQt5.plasma-browser-integration
+    kdePackages.plasma-browser-integration
     nixfmt-rfc-style
     qownnotes
   ];
@@ -537,6 +537,44 @@ in
     tailscale.enable = true;
     virt.enable = true;
     docker.enable = true;
+  };
+
+  # Impermanence configuration (disabled by default)
+  # To enable: set hyprvibe.impermanence.enable = true;
+  # Note: Requires proper filesystem setup with persistent storage
+  hyprvibe.impermanence = {
+    enable = false; # Set to true when filesystem supports impermanence
+    persistentStoragePath = "/persistent";
+    directories = [
+      # Additional host-specific directories
+      "/var/lib/docker"
+      "/var/lib/libvirt"
+      "/var/lib/bluetooth"
+      "/home"
+    ];
+    files = [
+      # Additional host-specific files
+    ];
+    users.chrisf = {
+      directories = [
+        "Downloads"
+        "Documents" 
+        "Music"
+        "Pictures"
+        "Videos"
+        "build"
+        ".ssh"
+        ".local"
+        ".config"
+        ".cache"
+        { directory = ".gnupg"; mode = "0700"; }
+        { directory = "VirtualBox VMs"; mode = "0755"; }
+      ];
+      files = [
+        ".gitconfig"
+        ".screenrc"
+      ];
+    };
   };
   shared.packages = {
     enable = true;

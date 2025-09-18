@@ -303,6 +303,44 @@ in
     docker.enable = true;
   };
 
+  # Impermanence configuration (disabled by default)
+  # To enable: set hyprvibe.impermanence.enable = true;
+  # Note: Requires proper filesystem setup with persistent storage
+  hyprvibe.impermanence = {
+    enable = false; # Set to true when filesystem supports impermanence
+    persistentStoragePath = "/persistent";
+    directories = [
+      # Additional host-specific directories
+      "/var/lib/docker"
+      "/var/lib/libvirt"
+      "/var/lib/bluetooth"
+      "/home"
+    ];
+    files = [
+      # Additional host-specific files
+    ];
+    users.chrisf = {
+      directories = [
+        "Downloads"
+        "Documents" 
+        "Music"
+        "Pictures"
+        "Videos"
+        "build"
+        ".ssh"
+        ".local"
+        ".config"
+        ".cache"
+        { directory = ".gnupg"; mode = "0700"; }
+        { directory = "VirtualBox VMs"; mode = "0755"; }
+      ];
+      files = [
+        ".gitconfig"
+        ".screenrc"
+      ];
+    };
+  };
+
   # Android ADB and udev support
   services.udev.packages = [ pkgs.android-udev-rules pkgs.brightnessctl ];
   services.udev.extraRules = ''
