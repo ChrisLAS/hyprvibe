@@ -1,0 +1,45 @@
+# Example .sops.yaml configuration
+# Copy this to the root of your repository and customize for your setup
+
+keys:
+  # Personal admin keys (replace with your actual keys)
+  - &admin_alice age12zlz6lvcdk6eqaewfylg35w0syh58sm7gh53q5vvn7hd7c6nngyseftjxl
+  - &admin_bob age1rgffpespcyjn0d8jglk7km9kfrfhdyev6camd3rck6pn8y47ze4sug23v3
+  
+  # Host keys (replace with your actual host keys)
+  - &host_rvbee age1h4w3rk5xjfgmjk8r2p9vn7q8s5t6u7v8w9x0y1z2a3b4c5d6e7f8g9h0
+  - &host_nixstation age1x2y3z4a5b6c7d8e9f0g1h2i3j4k5l6m7n8o9p0q1r2s3t4u5v6w7x8y9z0
+
+creation_rules:
+  # Global secrets (accessible by all hosts)
+  - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - age:
+      - *admin_alice
+      - *admin_bob
+      - *host_rvbee
+      - *host_nixstation
+      
+  # Host-specific secrets
+  - path_regex: secrets/rvbee/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - age:
+      - *admin_alice
+      - *admin_bob
+      - *host_rvbee
+      
+  - path_regex: secrets/nixstation/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - age:
+      - *admin_alice
+      - *admin_bob
+      - *host_nixstation
+      
+  # User-specific secrets
+  - path_regex: secrets/users/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - age:
+      - *admin_alice
+      - *admin_bob
+      - *host_rvbee
+      - *host_nixstation
