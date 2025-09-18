@@ -7,6 +7,7 @@ in {
     tailscale.enable = lib.mkEnableOption "Tailscale";
     virt.enable = lib.mkEnableOption "Virtualization (libvirtd)";
     docker.enable = lib.mkEnableOption "Docker";
+    direnv.enable = lib.mkEnableOption "direnv with nix-direnv integration";
   };
 
   config = lib.mkIf cfg.enable {
@@ -29,6 +30,20 @@ in {
     };
     virtualisation.libvirtd.enable = lib.mkIf cfg.virt.enable true;
     virtualisation.docker.enable = lib.mkIf cfg.docker.enable true;
+    
+    # direnv configuration with nix-direnv integration
+    programs.direnv = lib.mkIf cfg.direnv.enable {
+      enable = true;
+      enableBashIntegration = true;
+      enableZshIntegration = true;
+      nix-direnv.enable = true;
+    };
+    
+    # Install direnv and nix-direnv for all users when enabled
+    environment.systemPackages = lib.mkIf cfg.direnv.enable (with pkgs; [
+      direnv
+      nix-direnv
+    ]);
   };
 }
 
