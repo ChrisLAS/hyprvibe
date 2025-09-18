@@ -11,9 +11,12 @@
     
     hyprland.url = "github:hyprwm/Hyprland";
     hyprland.inputs.nixpkgs.follows = "nixpkgs";
+
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, prettyswitch, hyprland, ... }: {
+  outputs = { self, nixpkgs, prettyswitch, hyprland, disko, ... }: {
     # Formatter (optional)
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
 
@@ -33,6 +36,7 @@
         modules = [
           ./hosts/rvbee/system.nix
           prettyswitch.nixosModules.default
+          disko.nixosModules.disko
         ];
         specialArgs = {
           inherit hyprland;
@@ -43,6 +47,7 @@
         modules = [
           ./hosts/nixstation/system.nix
           prettyswitch.nixosModules.default
+          disko.nixosModules.disko
         ];
         specialArgs = {
           inherit hyprland;

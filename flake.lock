@@ -33,6 +33,26 @@
         "type": "github"
       }
     },
+    "disko": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1758160037,
+        "narHash": "sha256-fXelTdjdILspZ1IUU9aICB1+PXwSFiF8j+7ujwo1VpQ=",
+        "owner": "nix-community",
+        "repo": "disko",
+        "rev": "4f554162fff88e77655073d352eec0cea71103a2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "disko",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -393,6 +413,7 @@
     },
     "root": {
       "inputs": {
+        "disko": "disko",
         "hyprland": "hyprland",
         "nixpkgs": "nixpkgs",
         "prettyswitch": "prettyswitch"
