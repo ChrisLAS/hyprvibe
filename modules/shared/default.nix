@@ -7,6 +7,7 @@
     ./waybar.nix
     ./shell.nix
     ./services.nix
+    ./lanzaboote.nix
   ];
 }
 
