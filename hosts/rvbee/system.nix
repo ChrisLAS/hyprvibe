@@ -295,6 +295,21 @@ in
   shared.waybar.stylePath = ./waybar.css;
   shared.waybar.scriptsDir = ./scripts;
   shared.shell = { enable = true; kittyAsDefault = true; };
+  
+  # Stylix theming configuration
+  shared.stylix = {
+    enable = true;
+    image = ./aesthetic_8_bit_art-wallpaper-3840x2160.jpg;
+    polarity = "dark";
+    
+    # Example of passing additional options through extraConfig
+    extraConfig = {
+      # Disable theming for specific applications if needed
+      # targets.waybar.enable = false;
+      # targets.kitty.colors.background_opacity = 0.9;
+    };
+  };
+  
   shared.services = {
     enable = true;
     openssh.enable = true;
