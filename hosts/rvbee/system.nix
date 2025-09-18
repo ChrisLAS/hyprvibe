@@ -303,6 +303,34 @@ in
     docker.enable = true;
   };
 
+  # Example SOPS-NIX configuration (disabled by default)
+  # To enable, uncomment the following and create secrets files
+  # hyprvibe.sops = {
+  #   enable = true;
+  #   defaultSopsFile = ./secrets.yaml;
+  #   
+  #   # Use age with SSH key conversion
+  #   age = {
+  #     sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+  #     generateKey = true;
+  #     keyFile = "/var/lib/sops-nix/key.txt";
+  #   };
+  #   
+  #   # Example secrets configuration
+  #   secrets = {
+  #     "github_token" = {
+  #       owner = "chrisf";
+  #       mode = "0400";
+  #       path = "/home/chrisf/.config/secrets/github_token";
+  #     };
+  #     "wifi_password" = {
+  #       owner = "networkmanager";
+  #       group = "networkmanager";
+  #       mode = "0440";
+  #     };
+  #   };
+  # };
+
   # Android ADB and udev support
   services.udev.packages = [ pkgs.android-udev-rules pkgs.brightnessctl ];
   services.udev.extraRules = ''

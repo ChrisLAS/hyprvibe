@@ -538,6 +538,34 @@ in
     virt.enable = true;
     docker.enable = true;
   };
+
+  # Example SOPS-NIX configuration (disabled by default)
+  # To enable, uncomment the following and create secrets files
+  # hyprvibe.sops = {
+  #   enable = true;
+  #   defaultSopsFile = ./secrets.yaml;
+  #   
+  #   # Use age with SSH key conversion
+  #   age = {
+  #     sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+  #     generateKey = true;
+  #     keyFile = "/var/lib/sops-nix/key.txt";
+  #   };
+  #   
+  #   # Example secrets configuration
+  #   secrets = {
+  #     "github_token" = {
+  #       owner = "root";
+  #       mode = "0400";
+  #       path = "/root/.config/secrets/github_token";
+  #     };
+  #     "wifi_password" = {
+  #       owner = "networkmanager";
+  #       group = "networkmanager";
+  #       mode = "0440";
+  #     };
+  #   };
+  # };
   shared.packages = {
     enable = true;
     base.enable = true;
