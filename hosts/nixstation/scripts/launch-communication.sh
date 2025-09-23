@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Simple launcher for Slack and Telegram
-# Launch Telegram first, wait 1 second, then launch Slack
+# Simple launcher for Simplex Chat
+# Launch Simplex Chat
 
-Telegram &
-sleep 1
-slack &
+simplex-chat-desktop &

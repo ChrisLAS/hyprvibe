@@ -59,11 +59,9 @@ let
     obs-studio-plugins.wlrobs
     obs-studio-plugins.waveform
     obs-studio-plugins.obs-pipewire-audio-capture
-    element-desktop
     lazygit
     brave
     simplex-chat-desktop
-    signal-desktop
     xrdp
     caffeine-ng
     filezilla
@@ -135,7 +133,6 @@ let
     lshw
     tor-browser
     vdhcoapp
-    ulauncher
     wmctrl
     oh-my-posh
     # Hyprland utilities
@@ -180,7 +177,6 @@ let
     fcitx5-gtk
     kdePackages.fcitx5-qt
     nautilus
-    sushi
     libqalculate
     mako
     swaybg
@@ -222,7 +218,6 @@ let
     libvdpau
     moonlight-qt
     sunshine
-    plasma5Packages.kdeconnect-kde
     virt-manager
     fuse
     fuse3
@@ -243,7 +238,7 @@ let
     pwvucontrol
     pipecontrol
     wireplumber
-    libsForQt5.plasma-browser-integration
+    kdePackages.plasma-browser-integration
     nixfmt-rfc-style
     qownnotes
   ];
@@ -267,9 +262,6 @@ let
     firefox
     brave
     google-chrome
-    slack
-    telegram-desktop
-    element-desktop
     nextcloud-client
     trayscale
     maestral-gui
@@ -279,7 +271,6 @@ let
     chromium
     gnome-calculator
     gnome-keyring
-    signal-desktop
     libreoffice
     kdePackages.kdenlive
     xournalpp
@@ -297,7 +288,6 @@ let
     starship
     rclone-browser
     # Additional applications from your current config
-    tdesktop
     maestral
     maestral-gui
     steam-run
@@ -335,7 +325,6 @@ let
     libvdpau
     pkgs.moonlight-qt
     pkgs.sunshine
-    plasma5Packages.kdeconnect-kde
     virt-manager
     fuse
     fuse3
@@ -378,7 +367,6 @@ let
     kdePackages.yakuake
     kdePackages.kdenlive
     kdePackages.ark
-    kdePackages.kdeconnect-kde
     kdePackages.ktorrent
     krita
     kdePackages.discover
@@ -396,7 +384,7 @@ let
     wireplumber
     pavucontrol
     qpwgraph
-    libsForQt5.plasma-browser-integration
+    kdePackages.plasma-browser-integration
     gitui
     cmake
     ispell
@@ -421,11 +409,9 @@ let
     obs-studio-plugins.wlrobs
     obs-studio-plugins.waveform
     obs-studio-plugins.obs-pipewire-audio-capture
-    element-desktop
     lazygit
     brave
     simplex-chat-desktop
-    signal-desktop
     xrdp
     caffeine-ng
     filezilla
@@ -490,7 +476,6 @@ let
     file-roller
     celluloid
     fragments
-    foliate
     blanket
     metadata-cleaner
     dialect
@@ -592,7 +577,7 @@ in
 
   # Nix settings - PRESERVING YOUR EXISTING CONFIG
   nix.settings = {
-    download-buffer-size = 128000000;
+    download-buffer-size = 512000000;
     experimental-features = "nix-command flakes";
     auto-optimise-store = true;
   };
@@ -1238,7 +1223,6 @@ in
       enable = true;
       xwayland.enable = true;
     };
-    kdeconnect.enable = true;
   };
 
   # Fonts - PRESERVING YOUR EXISTING CONFIG
