@@ -13,16 +13,16 @@ This document describes the custom keybindings for launching applications on spe
 ## Application Launch Keybindings
 
 ### Communication Apps (Right Vertical Monitor - HDMI-A-1)
-- **SUPER + S**: Launch Telegram, then Slack after 1-second delay
+- **SUPER + S**: Launch Slack, then Telegram after 2-second delay
   - Opens both communication apps on the right vertical monitor
-  - Telegram launches first, then Slack
+  - Slack launches first, then Telegram
 
 ### Development Tools (Left Vertical Monitor - DP-2)
 - **SUPER + D**: Launch Cursor editor and terminal
   - Opens development environment on the left vertical monitor
 
 ### Browser (Top Monitor - DP-1)
-- **SUPER + G**: Launch Firefox on top monitor
+- **SUPER + G**: Launch Junction on top monitor
   - Opens browser on the top monitor (DP-1)
 
 ### Media Player (Main Monitor - DP-3)

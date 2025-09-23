@@ -135,9 +135,10 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
 |---|---|---|---|
 | Launchers | SUPER+RETURN | Launch terminal | `$terminal` (alacritty) |
 | Launchers | SUPER+SPACE | App launcher | `$menu` (rofi run/drun) |
-| Launchers | SUPER+F | Launch browser | `$browser` (firefox) |
+| Launchers | SUPER+F | Launch browser | `$browser` (junction) |
 | Launchers | SUPER+E | File manager | `dolphin` |
 | Launchers | SUPER+O | Obsidian | `flatpak run md.obsidian.Obsidian` |
+| Launchers | SUPER+S | Slack & Telegram | Launch communication apps (monitor-specific) |
 | Brightness | SUPER+B | Brightness menu | `~/.local/bin/rofi-brightness` (rofi menu) |
 | Session | SUPER+M | Exit Hyprland | `exit` |
 | Session | SUPER+L | Lock | `hyprlock` |
@@ -152,7 +153,7 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
 | Workspaces | SUPER+SHIFT+1..0 | Move window to ws 1–10 | `movetoworkspace 1..10` |
 | Workspaces | SUPER+mouse_down | Next workspace | `workspace e+1` |
 | Workspaces | SUPER+mouse_up | Previous workspace | `workspace e-1` |
-| Special ws | SUPER+S | Toggle special | `togglespecialworkspace magic` |
+| Special ws | SUPER+ALT+S | Toggle special | `togglespecialworkspace magic` |
 | Special ws | SUPER+SHIFT+S | Move to special | `movetoworkspace special:magic` |
 | Mouse | SUPER + LMB drag | Move window | `bindm … movewindow` |
 | Mouse | SUPER + RMB drag | Resize window | `bindm … resizewindow` |

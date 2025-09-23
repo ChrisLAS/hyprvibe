@@ -147,6 +147,7 @@ let
     xdg-desktop-portal-gtk
     xdg-utils
     kdePackages.polkit-kde-agent-1
+    polkit_gnome
     qt6.qtbase
     qt6.qtwayland
     wofi
@@ -199,6 +200,9 @@ let
     jmtpfs
     nextcloud-client
     gnome-firmware
+    usbutils
+    parted
+    gparted
     wayland-protocols
     wayland-scanner
     wayland
@@ -682,6 +686,7 @@ in
     # Enable Flatpak - PRESERVING YOUR EXISTING CONFIG
     flatpak.enable = true;
     
+    
     # Enable Tor - PRESERVING YOUR EXISTING CONFIG
     tor.client.enable = true;
     tor.enable = true;
@@ -724,6 +729,21 @@ in
       # Additional udev rules for better HID support
       pkgs.bluez5-experimental
     ];
+    # Additional udev rules for USB storage device access
+    udev.extraRules = ''
+      # Allow users in disk group to access USB storage devices
+      SUBSYSTEM=="block", KERNEL=="sd*", GROUP="disk", MODE="0660"
+      # Allow users in disk group to access USB devices
+      SUBSYSTEM=="usb", GROUP="disk", MODE="0664"
+      # Allow users in disk group to access all block devices
+      SUBSYSTEM=="block", GROUP="disk", MODE="0660"
+      # Allow users in disk group to access SCSI devices
+      SUBSYSTEM=="scsi", GROUP="disk", MODE="0664"
+      # Allow users in disk group to access SCSI generic devices
+      SUBSYSTEM=="scsi_generic", GROUP="disk", MODE="0664"
+      # Allow users in disk group to access SCSI disk devices
+      SUBSYSTEM=="scsi_disk", GROUP="disk", MODE="0664"
+    '';
     udisks2.enable = true;
     gvfs.enable = true;
     tumbler.enable = true;
@@ -747,6 +767,21 @@ in
   security = {
     rtkit.enable = true;
     polkit.enable = true;
+    polkit.extraConfig = ''
+      polkit.addRule(function(action, subject) {
+          if (action.id == "org.freedesktop.udisks2.filesystem-mount-system" ||
+              action.id == "org.freedesktop.udisks2.filesystem-unmount" ||
+              action.id == "org.freedesktop.udisks2.filesystem-mount" ||
+              action.id == "org.freedesktop.udisks2.encrypted-unlock" ||
+              action.id == "org.freedesktop.udisks2.eject-media" ||
+              action.id == "org.freedesktop.udisks2.power-off-drive" ||
+              action.id == "org.freedesktop.udisks2.modify-device") {
+              if (subject.isInGroup("disk") || subject.isInGroup("wheel")) {
+                  return polkit.Result.YES;
+              }
+          }
+      });
+    '';
     sudo.wheelNeedsPassword = false;
     pam.services = {
       login.kwallet.enable = true;
@@ -810,6 +845,7 @@ in
       "render"
       "audio"
       "i2c"
+      "disk"
     ];
     home = "/home/chrisf";
   };
@@ -1348,6 +1384,20 @@ in
       ExecStart = "${pkgs.solaar}/bin/solaar --window=hide";
       Restart = "on-failure";
       RestartSec = 5;
+    };
+  };
+
+  # Polkit authentication agent for GUI applications
+  systemd.user.services.polkit-gnome-authentication-agent-1 = {
+    description = "Polkit Authentication Agent";
+    after = [ "graphical-session.target" ];
+    wantedBy = [ "graphical-session.target" ];
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+      Restart = "on-failure";
+      RestartSec = 1;
+      TimeoutStopSec = 10;
     };
   };
 
