@@ -11,9 +11,12 @@
     
     hyprland.url = "github:hyprwm/Hyprland";
     hyprland.inputs.nixpkgs.follows = "nixpkgs";
+
+    stylix.url = "github:danth/stylix";
+    stylix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, prettyswitch, hyprland, ... }: {
+  outputs = { self, nixpkgs, prettyswitch, hyprland, stylix, ... }: {
     # Formatter (optional)
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
 
@@ -25,6 +28,7 @@
       shared-waybar = import ./modules/shared/waybar.nix;
       shared-shell = import ./modules/shared/shell.nix;
       shared-services = import ./modules/shared/services.nix;
+      shared-stylix = import ./modules/shared/stylix.nix;
     };
 
     nixosConfigurations = {
@@ -33,6 +37,7 @@
         modules = [
           ./hosts/rvbee/system.nix
           prettyswitch.nixosModules.default
+          stylix.nixosModules.stylix
         ];
         specialArgs = {
           inherit hyprland;
@@ -43,6 +48,7 @@
         modules = [
           ./hosts/nixstation/system.nix
           prettyswitch.nixosModules.default
+          stylix.nixosModules.stylix
         ];
         specialArgs = {
           inherit hyprland;
