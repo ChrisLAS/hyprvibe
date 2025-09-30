@@ -303,6 +303,49 @@ in
     docker.enable = true;
   };
 
+  # Disko disk partitioning configuration (disabled by default)
+  # To enable: set hyprvibe.disko.enable = true and choose a layout
+  # Note: This will DESTROY existing data on the target disk!
+  hyprvibe.disko = {
+    enable = false; # Set to true when ready to partition disks
+    layout = "simple-efi"; # Options: simple-efi, simple-bios, btrfs-subvolumes, lvm-luks, custom
+    device = "/dev/nvme0n1"; # Adjust for your actual disk device
+    bootSize = "1G";
+    swapSize = "16G"; # Adjust based on RAM (null to disable)
+    
+    # Example BTRFS configuration (when layout = "btrfs-subvolumes")
+    btrfs.subvolumes = {
+      "@" = { mountpoint = "/"; };
+      "@home" = { mountpoint = "/home"; };
+      "@nix" = { 
+        mountpoint = "/nix";
+        mountOptions = [ "noatime" ];
+      };
+      "@snapshots" = { mountpoint = "/.snapshots"; };
+    };
+    
+    # Example LVM configuration (when layout = "lvm-luks")
+    lvm.volumes = {
+      root = {
+        size = "50G";
+        fsType = "ext4";
+        mountpoint = "/";
+      };
+      home = {
+        size = "100%FREE";
+        fsType = "ext4";
+        mountpoint = "/home";
+      };
+    };
+    
+    # Example LUKS encryption (when layout = "lvm-luks")
+    encryption = {
+      enable = false; # Set to true for LUKS encryption
+      label = "rvbee-enc";
+      # keyFile = "/etc/luks-keys/main"; # For automated unlocking
+    };
+  };
+
   # Android ADB and udev support
   services.udev.packages = [ pkgs.android-udev-rules pkgs.brightnessctl ];
   services.udev.extraRules = ''
