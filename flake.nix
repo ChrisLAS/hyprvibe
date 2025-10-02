@@ -11,9 +11,12 @@
     
     hyprland.url = "github:hyprwm/Hyprland";
     hyprland.inputs.nixpkgs.follows = "nixpkgs";
+
+    lanzaboote.url = "github:nix-community/lanzaboote";
+    lanzaboote.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, prettyswitch, hyprland, ... }: {
+  outputs = { self, nixpkgs, prettyswitch, hyprland, lanzaboote, ... }: {
     # Formatter (optional)
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
 
@@ -25,6 +28,7 @@
       shared-waybar = import ./modules/shared/waybar.nix;
       shared-shell = import ./modules/shared/shell.nix;
       shared-services = import ./modules/shared/services.nix;
+      shared-lanzaboote = import ./modules/shared/lanzaboote.nix;
     };
 
     nixosConfigurations = {
@@ -33,6 +37,7 @@
         modules = [
           ./hosts/rvbee/system.nix
           prettyswitch.nixosModules.default
+          lanzaboote.nixosModules.lanzaboote
         ];
         specialArgs = {
           inherit hyprland;
@@ -43,6 +48,7 @@
         modules = [
           ./hosts/nixstation/system.nix
           prettyswitch.nixosModules.default
+          lanzaboote.nixosModules.lanzaboote
         ];
         specialArgs = {
           inherit hyprland;
