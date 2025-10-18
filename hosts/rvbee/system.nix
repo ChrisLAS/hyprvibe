@@ -1339,10 +1339,10 @@ in
     MPV_X=$RIGHT_X
     MPV_Y=$TOP_Y
     # Apply geometry
-    $HYPRCTL dispatch resizewindowpixel exact "class:^(obs|com\.obsproject\.Studio)$" ${OBS_W} ${OBS_H} || true
-    $HYPRCTL dispatch movewindowpixel exact "class:^(obs|com\.obsproject\.Studio)$" ${OBS_X} ${OBS_Y} || true
-    $HYPRCTL dispatch resizewindowpixel exact "title:^(ClipPlayer)$" ${MPV_W} ${MPV_H} || true
-    $HYPRCTL dispatch movewindowpixel exact "title:^(ClipPlayer)$" ${MPV_X} ${MPV_Y} || true
+    $HYPRCTL dispatch resizewindowpixel exact "class:^(obs|com\.obsproject\.Studio)$" $OBS_W $OBS_H || true
+    $HYPRCTL dispatch movewindowpixel exact "class:^(obs|com\.obsproject\.Studio)$" $OBS_X $OBS_Y || true
+    $HYPRCTL dispatch resizewindowpixel exact "title:^(ClipPlayer)$" $MPV_W $MPV_H || true
+    $HYPRCTL dispatch movewindowpixel exact "title:^(ClipPlayer)$" $MPV_X $MPV_Y || true
     EOF
     chmod +x /home/chrisf/.local/bin/place-obs-mpv
 
