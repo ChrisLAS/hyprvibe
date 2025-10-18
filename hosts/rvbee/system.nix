@@ -1350,7 +1350,7 @@ in
     cat > /home/chrisf/.local/bin/clip-player << 'EOF'
     #!/run/current-system/sw/bin/bash
     set -euo pipefail
-    /run/current-system/sw/bin/mpv --force-window=immediate --title=ClipPlayer --ao=pipewire "$@" >/dev/null 2>&1 &
+    /run/current-system/sw/bin/mpv --force-window=immediate --title=ClipPlayer --wayland-app-id=clip-player --ao=pipewire "$@" >/dev/null 2>&1 &
     ( sleep 0.5; /home/chrisf/.local/bin/place-obs-mpv >/dev/null 2>&1 ) &
     EOF
     chmod +x /home/chrisf/.local/bin/clip-player
