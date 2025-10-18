@@ -60,6 +60,7 @@ let
     htop
     btop
     neofetch
+    socat
     nmap
     mosh
     yt-dlp
@@ -1348,8 +1349,23 @@ in
     cat > /home/chrisf/.local/bin/clip-player << 'EOF'
     #!/run/current-system/sw/bin/bash
     set -euo pipefail
-    /run/current-system/sw/bin/mpv --force-window=immediate --title=ClipPlayer --wayland-app-id=clip-player --ao=pipewire "$@" >/dev/null 2>&1 &
-    ( sleep 0.5; /home/chrisf/.local/bin/place-obs-mpv >/dev/null 2>&1 ) &
+    SOCK="/run/user/$(id -u)/mpv-clipplayer.sock"
+    BASE=(
+      --force-window=immediate
+      --idle=yes
+      --title=ClipPlayer
+      --wayland-app-id=clip-player
+      --ao=pipewire
+      --input-ipc-server="$SOCK"
+    )
+    if [ -S "$SOCK" ] && command -v socat >/dev/null 2>&1; then
+      if [ $# -gt 0 ]; then
+        printf '{ "command": ["loadfile", "%s", "replace"] }\n' "$(realpath -- "$1")" | socat - "$SOCK" || true
+      fi
+    else
+      /run/current-system/sw/bin/mpv "${BASE[@]}" "$@" >/dev/null 2>&1 &
+    fi
+    ( sleep 0.3; /home/chrisf/.local/bin/place-obs-mpv >/dev/null 2>&1 ) &
     EOF
     chmod +x /home/chrisf/.local/bin/clip-player
 
