@@ -1516,6 +1516,12 @@ in
       plugins = [
         pkgs.obs-studio-plugins.obs-pipewire-audio-capture
         pkgs.obs-studio-plugins.wlrobs
+        pkgs.obs-studio-plugins.waveform
+        pkgs.obs-studio-plugins.obs-stroke-glow-shadow
+        pkgs.obs-studio-plugins.obs-source-record
+        pkgs.obs-studio-plugins.obs-dir-watch-media
+        pkgs.obs-studio-plugins.obs-backgroundremoval
+        pkgs.obs-studio-plugins.obs-advanced-masks
       ];
     };
   };
