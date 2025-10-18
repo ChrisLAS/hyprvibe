@@ -17,6 +17,22 @@ in {
 
     system.activationScripts.shell = lib.mkAfter ''
       mkdir -p /home/chrisf/.config/fish/conf.d
+      # Minimal, conservative grc integration for Fish
+      cat > /home/chrisf/.config/fish/conf.d/grc.fish << 'EOF'
+      if set -q GRC_DISABLE
+        exit
+      end
+      if not command -q grc
+        exit
+      end
+      function __grc_wrap
+        grc $argv
+      end
+      set -l __grc_targets diff dig ip last mount netstat ping ping6 ps traceroute traceroute6
+      for t in $__grc_targets
+        alias $t "__grc_wrap $t"
+      end
+      EOF
       cat > /home/chrisf/.config/fish/conf.d/oh-my-posh.fish << 'EOF'
       if command -q oh-my-posh
         oh-my-posh init fish --config ~/.config/oh-my-posh/config.json | source

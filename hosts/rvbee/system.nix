@@ -1515,7 +1515,7 @@ in
       enable = true;
       plugins = [
         pkgs.obs-studio-plugins.obs-pipewire-audio-capture
-        pkgs.obs-hyprland
+        pkgs.obs-studio-plugins.wlrobs
       ];
     };
   };
@@ -1599,8 +1599,6 @@ in
   ];
   # Workaround: upstream mat2 test regression (breaks metadata-cleaner)
   nixpkgs.overlays = [
-    # obs-hyprland overlay
-    (import ../../overlays/obs-hyprland.nix)
     (final: prev: {
       python3Packages = prev.python3Packages.override {
         overrides = self: super: {
