@@ -558,33 +558,33 @@ in
   # Copy Hyprland configuration to user's home
   system.activationScripts.copyHyprlandConfig = ''
     mkdir -p /home/chrisf/.config/hypr
-    cp ${./hyprland.conf} /home/chrisf/.config/hypr/hyprland.conf
-    cp ${../../configs/hyprland-base.conf} /home/chrisf/.config/hypr/hyprland-base.conf
-    cp ${../../configs/hyprland-monitors-rvbee.conf} /home/chrisf/.config/hypr/hyprland-monitors-rvbee.conf
+    cp --remove-destination ${./hyprland.conf} /home/chrisf/.config/hypr/hyprland.conf
+    cp --remove-destination ${../../configs/hyprland-base.conf} /home/chrisf/.config/hypr/hyprland-base.conf
+    cp --remove-destination ${../../configs/hyprland-monitors-rvbee.conf} /home/chrisf/.config/hypr/hyprland-monitors-rvbee.conf
     # Render wallpaper path into hyprpaper/hyprlock configs
     ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprpaper.conf} > /home/chrisf/.config/hypr/hyprpaper.conf
     ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprlock.conf} > /home/chrisf/.config/hypr/hyprlock.conf
-    cp ${./hypridle.conf} /home/chrisf/.config/hypr/hypridle.conf
+    cp --remove-destination ${./hypridle.conf} /home/chrisf/.config/hypr/hypridle.conf
     chown -R chrisf:users /home/chrisf/.config/hypr
     # BTC script for hyprlock
-    cp ${./scripts/hyprlock-btc.sh} /home/chrisf/.config/hypr/hyprlock-btc.sh
+    cp --remove-destination ${./scripts/hyprlock-btc.sh} /home/chrisf/.config/hypr/hyprlock-btc.sh
     chmod +x /home/chrisf/.config/hypr/hyprlock-btc.sh
     
     mkdir -p /home/chrisf/.config/waybar
-    cp ${./waybar.json} /home/chrisf/.config/waybar/config
+    cp --remove-destination ${./waybar.json} /home/chrisf/.config/waybar/config
     # Theme and scripts for Waybar (cyberpunk aesthetic + custom modules)
-    cp ${./waybar.css} /home/chrisf/.config/waybar/style.css
+    cp --remove-destination ${./waybar.css} /home/chrisf/.config/waybar/style.css
     mkdir -p /home/chrisf/.config/waybar/scripts
-    cp ${./scripts/waybar-dunst.sh} /home/chrisf/.config/waybar/scripts/waybar-dunst.sh
-    cp ${./scripts/waybar-public-ip.sh} /home/chrisf/.config/waybar/scripts/waybar-public-ip.sh
-    cp ${./scripts/waybar-amd-gpu.sh} /home/chrisf/.config/waybar/scripts/waybar-amd-gpu.sh
-    cp ${./scripts/waybar-weather.sh} /home/chrisf/.config/waybar/scripts/waybar-weather.sh
-    cp ${./scripts/waybar-brightness.sh} /home/chrisf/.config/waybar/scripts/waybar-brightness.sh
-    cp ${./scripts/waybar-btc.py} /home/chrisf/.config/waybar/scripts/waybar-btc.py
+    cp --remove-destination ${./scripts/waybar-dunst.sh} /home/chrisf/.config/waybar/scripts/waybar-dunst.sh
+    cp --remove-destination ${./scripts/waybar-public-ip.sh} /home/chrisf/.config/waybar/scripts/waybar-public-ip.sh
+    cp --remove-destination ${./scripts/waybar-amd-gpu.sh} /home/chrisf/.config/waybar/scripts/waybar-amd-gpu.sh
+    cp --remove-destination ${./scripts/waybar-weather.sh} /home/chrisf/.config/waybar/scripts/waybar-weather.sh
+    cp --remove-destination ${./scripts/waybar-brightness.sh} /home/chrisf/.config/waybar/scripts/waybar-brightness.sh
+    cp --remove-destination ${./scripts/waybar-btc.py} /home/chrisf/.config/waybar/scripts/waybar-btc.py
     # CoinGecko BTC-only
-    cp ${./scripts/waybar-btc-coingecko.sh} /home/chrisf/.config/waybar/scripts/waybar-btc-coingecko.sh
-    cp ${./scripts/waybar-reboot.sh} /home/chrisf/.config/waybar/scripts/waybar-reboot.sh
-    cp ${./scripts/waybar-mpris.sh} /home/chrisf/.config/waybar/scripts/waybar-mpris.sh
+    cp --remove-destination ${./scripts/waybar-btc-coingecko.sh} /home/chrisf/.config/waybar/scripts/waybar-btc-coingecko.sh
+    cp --remove-destination ${./scripts/waybar-reboot.sh} /home/chrisf/.config/waybar/scripts/waybar-reboot.sh
+    cp --remove-destination ${./scripts/waybar-mpris.sh} /home/chrisf/.config/waybar/scripts/waybar-mpris.sh
     chmod +x /home/chrisf/.config/waybar/scripts/*.sh
     chmod +x /home/chrisf/.config/waybar/scripts/*.py || true
     chown -R chrisf:users /home/chrisf/.config/waybar
