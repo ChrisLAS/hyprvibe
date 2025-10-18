@@ -1346,6 +1346,15 @@ in
     EOF
     chmod +x /home/chrisf/.local/bin/place-obs-mpv
 
+    # Install ClipPlayer launcher (mpv with stable title)
+    cat > /home/chrisf/.local/bin/clip-player << 'EOF'
+    #!/run/current-system/sw/bin/bash
+    set -euo pipefail
+    /run/current-system/sw/bin/mpv --force-window=immediate --title=ClipPlayer --ao=pipewire "$@" >/dev/null 2>&1 &
+    ( sleep 0.5; /home/chrisf/.local/bin/place-obs-mpv >/dev/null 2>&1 ) &
+    EOF
+    chmod +x /home/chrisf/.local/bin/clip-player
+
 
     # Apply GTK theming (Tokyo Night Dark + Papirus-Dark + Bibata cursor)
     mkdir -p /home/chrisf/.config/gtk-3.0
@@ -1515,8 +1524,45 @@ in
     EOF
     chown chrisf:users /home/chrisf/.local/share/applications/kitty.desktop
     
-    # Update desktop database to register Kitty
+    # Update desktop database to register Kitty and ClipPlayer
     runuser -s ${pkgs.bash}/bin/bash -l chrisf -c '${pkgs.desktop-file-utils}/bin/update-desktop-database ~/.local/share/applications' || true
+    
+    # ClipPlayer desktop entry for file associations
+    cat > /home/chrisf/.local/share/applications/clip-player.desktop << 'EOF'
+    [Desktop Entry]
+    Version=1.0
+    Type=Application
+    Name=ClipPlayer
+    GenericName=Media Player
+    Comment=Launch MPV with a stable title for OBS capture
+    Exec=/home/chrisf/.local/bin/clip-player %U
+    Icon=mpv
+    Terminal=false
+    Categories=AudioVideo;Video;Player;
+    MimeType=video/mp4;video/x-matroska;video/webm;video/x-msvideo;video/quicktime;video/ogg;audio/mpeg;audio/mp3;audio/ogg;audio/flac;audio/x-flac;audio/wav;audio/x-wav;application/ogg;
+    EOF
+    chown chrisf:users /home/chrisf/.local/share/applications/clip-player.desktop
+    
+    # Set ClipPlayer as default for common media MIME types
+    mkdir -p /home/chrisf/.config
+    cat > /home/chrisf/.config/mimeapps.list << 'EOF'
+    [Default Applications]
+    video/mp4=clip-player.desktop
+    video/x-matroska=clip-player.desktop
+    video/webm=clip-player.desktop
+    video/x-msvideo=clip-player.desktop
+    video/quicktime=clip-player.desktop
+    video/ogg=clip-player.desktop
+    audio/mpeg=clip-player.desktop
+    audio/mp3=clip-player.desktop
+    audio/ogg=clip-player.desktop
+    audio/flac=clip-player.desktop
+    audio/x-flac=clip-player.desktop
+    audio/wav=clip-player.desktop
+    audio/x-wav=clip-player.desktop
+    application/ogg=clip-player.desktop
+    EOF
+    chown chrisf:users /home/chrisf/.config/mimeapps.list
   '';
 
   # Programs
