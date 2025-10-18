@@ -1313,6 +1313,39 @@ in
     cp ${../../scripts/setup-monitors.sh} /home/chrisf/.local/bin/setup-monitors
     chmod +x /home/chrisf/.local/bin/setup-monitors
 
+    # Install OBS/MPV placement helper
+    cat > /home/chrisf/.local/bin/place-obs-mpv << 'EOF'
+    #!/run/current-system/sw/bin/bash
+    set -euo pipefail
+    # Requires: hyprctl, jq
+    HYPRCTL=/run/current-system/sw/bin/hyprctl
+    JQ=/run/current-system/sw/bin/jq
+    # Get active monitor geometry
+    read -r X Y W H < <($HYPRCTL -j monitors | $JQ -r '.[] | select(.focused==true) | "\(.x) \(.y) \(.width) \(.height)"')
+    # Quarters
+    HALF_W=$(( W / 2 ))
+    HALF_H=$(( H / 2 ))
+    LEFT_X=$X
+    RIGHT_X=$(( X + HALF_W ))
+    TOP_Y=$Y
+    BOTTOM_Y=$(( Y + HALF_H ))
+    # Positions
+    OBS_W=$HALF_W
+    OBS_H=$HALF_H
+    OBS_X=$LEFT_X
+    OBS_Y=$BOTTOM_Y
+    MPV_W=$HALF_W
+    MPV_H=$HALF_H
+    MPV_X=$RIGHT_X
+    MPV_Y=$TOP_Y
+    # Apply geometry
+    $HYPRCTL dispatch resizewindowpixel exact "class:^(obs|com\.obsproject\.Studio)$" ${OBS_W} ${OBS_H} || true
+    $HYPRCTL dispatch movewindowpixel exact "class:^(obs|com\.obsproject\.Studio)$" ${OBS_X} ${OBS_Y} || true
+    $HYPRCTL dispatch resizewindowpixel exact "title:^(ClipPlayer)$" ${MPV_W} ${MPV_H} || true
+    $HYPRCTL dispatch movewindowpixel exact "title:^(ClipPlayer)$" ${MPV_X} ${MPV_Y} || true
+    EOF
+    chmod +x /home/chrisf/.local/bin/place-obs-mpv
+
 
     # Apply GTK theming (Tokyo Night Dark + Papirus-Dark + Bibata cursor)
     mkdir -p /home/chrisf/.config/gtk-3.0
