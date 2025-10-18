@@ -45,8 +45,7 @@ let
     # pwvucontrol
     easyeffects
     wayfarer
-    obs-studio
-    obs-studio-plugins.obs-pipewire-audio-capture
+    # OBS configured via programs.obs-studio with plugins
     # obs-studio-plugins.waveform
     libepoxy
     audacity
@@ -140,7 +139,7 @@ let
     mako
     swaybg
     swayosd
-    rofi-wayland
+    rofi
     qt6ct
     pavucontrol
     networkmanagerapplet
@@ -1512,6 +1511,13 @@ in
       enable = true;
       xwayland.enable = true;
     };
+    obs-studio = {
+      enable = true;
+      plugins = [
+        pkgs.obs-studio-plugins.obs-pipewire-audio-capture
+        pkgs.obs-hyprland
+      ];
+    };
   };
 
 
@@ -1593,6 +1599,8 @@ in
   ];
   # Workaround: upstream mat2 test regression (breaks metadata-cleaner)
   nixpkgs.overlays = [
+    # obs-hyprland overlay
+    (import ../../overlays/obs-hyprland.nix)
     (final: prev: {
       python3Packages = prev.python3Packages.override {
         overrides = self: super: {
