@@ -1358,12 +1358,21 @@ in
       --ao=pipewire
       --input-ipc-server="$SOCK"
     )
+    alive=0
     if [ -S "$SOCK" ] && command -v socat >/dev/null 2>&1; then
+      if printf '{ "command": ["get_version"] }\n' | socat - "UNIX-CONNECT:$SOCK" >/dev/null 2>&1; then
+        alive=1
+      fi
+    fi
+
+    if [ "$alive" -eq 1 ]; then
       if [ $# -gt 0 ]; then
-        printf '{ "command": ["loadfile", "%s", "replace"] }\n' "$(realpath -- "$1")" | socat - "$SOCK" || true
+        printf '{ "command": ["loadfile", "%s", "replace"] }\n' "$(realpath -- "$1")" | socat - "UNIX-CONNECT:$SOCK" >/dev/null 2>&1 || true
+      else
+        /run/current-system/sw/bin/hyprctl dispatch focuswindow "class:^(clip-player)$" >/dev/null 2>&1 || true
       fi
     else
-      /run/current-system/sw/bin/mpv "${BASE[@]}" "$@" >/dev/null 2>&1 &
+      /run/current-system/sw/bin/mpv "''${BASE[@]}" "$@" >/dev/null 2>&1 &
     fi
     ( sleep 0.3; /home/chrisf/.local/bin/place-obs-mpv >/dev/null 2>&1 ) &
     EOF
