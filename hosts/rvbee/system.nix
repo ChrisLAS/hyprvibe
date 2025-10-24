@@ -70,6 +70,7 @@ let
     restic
     autorestic
     restique
+    cool-retro-term
     #    ventoy
     hddtemp
     smartmontools
@@ -149,6 +150,7 @@ let
     oh-my-posh
     ddcutil
     curl
+    v4l-utils
     openssh
     glib-networking
     rclone
@@ -261,8 +263,8 @@ let
     # Drawing app
     drawing
   ];
-  # Centralized wallpaper path used by hyprpaper and hyprlock
-  wallpaperPath = "/home/chrisf/build/config/hosts/rvbee/aesthetic_8_bit_art-wallpaper-3840x2160.jpg";
+  # Centralized wallpaper path used by hyprpaper and hyprlock (standardized repo path)
+  wallpaperPath = ../../wallpapers/aishot-2602.jpg;
 
   # Script to import GITHUB_TOKEN into systemd --user environment
   setGithubTokenScript = pkgs.writeShellScript "set-github-token" ''
@@ -324,6 +326,13 @@ in
       efi.canTouchEfiVariables = true;
     };
     kernelPackages = pkgs.linuxPackages_zen;
+    # v4l2loopback for virtual webcam support (OBS, conferencing apps)
+    kernelModules = [ "v4l2loopback" ];
+    extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
+    extraModprobeConfig = ''
+      # Dedicated virtual camera for OBS capture, fixed at /dev/video10
+      options v4l2loopback video_nr=10 exclusive_caps=1 card_label=ClipPlayer-VCam
+    '';
   };
 
   # System performance and maintenance
@@ -1345,36 +1354,172 @@ in
     EOF
     chmod +x /home/chrisf/.local/bin/place-obs-mpv
 
-    # Install ClipPlayer launcher (mpv with stable title)
+    # Install ClipPlayer launcher (normalize video and mirror to /dev/video10 + preview)
     cat > /home/chrisf/.local/bin/clip-player << 'EOF'
     #!/run/current-system/sw/bin/bash
     set -euo pipefail
-    SOCK="/run/user/$(id -u)/mpv-clipplayer.sock"
-    BASE=(
-      --force-window=immediate
-      --idle=yes
-      --title=ClipPlayer
-      --wayland-app-id=clip-player
-      --ao=pipewire
-      --input-ipc-server="$SOCK"
-    )
-    alive=0
-    if [ -S "$SOCK" ] && command -v socat >/dev/null 2>&1; then
-      if printf '{ "command": ["get_version"] }\n' | socat - "UNIX-CONNECT:$SOCK" >/dev/null 2>&1; then
-        alive=1
-      fi
+
+    DEV="/dev/video10"
+    WIDTH="''${CLIPPLAYER_WIDTH:-1920}"
+    HEIGHT="''${CLIPPLAYER_HEIGHT:-1080}"
+    FPS="''${CLIPPLAYER_FPS:-30}"
+
+    if [ ! -e "$DEV" ]; then
+      echo "Error: $DEV not found. Is v4l2loopback loaded?" >&2
+      exit 1
     fi
 
-    if [ "$alive" -eq 1 ]; then
-      if [ $# -gt 0 ]; then
-        printf '{ "command": ["loadfile", "%s", "replace"] }\n' "$(realpath -- "$1")" | socat - "UNIX-CONNECT:$SOCK" >/dev/null 2>&1 || true
-      else
-        /run/current-system/sw/bin/hyprctl dispatch focuswindow "class:^(clip-player)$" >/dev/null 2>&1 || true
-      fi
-    else
-      /run/current-system/sw/bin/mpv "''${BASE[@]}" "$@" >/dev/null 2>&1 &
+    if [ $# -lt 1 ]; then
+      echo "Usage: clip-player <video-file-or-url> [extra-ffmpeg-args...]" >&2
+      exit 2
     fi
-    ( sleep 0.3; /home/chrisf/.local/bin/place-obs-mpv >/dev/null 2>&1 ) &
+
+    INPUT="$1"; shift || true
+
+    LOOP_ARGS=()
+    FEED_IS_FILE=0
+    if [ -f "$INPUT" ]; then
+      LOOP_ARGS=(-re -stream_loop -1)
+      FEED_IS_FILE=1
+    else
+      LOOP_ARGS=(-re)
+    fi
+
+    # Normalize to 1080p YUV420P and target FPS; keep aspect via scale+pad
+    VF="scale=''${WIDTH}:''${HEIGHT}:force_original_aspect_ratio=decrease,pad=''${WIDTH}:''${HEIGHT}:(ow-iw)/2:(oh-ih)/2:black,format=yuv420p,fps=''${FPS}"
+
+    # Manage a single active feed; kill any prior producer if still running
+    RUNDIR="/run/user/$(id -u)"
+    FEED_PIDFILE="$RUNDIR/clip-player-feed.pid"
+
+    if [ -f "$FEED_PIDFILE" ]; then
+      OLD_PID=$(cat "$FEED_PIDFILE" 2>/dev/null || echo "")
+      if [ -n "$OLD_PID" ] && kill -0 "$OLD_PID" 2>/dev/null; then
+        kill -TERM "$OLD_PID" 2>/dev/null || true
+        # give it a moment, then force if needed
+        sleep 0.3
+        kill -KILL "$OLD_PID" 2>/dev/null || true
+      fi
+      rm -f "$FEED_PIDFILE" || true
+    fi
+
+    # Launch mpv controller and set up FIFO so mpv fully drives the feed
+    SOCK="$RUNDIR/mpv-clipplayer.sock"
+    PIPE="$RUNDIR/clip-player.yuv"
+    LOG="$RUNDIR/clip-player.log"
+    rm -f "$PIPE" 2>/dev/null || true
+    mkfifo -m 600 "$PIPE"
+    : > "$LOG"
+    # Start ffmpeg reader first (so writer doesn't block on opening FIFO)
+    /run/current-system/sw/bin/ffmpeg -hide_banner -loglevel info \
+      -f rawvideo -pix_fmt yuv420p -video_size "''${WIDTH}x''${HEIGHT}" -framerate "''${FPS}" -i "$PIPE" \
+      -f v4l2 "''${DEV}" >>"$LOG" 2>&1 &
+    FF_PID=$!
+    # Launch mpv writer into FIFO with visible controls
+    /run/current-system/sw/bin/mpv \
+      --force-window=immediate \
+      --title=ClipPlayer \
+      --vo=gpu --gpu-context=wayland --gpu-api=opengl \
+      --osc \
+      --osd-bar \
+      --ao=null \
+      --input-ipc-server="$SOCK" \
+      --vf="$VF" \
+      --ovc=rawvideo --of=rawvideo --o="$PIPE" \
+      --msg-level=all=info \
+      "$INPUT" >>"$LOG" 2>&1 &
+    MPV_PID=$!
+    cleanup() {
+      kill -TERM "$FF_PID" 2>/dev/null || true
+      kill -TERM "$MPV_PID" 2>/dev/null || true
+      rm -f "$PIPE" 2>/dev/null || true
+    }
+    trap cleanup EXIT INT TERM
+    wait "$MPV_PID" 2>/dev/null || true
+    cleanup
+    exit 0
+
+    # Function to (re)start the ffmpeg producer, optionally at a time offset (seconds)
+    start_feed() {
+      local offset="$1"
+      local args=( -hide_banner -loglevel warning )
+      if [ "$FEED_IS_FILE" = "1" ] && [ -n "$offset" ]; then
+        args+=( -re -stream_loop -1 -ss "$offset" -i "$INPUT" )
+      else
+        args+=( "''${LOOP_ARGS[@]}" -i "$INPUT" )
+      fi
+      /run/current-system/sw/bin/ffmpeg "''${args[@]}" \
+        -map 0:v:0 -vf "$VF" -an \
+        -pix_fmt yuv420p -framerate "''${FPS}" -video_size "''${WIDTH}x''${HEIGHT}" \
+        -f v4l2 "''${DEV}" &
+      FF_PID=$!
+      echo "$FF_PID" > "$FEED_PIDFILE"
+    }
+    # initial start (no offset)
+    start_feed ""
+
+    # Pause/Resume sync controller: poll mpv "pause" and SIGSTOP/SIGCONT ffmpeg
+    JQ=/run/current-system/sw/bin/jq
+    SOCAT=/run/current-system/sw/bin/socat
+    controller() {
+      last=""
+      last_pos=""
+      # Wait for MPV IPC socket to be ready
+      for i in $(/run/current-system/sw/bin/seq 1 50); do
+        [ -S "$SOCK" ] && break
+        sleep 0.1
+      done
+      while kill -0 "$MPV_PID" 2>/dev/null; do
+        resp=$(printf '{ "command": ["get_property", "pause"] }\n' | "$SOCAT" - "UNIX-CONNECT:$SOCK" 2>/dev/null || true)
+        if [ -z "$resp" ]; then
+          sleep 0.2
+          continue
+        fi
+        paused=$(printf '%s' "$resp" | "$JQ" -r '.data // empty' 2>/dev/null || true)
+        if [ "$paused" != "$last" ]; then
+          if [ "$paused" = "true" ]; then
+            kill -STOP "$FF_PID" 2>/dev/null || true
+          elif [ "$paused" = "false" ]; then
+            kill -CONT "$FF_PID" 2>/dev/null || true
+          fi
+          last="$paused"
+        fi
+        # Detect seeks/jumps and sync ffmpeg by restarting at new position
+        resp_pos=$(printf '{ "command": ["get_property", "time-pos"] }\n' | "$SOCAT" - "UNIX-CONNECT:$SOCK" 2>/dev/null || true)
+        cur_pos=$(printf '%s' "$resp_pos" | "$JQ" -r '.data // empty' 2>/dev/null || true)
+        if [ -n "$cur_pos" ] && [ -n "$last_pos" ]; then
+          # treat jump backwards or forwards > 1.0s as a seek
+          awk_check=$(printf '%s %s' "$cur_pos" "$last_pos" | /run/current-system/sw/bin/awk '{d=$1-$2; if (d<-0.5 || d>1.0) print 1; else print 0;}')
+          if [ "$awk_check" = "1" ]; then
+            kill -TERM "$FF_PID" 2>/dev/null || true
+            wait "$FF_PID" 2>/dev/null || true
+            start_feed "$cur_pos"
+            # honor pause state immediately after restart
+            if [ "$paused" = "true" ]; then
+              kill -STOP "$FF_PID" 2>/dev/null || true
+            fi
+          fi
+        fi
+        [ -n "$cur_pos" ] && last_pos="$cur_pos"
+        sleep 0.25
+      done
+    }
+    controller &
+    CTRL_PID=$!
+
+    # Tie lifecycles together: when preview exits, stop the feed and controller
+    cleanup() {
+      kill -TERM "$FF_PID" 2>/dev/null || true
+      kill -TERM "$MPV_PID" 2>/dev/null || true
+      kill -TERM "$CTRL_PID" 2>/dev/null || true
+      rm -f "$FEED_PIDFILE" || true
+    }
+    trap cleanup EXIT INT TERM
+
+    # Wait specifically for the preview window to close, then cleanup
+    wait "$MPV_PID" 2>/dev/null || true
+    cleanup
+    exit 0
     EOF
     chmod +x /home/chrisf/.local/bin/clip-player
 
