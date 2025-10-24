@@ -568,9 +568,10 @@ in
   # Copy Hyprland configuration to user's home
   system.activationScripts.copyHyprlandConfig = ''
     mkdir -p /home/chrisf/.config/hypr
-    cp --remove-destination ${./hyprland.conf} /home/chrisf/.config/hypr/hyprland.conf
+    # Ensure base and monitors exist before main hyprland.conf to avoid source= errors
     cp --remove-destination ${../../configs/hyprland-base.conf} /home/chrisf/.config/hypr/hyprland-base.conf
     cp --remove-destination ${../../configs/hyprland-monitors-rvbee.conf} /home/chrisf/.config/hypr/hyprland-monitors-rvbee.conf
+    cp --remove-destination ${./hyprland.conf} /home/chrisf/.config/hypr/hyprland.conf
     # Render wallpaper path into hyprpaper/hyprlock configs
     ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprpaper.conf} > /home/chrisf/.config/hypr/hyprpaper.conf
     ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprlock.conf} > /home/chrisf/.config/hypr/hyprlock.conf
