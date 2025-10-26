@@ -18,6 +18,10 @@
     "amdgpu.dc=1"
     "amdgpu.dmcu=1"
     "amdgpu.ppfeaturemask=0xffffffff"
+    # Intel e1000e network driver stability fixes
+    "e1000e.InterruptThrottleRate=1"
+    "e1000e.eee=0"
+    "e1000e.FlowControl=0"
   ];
 
   boot.kernel.sysctl = {
