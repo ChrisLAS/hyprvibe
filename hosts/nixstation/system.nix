@@ -182,7 +182,8 @@ let
     mako
     swaybg
     swayosd
-    qt6Packages.qt6ct
+    rofi
+    # qt6ct  # Temporarily disabled - pulls in qgnomeplatform which has build failure in current nixpkgs
     pavucontrol
     networkmanagerapplet
     atuin
@@ -288,7 +289,7 @@ let
     hyprsunset
     yazi
     starship
-    rclone-browser
+    # rclone-browser  # Temporarily disabled due to build issues
     # Additional applications from your current config
     maestral
     maestral-gui
@@ -608,6 +609,10 @@ in
     hostName = "nixstation";
     networkmanager.enable = true;
     firewall.enable = false;
+    # Disable power management for network interface to prevent link drops
+    interfaces.eno1 = {
+      useDHCP = true;
+    };
   };
 
   # Time zone - PRESERVING YOUR EXISTING CONFIG
@@ -739,6 +744,8 @@ in
       SUBSYSTEM=="scsi_generic", GROUP="disk", MODE="0664"
       # Allow users in disk group to access SCSI disk devices
       SUBSYSTEM=="scsi_disk", GROUP="disk", MODE="0664"
+      # Disable power management for network interface to prevent link drops
+      SUBSYSTEM=="net", KERNEL=="eno1", ATTR{power/control}="on"
     '';
     # Desktop support services moved to shared module (udisks2, gvfs, tumbler, blueman, avahi, davfs2, gnome-keyring)
     atuin = {
