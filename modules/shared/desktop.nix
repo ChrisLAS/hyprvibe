@@ -29,9 +29,9 @@ in {
         nerd-fonts.hack
         nerd-fonts.ubuntu
         noto-fonts
-        noto-fonts-emoji
         noto-fonts-color-emoji
-        ubuntu_font_family
+        noto-fonts-color-emoji
+        ubuntu-classic
         liberation_ttf
       ]
     );

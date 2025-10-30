@@ -34,7 +34,28 @@ let
     vlc
     ffmpeg-full
     # haruna
-    # reaper
+    reaper
+    (pkgs.writeShellScriptBin "reaper-x11" ''
+      # Ensure an X11 DISPLAY is set; avoid Nix interpolation issues
+      if [ -z "$DISPLAY" ]; then
+        export DISPLAY=:0
+      fi
+      exec env -u WAYLAND_DISPLAY -u QT_QPA_PLATFORM -u GDK_BACKEND -u XDG_SESSION_TYPE \
+        QT_QPA_PLATFORM=xcb \
+        GDK_BACKEND=x11 \
+        XDG_SESSION_TYPE=x11 \
+        reaper -newinst "$@"
+    '')
+    (pkgs.makeDesktopItem {
+      name = "reaper-x11";
+      desktopName = "REAPER (X11)";
+      comment = "Launch REAPER using X11/XWayland for Wayland compositors";
+      exec = "reaper-x11 %F";
+      terminal = false;
+      categories = [ "AudioVideo" "Audio" "Midi" ];
+      icon = "reaper";
+      type = "Application";
+    })
     lame
     # carla
     qjackctl
@@ -50,6 +71,9 @@ let
     libepoxy
     audacity
     # Additional multimedia tools from Omarchy
+    yabridge
+    yabridgectl
+    lsp-plugins
     ffmpegthumbnailer
     gnome.gvfs
     imv
@@ -142,7 +166,7 @@ let
     swaybg
     swayosd
     rofi
-    qt6ct
+    qt6Packages.qt6ct
     pavucontrol
     networkmanagerapplet
     # Shell history replacement
@@ -239,7 +263,7 @@ let
     xfce.tumbler
     gvfs
     # Theming packages
-    tokyo-night-gtk
+    tokyonight-gtk-theme
     papirus-icon-theme
     bibata-cursors
     adwaita-qt
@@ -305,8 +329,8 @@ in
     docker.enable = true;
   };
 
-  # Android ADB and udev support
-  services.udev.packages = [ pkgs.android-udev-rules pkgs.brightnessctl ];
+  # Android ADB udev support now covered by systemd uaccess rules; keep brightnessctl
+  services.udev.packages = [ pkgs.brightnessctl ];
   services.udev.extraRules = ''
     # Google (Pixel/Nexus) generic USB (MTP/ADB)
     SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", MODE="0666", GROUP="adbusers"
@@ -1716,6 +1740,9 @@ in
     mkdir -p /home/chrisf/.config
     cat > /home/chrisf/.config/mimeapps.list << 'EOF'
     [Default Applications]
+    x-scheme-handler/http=firefox.desktop
+    x-scheme-handler/https=firefox.desktop
+    text/html=firefox.desktop
     video/mp4=clip-player.desktop
     video/x-matroska=clip-player.desktop
     video/webm=clip-player.desktop
@@ -1779,8 +1806,8 @@ in
   # Fonts
   fonts.packages = with pkgs; [
     noto-fonts
-    ubuntu_font_family
-    noto-fonts-emoji
+    ubuntu-classic
+    noto-fonts-color-emoji
     noto-fonts-color-emoji
     liberation_ttf
     fira-code
@@ -1805,6 +1832,12 @@ in
       # Additional terminal-related environment variables
       KITTY_CONFIG_DIRECTORY = "~/.config/kitty";
       KITTY_SHELL_INTEGRATION = "enabled";
+      # Audio plugin discovery paths for REAPER and other hosts
+      VST_PATH = "/run/current-system/sw/lib/vst";
+      VST3_PATH = "/run/current-system/sw/lib/vst3";
+      LADSPA_PATH = "/run/current-system/sw/lib/ladspa";
+      LV2_PATH = "/run/current-system/sw/lib/lv2";
+      CLAP_PATH = "/run/current-system/sw/lib/clap";
     };
     systemPackages =
       devTools
@@ -1841,7 +1874,7 @@ in
   # Make Qt apps follow GNOME/GTK settings for closer match to GTK theme
   qt = {
     enable = true;
-    platformTheme = "gnome";
+    platformTheme = null;
     style = "adwaita-dark";
   };
 

@@ -183,7 +183,7 @@ let
     swaybg
     swayosd
     rofi-wayland
-    qt6ct
+    qt6Packages.qt6ct
     pavucontrol
     networkmanagerapplet
     atuin
@@ -195,7 +195,6 @@ let
     # Additional utilities from your current config
     usbmuxd
     magic-wormhole
-    android-udev-rules
     adb-sync
     jmtpfs
     nextcloud-client
@@ -297,7 +296,6 @@ let
     steam-run
     steam
     appimage-run
-    android-udev-rules
     adb-sync
     gnumake
     unzip
@@ -469,7 +467,7 @@ let
     xfce.thunar
     xfce.tumbler
     gvfs
-    tokyo-night-gtk
+    tokyonight-gtk-theme
     papirus-icon-theme
     bibata-cursors
     adwaita-qt
@@ -1264,8 +1262,8 @@ in
   # Fonts - PRESERVING YOUR EXISTING CONFIG
   fonts.packages = with pkgs; [
     noto-fonts
-    ubuntu_font_family
-    noto-fonts-emoji
+    ubuntu-classic
+    noto-fonts-color-emoji
     noto-fonts-color-emoji
     liberation_ttf
     fira-code

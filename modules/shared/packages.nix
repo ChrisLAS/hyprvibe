@@ -8,7 +8,7 @@ let
   ];
   desktopPackages = with pkgs; [
     wl-clipboard grim slurp swappy wf-recorder dunst cliphist brightnessctl playerctl pavucontrol
-    qt6ct
+    qt6Packages.qt6ct
   ];
   devPackages = with pkgs; [
     git gh gitui gcc gnumake cmake binutils patchelf python3 go nodejs_20 yarn imagemagick

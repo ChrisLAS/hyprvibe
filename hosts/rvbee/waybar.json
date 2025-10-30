@@ -50,7 +50,7 @@
   },
   "custom/btc_price": {
     "return-type": "json",
-    "exec": "~/.config/waybar/scripts/waybar-btc-coingecko.sh",
+    "exec": "/home/chrisf/.config/waybar/scripts/waybar-btc-coingecko.sh",
     "interval": 60,
     "format": "{}",
     "tooltip": true
@@ -68,7 +68,7 @@
   },
   "custom/mpris": {
     "return-type": "json",
-    "exec": "~/.config/waybar/scripts/waybar-mpris.sh",
+    "exec": "/home/chrisf/.config/waybar/scripts/waybar-mpris.sh",
     "interval": 1,
     "tooltip": true,
     "format": "{}",
@@ -78,7 +78,7 @@
   },
   "custom/dunst": {
     "return-type": "json",
-    "exec": "~/.config/waybar/scripts/waybar-dunst.sh",
+    "exec": "/home/chrisf/.config/waybar/scripts/waybar-dunst.sh",
     "interval": 5,
     "on-click": "dunstctl set-paused toggle",
     "tooltip": true,
@@ -94,7 +94,7 @@
   },
   "custom/public_ip": {
     "return-type": "json",
-    "exec": "~/.config/waybar/scripts/waybar-public-ip.sh",
+    "exec": "/home/chrisf/.config/waybar/scripts/waybar-public-ip.sh",
     "interval": 300,
     "tooltip": true,
     "format": "🌍 {}"
@@ -109,7 +109,7 @@
   },
   "custom/amd_gpu": {
     "return-type": "json",
-    "exec": "~/.config/waybar/scripts/waybar-amd-gpu.sh",
+    "exec": "/home/chrisf/.config/waybar/scripts/waybar-amd-gpu.sh",
     "interval": 5,
     "tooltip": true,
     "format": "🎮 {}"
@@ -124,7 +124,7 @@
   },
   "custom/weather": {
     "return-type": "json",
-    "exec": "~/.config/waybar/scripts/waybar-weather.sh",
+    "exec": "/home/chrisf/.config/waybar/scripts/waybar-weather.sh",
     "interval": 600,
     "tooltip": true,
     "format": "{}"
@@ -164,7 +164,7 @@
     "format": "⏻",
     "tooltip": true,
     "tooltip-format": "Reboot",
-    "on-click": "~/.config/waybar/scripts/waybar-reboot.sh",
+    "on-click": "/home/chrisf/.config/waybar/scripts/waybar-reboot.sh",
     "return-type": "json",
     "exec": "echo '{\"text\": \"⏻\"}'",
     "interval": 0
