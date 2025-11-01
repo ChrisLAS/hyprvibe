@@ -61,6 +61,10 @@ in {
       trap 'echo "[hyprvibe][shell] ERROR at line $LINENO"' ERR
       echo "[hyprvibe][shell] starting activation"
       mkdir -p ${userHome}/.config/fish/conf.d
+      # Ensure XDG data/cache directories for fish and OMP exist (handles users who deleted them)
+      mkdir -p ${userHome}/.local/share/fish
+      mkdir -p ${userHome}/.cache/oh-my-posh
+      mkdir -p ${userHome}/.local/bin
       # Minimal, conservative grc integration for Fish
       cat > ${userHome}/.config/fish/conf.d/grc.fish << 'EOF'
       if not set -q GRC_DISABLE; and command -q grc
@@ -137,7 +141,12 @@ in {
         cp ${userHome}/.config/oh-my-posh/config-default.json ${userHome}/.config/oh-my-posh/config.json
         echo "[hyprvibe][shell] installed default oh-my-posh config"
       fi
-      chown -R ${userName}:${userGroup} ${userHome}/.config/fish ${userHome}/.config/oh-my-posh
+      chown -R ${userName}:${userGroup} \
+        ${userHome}/.config/fish \
+        ${userHome}/.config/oh-my-posh \
+        ${userHome}/.local/share/fish \
+        ${userHome}/.cache/oh-my-posh \
+        ${userHome}/.local/bin
       echo "[hyprvibe][shell] activation complete"
     '';
 
