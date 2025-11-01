@@ -270,8 +270,6 @@ let
     tokyonight-gtk-theme
     papirus-icon-theme
     bibata-cursors
-    adwaita-qt
-    adwaita-qt6
     # Document viewer
     evince
     # Image viewer
