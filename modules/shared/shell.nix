@@ -70,8 +70,18 @@ in {
       end
       EOF
       cat > ${userHome}/.config/fish/conf.d/oh-my-posh.fish << 'EOF'
+      set -gx OMP_CONFIG "$HOME/.config/oh-my-posh/config.json"
+      set -gx POSH_CACHE_DIR "$XDG_CACHE_HOME/oh-my-posh"
+      if not set -q XDG_CACHE_HOME
+        set -gx POSH_CACHE_DIR "$HOME/.cache/oh-my-posh"
+      end
       if command -q oh-my-posh
-        oh-my-posh init fish --config ~/.config/oh-my-posh/config.json | source
+        if test -r "$OMP_CONFIG"
+          oh-my-posh init fish --config "$OMP_CONFIG" | source
+        else
+          # Fallback to built-in theme if config is missing
+          oh-my-posh init fish | source
+        end
       end
       if not functions -q fish_prompt
         function fish_prompt
