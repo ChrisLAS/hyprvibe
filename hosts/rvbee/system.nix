@@ -335,6 +335,9 @@ in
     home = "/home/chrisf";
     extraGroups = [ "plugdev" ];
   };
+
+  # Define custom groups referenced by udev rules
+  users.groups.plugdev = {};
   hyprvibe.services = {
     enable = true;
     openssh.enable = true;
@@ -1848,7 +1851,7 @@ in
       ++ systemTools
       ++ applications
       ++ gaming
-      ++ gtkApps
+      ++ gtkApps;
       
     # Disable Orca in GDM greeter to silence missing TryExec logs
     etc = {
