@@ -11,6 +11,7 @@ in {
     ./waybar.nix
     ./shell.nix
     ./services.nix
+    ./system.nix
     ./user.nix
   ];
 
@@ -28,6 +29,7 @@ in {
       enable = true;
       openssh.enable = true;
     };
+    hyprvibe.system.enable = true;
     hyprvibe.packages = {
       enable = true;
       base.enable = true;

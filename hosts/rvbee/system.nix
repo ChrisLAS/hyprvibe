@@ -361,13 +361,12 @@ in
     gaming.enable = true;
   };
 
-  # Boot configuration
+  # Boot loader configuration (kernel package provided by shared module)
   boot = {
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
     };
-    kernelPackages = pkgs.linuxPackages_zen;
     # v4l2loopback for virtual webcam support (OBS, conferencing apps)
     kernelModules = [ "v4l2loopback" ];
     extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
@@ -377,19 +376,7 @@ in
     '';
   };
 
-  # System performance and maintenance
-  services.btrfs.autoScrub.enable = true;
-  nix.settings.auto-optimise-store = true;
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 15d";
-  };
-
-  zramSwap = {
-    enable = true;
-    algorithm = "zstd";
-  };
+  # System performance settings moved to shared module
 
   # Automatic system updates (use flake to avoid channel-based reverts)
   system.autoUpgrade = {

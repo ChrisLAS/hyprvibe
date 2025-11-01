@@ -552,15 +552,10 @@ in
     loader.efi.canTouchEfiVariables = true;
     loader.efi.efiSysMountPoint = "/boot/efi";
     
-    # Switch to Zen kernel as requested
-    kernelPackages = pkgs.linuxPackages_zen;
+    # Kernel provided by shared module
   };
 
-  # System performance and maintenance - PRESERVING YOUR EXISTING CONFIG
-  services.fstrim = {
-    enable = true;
-    interval = "weekly";
-  };
+  # Performance settings moved to shared module
 
   # Improve disk performance - PRESERVING YOUR EXISTING CONFIG
   fileSystems."/".options = [ "noatime" "nodiratime" "discard" ];
@@ -573,9 +568,7 @@ in
     value = "65535";
   }];
 
-  # Enable z-ram - PRESERVING YOUR EXISTING CONFIG
-  zramSwap.enable = true;
-  zramSwap.memoryPercent = 300;
+  # zram provided by shared module
 
   # Enable OOM - PRESERVING YOUR EXISTING CONFIG
   systemd.oomd.enable = true;
