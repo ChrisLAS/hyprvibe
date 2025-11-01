@@ -33,9 +33,14 @@ in {
       # Remove existing files/symlinks before creating new ones
       rm -f ${userHome}/.config/waybar/config
       rm -f ${userHome}/.config/waybar/style.css
-      ${if cfg.configPath != null then ''ln -sf ${cfg.configPath} ${userHome}/.config/waybar/config'' else ''ln -sf ${../../configs/waybar-default.json} ${userHome}/.config/waybar/config''}
-      ${if cfg.stylePath != null then ''ln -sf ${cfg.stylePath} ${userHome}/.config/waybar/style.css'' else ''ln -sf ${../../configs/waybar-default.css} ${userHome}/.config/waybar/style.css''}
+      ${if cfg.configPath != null then ''ln -sf ${cfg.configPath} ${userHome}/.config/waybar/config'' else ''ln -sf ${../../configs/waybar-rvbee.json} ${userHome}/.config/waybar/config''}
+      ${if cfg.stylePath != null then ''ln -sf ${cfg.stylePath} ${userHome}/.config/waybar/style.css'' else ''ln -sf ${../../configs/waybar-rvbee.css} ${userHome}/.config/waybar/style.css''}
       ${lib.optionalString (cfg.scriptsDir != null) ''cp -f ${cfg.scriptsDir}/* ${userHome}/.config/waybar/scripts/ 2>/dev/null || true''}
+      ${lib.optionalString (cfg.scriptsDir == null) ''
+        # Install RVBEE-inspired default scripts and brightness helper
+        cp -f ${../../configs/waybar-scripts}/* ${userHome}/.config/waybar/scripts/ 2>/dev/null || true
+        install -Dm0755 ${../../configs/waybar-scripts/rofi-brightness.sh} ${userHome}/.local/bin/rofi-brightness
+      ''}
       # Install extra config variants
       ${lib.concatStringsSep "\n" (map (c: ''
         ln -sf ${c.source} ${userHome}/.config/waybar/${c.destName}
