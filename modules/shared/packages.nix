@@ -9,6 +9,10 @@ let
   desktopPackages = with pkgs; [
     wl-clipboard grim slurp swappy wf-recorder dunst cliphist brightnessctl playerctl pavucontrol
     qt6Packages.qt6ct
+    # Core desktop apps
+    kitty rofi-wayland
+    # Hyprland companions started by base config
+    hyprpaper hypridle hyprlock
   ];
   devPackages = with pkgs; [
     git gh gitui gcc gnumake cmake binutils patchelf python3 go nodejs_20 yarn imagemagick

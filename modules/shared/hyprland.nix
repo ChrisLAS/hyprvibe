@@ -5,6 +5,11 @@ let
   userHome = user.home;
   userName = user.name;
   userGroup = user.group;
+  defaultMain = ../../configs/hyprland-default.conf;
+  defaultPaper = ../../configs/hyprpaper-default.conf;
+  defaultLock = ../../configs/hyprlock-default.conf;
+  defaultIdle = ../../configs/hypridle-default.conf;
+  defaultWallpaper = ../../wallpapers/aishot-2602.jpg;
 in {
   options.hyprvibe.hyprland = {
     enable = lib.mkEnableOption "Hyprland base setup";
@@ -52,7 +57,7 @@ in {
       xwayland.enable = true;
     };
 
-    # Install base config; host supplies additional configs via options
+    # Install base config; fall back to shared defaults where host options are not provided
     system.activationScripts.hyprlandBase = lib.mkAfter ''
       mkdir -p ${userHome}/.config/hypr
       # Remove existing symlinks/files if they exist
@@ -62,20 +67,15 @@ in {
         rm -f ${userHome}/.config/hypr/$(basename ${cfg.monitorsFile})
         ln -sf ${cfg.monitorsFile} ${userHome}/.config/hypr/$(basename ${cfg.monitorsFile})
       ''}
-      ${lib.optionalString (cfg.mainConfig != null) ''
-        rm -f ${userHome}/.config/hypr/hyprland.conf
-        ln -sf ${cfg.mainConfig} ${userHome}/.config/hypr/hyprland.conf
-      ''}
-      ${lib.optionalString (cfg.hyprpaperTemplate != null && cfg.wallpaper != null) ''
-        ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${cfg.wallpaper}#g" ${cfg.hyprpaperTemplate} > ${userHome}/.config/hypr/hyprpaper.conf
-      ''}
-      ${lib.optionalString (cfg.hyprlockTemplate != null && cfg.wallpaper != null) ''
-        ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${cfg.wallpaper}#g" ${cfg.hyprlockTemplate} > ${userHome}/.config/hypr/hyprlock.conf
-      ''}
-      ${lib.optionalString (cfg.hypridleConfig != null) ''
-        rm -f ${userHome}/.config/hypr/hypridle.conf
-        ln -sf ${cfg.hypridleConfig} ${userHome}/.config/hypr/hypridle.conf
-      ''}
+      # Main config
+      rm -f ${userHome}/.config/hypr/hyprland.conf
+      ln -sf ${lib.optionalString (cfg.mainConfig != null) cfg.mainConfig or defaultMain} ${userHome}/.config/hypr/hyprland.conf
+      # Wallpaper-backed configs
+      ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${lib.optionalString (cfg.wallpaper != null) cfg.wallpaper or defaultWallpaper}#g" ${lib.optionalString (cfg.hyprpaperTemplate != null) cfg.hyprpaperTemplate or defaultPaper} > ${userHome}/.config/hypr/hyprpaper.conf
+      ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${lib.optionalString (cfg.wallpaper != null) cfg.wallpaper or defaultWallpaper}#g" ${lib.optionalString (cfg.hyprlockTemplate != null) cfg.hyprlockTemplate or defaultLock} > ${userHome}/.config/hypr/hyprlock.conf
+      # Idle config
+      rm -f ${userHome}/.config/hypr/hypridle.conf
+      ln -sf ${lib.optionalString (cfg.hypridleConfig != null) cfg.hypridleConfig or defaultIdle} ${userHome}/.config/hypr/hypridle.conf
       ${lib.optionalString (cfg.scriptsDir != null) ''
         mkdir -p ${userHome}/.config/hypr/scripts
         cp -f ${cfg.scriptsDir}/*.sh ${userHome}/.config/hypr/scripts/ 2>/dev/null || true
