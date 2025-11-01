@@ -69,13 +69,13 @@ in {
       ''}
       # Main config
       rm -f ${userHome}/.config/hypr/hyprland.conf
-      ln -sf ${lib.optionalString (cfg.mainConfig != null) cfg.mainConfig or defaultMain} ${userHome}/.config/hypr/hyprland.conf
+      ln -sf ${if cfg.mainConfig != null then cfg.mainConfig else defaultMain} ${userHome}/.config/hypr/hyprland.conf
       # Wallpaper-backed configs
-      ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${lib.optionalString (cfg.wallpaper != null) cfg.wallpaper or defaultWallpaper}#g" ${lib.optionalString (cfg.hyprpaperTemplate != null) cfg.hyprpaperTemplate or defaultPaper} > ${userHome}/.config/hypr/hyprpaper.conf
-      ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${lib.optionalString (cfg.wallpaper != null) cfg.wallpaper or defaultWallpaper}#g" ${lib.optionalString (cfg.hyprlockTemplate != null) cfg.hyprlockTemplate or defaultLock} > ${userHome}/.config/hypr/hyprlock.conf
+      ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${if cfg.wallpaper != null then cfg.wallpaper else defaultWallpaper}#g" ${if cfg.hyprpaperTemplate != null then cfg.hyprpaperTemplate else defaultPaper} > ${userHome}/.config/hypr/hyprpaper.conf
+      ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${if cfg.wallpaper != null then cfg.wallpaper else defaultWallpaper}#g" ${if cfg.hyprlockTemplate != null then cfg.hyprlockTemplate else defaultLock} > ${userHome}/.config/hypr/hyprlock.conf
       # Idle config
       rm -f ${userHome}/.config/hypr/hypridle.conf
-      ln -sf ${lib.optionalString (cfg.hypridleConfig != null) cfg.hypridleConfig or defaultIdle} ${userHome}/.config/hypr/hypridle.conf
+      ln -sf ${if cfg.hypridleConfig != null then cfg.hypridleConfig else defaultIdle} ${userHome}/.config/hypr/hypridle.conf
       ${lib.optionalString (cfg.scriptsDir != null) ''
         mkdir -p ${userHome}/.config/hypr/scripts
         cp -f ${cfg.scriptsDir}/*.sh ${userHome}/.config/hypr/scripts/ 2>/dev/null || true
