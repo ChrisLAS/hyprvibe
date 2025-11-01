@@ -43,7 +43,7 @@ let
     aspell
     gnumake
     patchelf
-    glxinfo
+    mesa-demos
     roc-toolkit
     binutils
     dool
@@ -182,7 +182,7 @@ let
     mako
     swaybg
     swayosd
-    rofi-wayland
+    rofi
     qt6Packages.qt6ct
     pavucontrol
     networkmanagerapplet
@@ -395,7 +395,7 @@ let
     aspell
     gnumake
     patchelf
-    glxinfo
+    mesa-demos
     roc-toolkit
     binutils
     dool
@@ -505,27 +505,27 @@ in
     ../../modules/shared
   ];
 
-  # Enable shared module toggles
-  shared.desktop = {
+  # Enable hyprvibe module toggles
+  hyprvibe.desktop = {
     enable = true;
     fonts.enable = true;
   };
-  shared.hyprland.enable = true;
-  # Provide per-host monitors and wallpaper paths to shared module
-  shared.hyprland.monitorsFile = ../../configs/hyprland-monitors-nixstation.conf;
-  shared.waybar.enable = true;
-  shared.waybar.configPath = ./waybar.json;
-  shared.waybar.stylePath = ./waybar.css;
-  shared.waybar.scriptsDir = ./scripts;
-  shared.shell = { enable = true; kittyAsDefault = true; };
-  shared.services = {
+  hyprvibe.hyprland.enable = true;
+  # Provide per-host monitors and wallpaper paths to hyprvibe module
+  hyprvibe.hyprland.monitorsFile = ../../configs/hyprland-monitors-nixstation.conf;
+  hyprvibe.waybar.enable = true;
+  hyprvibe.waybar.configPath = ./waybar.json;
+  hyprvibe.waybar.stylePath = ./waybar.css;
+  hyprvibe.waybar.scriptsDir = ./scripts;
+  hyprvibe.shell = { enable = true; kittyAsDefault = true; };
+  hyprvibe.services = {
     enable = true;
     openssh.enable = true;
     tailscale.enable = true;
     virt.enable = true;
     docker.enable = true;
   };
-  shared.packages = {
+  hyprvibe.packages = {
     enable = true;
     base.enable = true;
     desktop.enable = true;
@@ -654,10 +654,10 @@ in
       enable = true;
       enable32Bit = true;
       extraPackages = with pkgs; [
-        vaapiVdpau
+        libva-vdpau-driver
         libvdpau-va-gl
       ];
-      extraPackages32 = with pkgs.pkgsi686Linux; [ vaapiVdpau ];
+      extraPackages32 = with pkgs.pkgsi686Linux; [ libva-vdpau-driver ];
     };
     i2c.enable = true;
     steam-hardware.enable = true;

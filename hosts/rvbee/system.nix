@@ -1,6 +1,10 @@
 { config, pkgs, hyprland, ... }:
 
 let
+  # Hyprvibe user options (from modules/shared/user.nix)
+  userName = config.hyprvibe.user.name;
+  userGroup = config.hyprvibe.user.group;
+  homeDir = config.hyprvibe.user.home;
   # Package groups
   devTools = with pkgs; [
     git
@@ -309,19 +313,25 @@ in
   ];
 
   # Enable shared module toggles
-  shared.desktop = {
+  hyprvibe.desktop = {
     enable = true;
     fonts.enable = true;
   };
-  shared.hyprland.enable = true;
+  hyprvibe.hyprland.enable = true;
   # Provide per-host monitors and wallpaper paths to shared module
-  shared.hyprland.monitorsFile = ../../configs/hyprland-monitors-rvbee.conf;
-  shared.waybar.enable = true;
-  shared.waybar.configPath = ./waybar.json;
-  shared.waybar.stylePath = ./waybar.css;
-  shared.waybar.scriptsDir = ./scripts;
-  shared.shell = { enable = true; kittyAsDefault = true; };
-  shared.services = {
+  hyprvibe.hyprland.monitorsFile = ../../configs/hyprland-monitors-rvbee.conf;
+  hyprvibe.waybar.enable = true;
+  hyprvibe.waybar.configPath = ./waybar.json;
+  hyprvibe.waybar.stylePath = ./waybar.css;
+  hyprvibe.waybar.scriptsDir = ./scripts;
+  hyprvibe.shell = { enable = true; kittyAsDefault = true; };
+  # Explicit shared user options (keeps behavior unchanged while enabling overrides)
+  hyprvibe.user = {
+    name = "chrisf";
+    group = "users";
+    home = "/home/chrisf";
+  };
+  hyprvibe.services = {
     enable = true;
     openssh.enable = true;
     tailscale.enable = true;
@@ -334,8 +344,11 @@ in
   services.udev.extraRules = ''
     # Google (Pixel/Nexus) generic USB (MTP/ADB)
     SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", MODE="0666", GROUP="adbusers"
+    # Elgato Stream Deck (USB + hidraw)
+    SUBSYSTEM=="usb", ATTR{idVendor}=="0fd9", MODE="0660", GROUP="plugdev"
+    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0fd9", MODE="0660", GROUP="plugdev"
   '';
-  shared.packages = {
+  hyprvibe.packages = {
     enable = true;
     base.enable = true;
     desktop.enable = true;
@@ -569,7 +582,7 @@ in
   documentation.man.enable = false;
 
   # User configuration
-  users.users.chrisf = {
+  users.users."${userName}" = {
     isNormalUser = true;
     shell = pkgs.fish;
     description = "Chris Fisher";
@@ -584,49 +597,85 @@ in
       "audio"
       "docker"
       "i2c"
+      "plugdev"
     ];
-    # Create Hyprland configuration directory and copy config
-    home = "/home/chrisf";
+    # Primary group and home from shared.user
+    group = userGroup;
+    home = homeDir;
   };
+
+  # Podman + declarative Companion container
+  virtualisation.podman.enable = true;
+  virtualisation.oci-containers.backend = "podman";
+  virtualisation.oci-containers.containers.companion = {
+    image = "ghcr.io/bitfocus/companion/companion:latest";
+    autoStart = true;
+    # Note: image defaults to user "companion"; override via extraOptions
+    ports = [
+      "8000:8000"
+      "51234:51234"
+    ];
+    volumes = [
+      "/var/lib/companion:/companion"
+      "/run/udev:/run/udev:ro"
+      "/dev/bus/usb:/dev/bus/usb"
+    ];
+    extraOptions = [
+      "--privileged"
+      "--user=0:0"
+    ];
+    labels = {
+      "io.containers.autoupdate" = "registry";
+    };
+  };
+
+  # Ensure persistent data directory exists
+  systemd.tmpfiles.rules = [
+    "d /var/lib/companion 0777 root root -"
+  ];
+
+  # Open firewall for Companion
+  networking.firewall.allowedTCPPorts = (config.networking.firewall.allowedTCPPorts or []) ++ [ 8000 51234 ];
+  networking.firewall.allowedUDPPorts = (config.networking.firewall.allowedUDPPorts or []) ++ [ 51234 ];
 
   # Copy Hyprland configuration to user's home
   system.activationScripts.copyHyprlandConfig = ''
-    mkdir -p /home/chrisf/.config/hypr
+    mkdir -p ${homeDir}/.config/hypr
     # Ensure base and monitors exist before main hyprland.conf to avoid source= errors
-    cp --remove-destination ${../../configs/hyprland-base.conf} /home/chrisf/.config/hypr/hyprland-base.conf
-    cp --remove-destination ${../../configs/hyprland-monitors-rvbee.conf} /home/chrisf/.config/hypr/hyprland-monitors-rvbee.conf
-    cp --remove-destination ${./hyprland.conf} /home/chrisf/.config/hypr/hyprland.conf
+    cp --remove-destination ${../../configs/hyprland-base.conf} ${homeDir}/.config/hypr/hyprland-base.conf
+    cp --remove-destination ${../../configs/hyprland-monitors-rvbee.conf} ${homeDir}/.config/hypr/hyprland-monitors-rvbee.conf
+    cp --remove-destination ${./hyprland.conf} ${homeDir}/.config/hypr/hyprland.conf
     # Render wallpaper path into hyprpaper/hyprlock configs
-    ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprpaper.conf} > /home/chrisf/.config/hypr/hyprpaper.conf
-    ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprlock.conf} > /home/chrisf/.config/hypr/hyprlock.conf
-    cp --remove-destination ${./hypridle.conf} /home/chrisf/.config/hypr/hypridle.conf
-    chown -R chrisf:users /home/chrisf/.config/hypr
+    ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprpaper.conf} > ${homeDir}/.config/hypr/hyprpaper.conf
+    ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprlock.conf} > ${homeDir}/.config/hypr/hyprlock.conf
+    cp --remove-destination ${./hypridle.conf} ${homeDir}/.config/hypr/hypridle.conf
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/hypr
     # BTC script for hyprlock
-    cp --remove-destination ${./scripts/hyprlock-btc.sh} /home/chrisf/.config/hypr/hyprlock-btc.sh
-    chmod +x /home/chrisf/.config/hypr/hyprlock-btc.sh
+    cp --remove-destination ${./scripts/hyprlock-btc.sh} ${homeDir}/.config/hypr/hyprlock-btc.sh
+    chmod +x ${homeDir}/.config/hypr/hyprlock-btc.sh
     
-    mkdir -p /home/chrisf/.config/waybar
-    cp --remove-destination ${./waybar.json} /home/chrisf/.config/waybar/config
+    mkdir -p ${homeDir}/.config/waybar
+    cp --remove-destination ${./waybar.json} ${homeDir}/.config/waybar/config
     # Theme and scripts for Waybar (cyberpunk aesthetic + custom modules)
-    cp --remove-destination ${./waybar.css} /home/chrisf/.config/waybar/style.css
-    mkdir -p /home/chrisf/.config/waybar/scripts
-    cp --remove-destination ${./scripts/waybar-dunst.sh} /home/chrisf/.config/waybar/scripts/waybar-dunst.sh
-    cp --remove-destination ${./scripts/waybar-public-ip.sh} /home/chrisf/.config/waybar/scripts/waybar-public-ip.sh
-    cp --remove-destination ${./scripts/waybar-amd-gpu.sh} /home/chrisf/.config/waybar/scripts/waybar-amd-gpu.sh
-    cp --remove-destination ${./scripts/waybar-weather.sh} /home/chrisf/.config/waybar/scripts/waybar-weather.sh
-    cp --remove-destination ${./scripts/waybar-brightness.sh} /home/chrisf/.config/waybar/scripts/waybar-brightness.sh
-    cp --remove-destination ${./scripts/waybar-btc.py} /home/chrisf/.config/waybar/scripts/waybar-btc.py
+    cp --remove-destination ${./waybar.css} ${homeDir}/.config/waybar/style.css
+    mkdir -p ${homeDir}/.config/waybar/scripts
+    cp --remove-destination ${./scripts/waybar-dunst.sh} ${homeDir}/.config/waybar/scripts/waybar-dunst.sh
+    cp --remove-destination ${./scripts/waybar-public-ip.sh} ${homeDir}/.config/waybar/scripts/waybar-public-ip.sh
+    cp --remove-destination ${./scripts/waybar-amd-gpu.sh} ${homeDir}/.config/waybar/scripts/waybar-amd-gpu.sh
+    cp --remove-destination ${./scripts/waybar-weather.sh} ${homeDir}/.config/waybar/scripts/waybar-weather.sh
+    cp --remove-destination ${./scripts/waybar-brightness.sh} ${homeDir}/.config/waybar/scripts/waybar-brightness.sh
+    cp --remove-destination ${./scripts/waybar-btc.py} ${homeDir}/.config/waybar/scripts/waybar-btc.py
     # CoinGecko BTC-only
-    cp --remove-destination ${./scripts/waybar-btc-coingecko.sh} /home/chrisf/.config/waybar/scripts/waybar-btc-coingecko.sh
-    cp --remove-destination ${./scripts/waybar-reboot.sh} /home/chrisf/.config/waybar/scripts/waybar-reboot.sh
-    cp --remove-destination ${./scripts/waybar-mpris.sh} /home/chrisf/.config/waybar/scripts/waybar-mpris.sh
-    chmod +x /home/chrisf/.config/waybar/scripts/*.sh
-    chmod +x /home/chrisf/.config/waybar/scripts/*.py || true
-    chown -R chrisf:users /home/chrisf/.config/waybar
+    cp --remove-destination ${./scripts/waybar-btc-coingecko.sh} ${homeDir}/.config/waybar/scripts/waybar-btc-coingecko.sh
+    cp --remove-destination ${./scripts/waybar-reboot.sh} ${homeDir}/.config/waybar/scripts/waybar-reboot.sh
+    cp --remove-destination ${./scripts/waybar-mpris.sh} ${homeDir}/.config/waybar/scripts/waybar-mpris.sh
+    chmod +x ${homeDir}/.config/waybar/scripts/*.sh
+    chmod +x ${homeDir}/.config/waybar/scripts/*.py || true
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/waybar
     
     # Configure Kitty terminal
-    mkdir -p /home/chrisf/.config/kitty
-    cat > /home/chrisf/.config/kitty/kitty.conf << 'EOF'
+    mkdir -p ${homeDir}/.config/kitty
+    cat > ${homeDir}/.config/kitty/kitty.conf << 'EOF'
     # Kitty Terminal Configuration
     
     # Font configuration
@@ -706,11 +755,11 @@ in
     allow_remote_control yes
     listen_on unix:/tmp/kitty
     EOF
-    chown -R chrisf:users /home/chrisf/.config/kitty
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/kitty
     
     # Configure Oh My Posh default (preserve user-selected theme if present)
-    mkdir -p /home/chrisf/.config/oh-my-posh
-    cat > /home/chrisf/.config/oh-my-posh/config-default.json << 'EOF'
+    mkdir -p ${homeDir}/.config/oh-my-posh
+    cat > ${homeDir}/.config/oh-my-posh/config-default.json << 'EOF'
     {
       "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
       "version": 1,
@@ -843,10 +892,10 @@ in
       ]
     }
     EOF
-    [ -f /home/chrisf/.config/oh-my-posh/config.json ] || cp /home/chrisf/.config/oh-my-posh/config-default.json /home/chrisf/.config/oh-my-posh/config.json
+    [ -f ${homeDir}/.config/oh-my-posh/config.json ] || cp ${homeDir}/.config/oh-my-posh/config-default.json ${homeDir}/.config/oh-my-posh/config.json
     
     # Create additional Oh My Posh theme configurations
-    cat > /home/chrisf/.config/oh-my-posh/config-enhanced.json << 'EOF'
+    cat > ${homeDir}/.config/oh-my-posh/config-enhanced.json << 'EOF'
     {
       "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
       "version": 3,
@@ -1023,7 +1072,7 @@ in
     }
     EOF
     
-    cat > /home/chrisf/.config/oh-my-posh/config-minimal.json << 'EOF'
+    cat > ${homeDir}/.config/oh-my-posh/config-minimal.json << 'EOF'
     {
       "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
       "version": 3,
@@ -1087,7 +1136,7 @@ in
     }
     EOF
     
-    cat > /home/chrisf/.config/oh-my-posh/config-professional.json << 'EOF'
+    cat > ${homeDir}/.config/oh-my-posh/config-professional.json << 'EOF'
     {
       "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
       "version": 3,
@@ -1262,11 +1311,11 @@ in
     }
     EOF
     
-    chown -R chrisf:users /home/chrisf/.config/oh-my-posh
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/oh-my-posh
     
     # Create Atuin Fish configuration
-    mkdir -p /home/chrisf/.config/fish/conf.d
-    cat > /home/chrisf/.config/fish/conf.d/atuin.fish << 'EOF'
+    mkdir -p ${homeDir}/.config/fish/conf.d
+    cat > ${homeDir}/.config/fish/conf.d/atuin.fish << 'EOF'
     # Atuin shell history integration
     if command -q atuin
       set -g ATUIN_SESSION (atuin uuid)
@@ -1275,7 +1324,7 @@ in
     EOF
     
     # Create Oh My Posh Fish configuration
-    cat > /home/chrisf/.config/fish/conf.d/oh-my-posh.fish << 'EOF'
+    cat > ${homeDir}/.config/fish/conf.d/oh-my-posh.fish << 'EOF'
     # Oh My Posh prompt configuration
     if command -q oh-my-posh
       # Initialize Oh My Posh with a custom theme
@@ -1284,7 +1333,7 @@ in
     EOF
     
     # Additional Fish configuration for better integration
-    cat > /home/chrisf/.config/fish/conf.d/kitty-integration.fish << 'EOF'
+    cat > ${homeDir}/.config/fish/conf.d/kitty-integration.fish << 'EOF'
     # Kitty terminal integration
     if test "$TERM" = "xterm-kitty"
       # Enable kitty shell integration
@@ -1295,11 +1344,11 @@ in
     end
     EOF
     
-    chown -R chrisf:users /home/chrisf/.config/fish
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/fish
 
     # Hard-override fish prompt to bootstrap Oh My Posh on first prompt draw
-    mkdir -p /home/chrisf/.config/fish/functions
-    cat > /home/chrisf/.config/fish/functions/fish_prompt.fish << 'EOF'
+    mkdir -p ${homeDir}/.config/fish/functions
+    cat > ${homeDir}/.config/fish/functions/fish_prompt.fish << 'EOF'
     function fish_prompt
       if command -q oh-my-posh
         oh-my-posh print primary --config ~/.config/oh-my-posh/config.json
@@ -1308,12 +1357,12 @@ in
       printf '%s> ' (prompt_pwd)
     end
     EOF
-    chown -R chrisf:users /home/chrisf/.config/fish/functions
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/fish/functions
 
     # Ensure Oh My Posh is initialized for all interactive Fish sessions
-    mkdir -p /home/chrisf/.config/fish
-    if ! grep -q "oh-my-posh init fish" /home/chrisf/.config/fish/config.fish 2>/dev/null; then
-      cat >> /home/chrisf/.config/fish/config.fish << 'EOF'
+    mkdir -p ${homeDir}/.config/fish
+    if ! grep -q "oh-my-posh init fish" ${homeDir}/.config/fish/config.fish 2>/dev/null; then
+      cat >> ${homeDir}/.config/fish/config.fish << 'EOF'
     # Initialize Oh My Posh (fallback to ensure prompt loads)
     if status is-interactive
       if command -q oh-my-posh
@@ -1323,33 +1372,33 @@ in
     EOF
     fi
     # GitHub token export for fish, read from local untracked file if present
-    mkdir -p /home/chrisf/.config/secrets
-    chown -R chrisf:users /home/chrisf/.config/secrets
-    chmod 700 /home/chrisf/.config/secrets
-    cat > /home/chrisf/.config/fish/conf.d/github_token.fish << 'EOF'
-    if test -r /home/chrisf/.config/secrets/github_token
-      set -gx GITHUB_TOKEN (string trim (cat /home/chrisf/.config/secrets/github_token))
+    mkdir -p ${homeDir}/.config/secrets
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/secrets
+    chmod 700 ${homeDir}/.config/secrets
+    cat > ${homeDir}/.config/fish/conf.d/github_token.fish << 'EOF'
+    if test -r ${homeDir}/.config/secrets/github_token
+      set -gx GITHUB_TOKEN (string trim (cat ${homeDir}/.config/secrets/github_token))
     end
     EOF
 
     # Ensure ~/.local/bin is on PATH for user-installed scripts
-    cat > /home/chrisf/.config/fish/conf.d/local-bin.fish << 'EOF'
+    cat > ${homeDir}/.config/fish/conf.d/local-bin.fish << 'EOF'
     if test -d "$HOME/.local/bin"
       fish_add_path "$HOME/.local/bin"
     end
     EOF
-    chown -R chrisf:users /home/chrisf/.config/fish
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/fish
     # Install crypto-price (u3mur4) for Waybar module
-    mkdir -p /home/chrisf/.local/bin
-    chown -R chrisf:users /home/chrisf/.local
-    runuser -s ${pkgs.bash}/bin/bash -l chrisf -c 'GOBIN=$HOME/.local/bin ${pkgs.go}/bin/go install github.com/u3mur4/crypto-price/cmd/crypto-price@latest' || true
+    mkdir -p ${homeDir}/.local/bin
+    chown -R ${userName}:${userGroup} ${homeDir}/.local
+    runuser -s ${pkgs.bash}/bin/bash -l ${userName} -c 'GOBIN=$HOME/.local/bin ${pkgs.go}/bin/go install github.com/u3mur4/crypto-price/cmd/crypto-price@latest' || true
     
     # Copy monitor setup helper script
-    cp ${../../scripts/setup-monitors.sh} /home/chrisf/.local/bin/setup-monitors
-    chmod +x /home/chrisf/.local/bin/setup-monitors
+    cp ${../../scripts/setup-monitors.sh} ${homeDir}/.local/bin/setup-monitors
+    chmod +x ${homeDir}/.local/bin/setup-monitors
 
     # Install OBS/MPV placement helper
-    cat > /home/chrisf/.local/bin/place-obs-mpv << 'EOF'
+    cat > ${homeDir}/.local/bin/place-obs-mpv << 'EOF'
     #!/run/current-system/sw/bin/bash
     set -euo pipefail
     # Requires: hyprctl, jq
@@ -1377,10 +1426,10 @@ in
     $HYPRCTL dispatch resizewindowpixel exact "title:^(ClipPlayer)$" $MPV_W $MPV_H || true
     $HYPRCTL dispatch movewindowpixel exact "title:^(ClipPlayer)$" $MPV_X $MPV_Y || true
     EOF
-    chmod +x /home/chrisf/.local/bin/place-obs-mpv
+    chmod +x ${homeDir}/.local/bin/place-obs-mpv
 
     # Install ClipPlayer launcher (normalize video and mirror to /dev/video10 + preview)
-    cat > /home/chrisf/.local/bin/clip-player << 'EOF'
+    cat > ${homeDir}/.local/bin/clip-player << 'EOF'
     #!/run/current-system/sw/bin/bash
     set -euo pipefail
 
@@ -1546,12 +1595,12 @@ in
     cleanup
     exit 0
     EOF
-    chmod +x /home/chrisf/.local/bin/clip-player
+    chmod +x ${homeDir}/.local/bin/clip-player
 
 
     # Apply GTK theming (Tokyo Night Dark + Papirus-Dark + Bibata cursor)
-    mkdir -p /home/chrisf/.config/gtk-3.0
-    cat > /home/chrisf/.config/gtk-3.0/settings.ini << 'EOF'
+    mkdir -p ${homeDir}/.config/gtk-3.0
+    cat > ${homeDir}/.config/gtk-3.0/settings.ini << 'EOF'
     [Settings]
     gtk-theme-name=Tokyonight-Dark-B
     gtk-icon-theme-name=Papirus-Dark
@@ -1559,8 +1608,8 @@ in
     gtk-cursor-theme-size=24
     gtk-application-prefer-dark-theme=true
     EOF
-    mkdir -p /home/chrisf/.config/gtk-4.0
-    cat > /home/chrisf/.config/gtk-4.0/settings.ini << 'EOF'
+    mkdir -p ${homeDir}/.config/gtk-4.0
+    cat > ${homeDir}/.config/gtk-4.0/settings.ini << 'EOF'
     [Settings]
     gtk-theme-name=Tokyonight-Dark-B
     gtk-icon-theme-name=Papirus-Dark
@@ -1568,11 +1617,11 @@ in
     gtk-cursor-theme-size=24
     gtk-application-prefer-dark-theme=true
     EOF
-    chown -R chrisf:users /home/chrisf/.config/gtk-3.0 /home/chrisf/.config/gtk-4.0
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/gtk-3.0 ${homeDir}/.config/gtk-4.0
 
     # Configure qt6ct to use Adwaita-Dark and Papirus icons for closer match
-    mkdir -p /home/chrisf/.config/qt6ct
-    cat > /home/chrisf/.config/qt6ct/qt6ct.conf << 'EOF'
+    mkdir -p ${homeDir}/.config/qt6ct
+    cat > ${homeDir}/.config/qt6ct/qt6ct.conf << 'EOF'
     [Appearance]
     style=adwaita-dark
     icon_theme=Papirus-Dark
@@ -1597,13 +1646,13 @@ in
     force_raster_widgets=false
     ignore_platform_theme=false
     EOF
-    chown -R chrisf:users /home/chrisf/.config/qt6ct
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/qt6ct
     # Install rofi brightness menu
-    install -m 0755 ${./scripts/rofi-brightness.sh} /home/chrisf/.local/bin/rofi-brightness
-    chown chrisf:users /home/chrisf/.local/bin/rofi-brightness
+    install -m 0755 ${./scripts/rofi-brightness.sh} ${homeDir}/.local/bin/rofi-brightness
+    chown ${userName}:${userGroup} ${homeDir}/.local/bin/rofi-brightness
     
     # Install Oh My Posh theme switcher
-    cat > /home/chrisf/.local/bin/switch-oh-my-posh-theme << 'EOF'
+    cat > ${homeDir}/.local/bin/switch-oh-my-posh-theme << 'EOF'
     #!/run/current-system/sw/bin/bash
 
     # Oh My Posh Theme Switcher
@@ -1698,12 +1747,12 @@ in
 
     switch_theme "$1"
     EOF
-    chmod +x /home/chrisf/.local/bin/switch-oh-my-posh-theme
-    chown chrisf:users /home/chrisf/.local/bin/switch-oh-my-posh-theme
+    chmod +x ${homeDir}/.local/bin/switch-oh-my-posh-theme
+    chown ${userName}:${userGroup} ${homeDir}/.local/bin/switch-oh-my-posh-theme
     
     # Set Kitty as default terminal in desktop environment
-    mkdir -p /home/chrisf/.local/share/applications
-    cat > /home/chrisf/.local/share/applications/kitty.desktop << 'EOF'
+    mkdir -p ${homeDir}/.local/share/applications
+    cat > ${homeDir}/.local/share/applications/kitty.desktop << 'EOF'
     [Desktop Entry]
     Version=1.0
     Type=Application
@@ -1715,30 +1764,30 @@ in
     Terminal=false
     Categories=System;TerminalEmulator;
     EOF
-    chown chrisf:users /home/chrisf/.local/share/applications/kitty.desktop
+    chown ${userName}:${userGroup} ${homeDir}/.local/share/applications/kitty.desktop
     
     # Update desktop database to register Kitty and ClipPlayer
     runuser -s ${pkgs.bash}/bin/bash -l chrisf -c '${pkgs.desktop-file-utils}/bin/update-desktop-database ~/.local/share/applications' || true
     
     # ClipPlayer desktop entry for file associations
-    cat > /home/chrisf/.local/share/applications/clip-player.desktop << 'EOF'
+    cat > ${homeDir}/.local/share/applications/clip-player.desktop << 'EOF'
     [Desktop Entry]
     Version=1.0
     Type=Application
     Name=ClipPlayer
     GenericName=Media Player
     Comment=Launch MPV with a stable title for OBS capture
-    Exec=/home/chrisf/.local/bin/clip-player %U
+    Exec=${homeDir}/.local/bin/clip-player %U
     Icon=mpv
     Terminal=false
     Categories=AudioVideo;Video;Player;
     MimeType=video/mp4;video/x-matroska;video/webm;video/x-msvideo;video/quicktime;video/ogg;audio/mpeg;audio/mp3;audio/ogg;audio/flac;audio/x-flac;audio/wav;audio/x-wav;application/ogg;
     EOF
-    chown chrisf:users /home/chrisf/.local/share/applications/clip-player.desktop
+    chown ${userName}:${userGroup} ${homeDir}/.local/share/applications/clip-player.desktop
     
     # Set ClipPlayer as default for common media MIME types
-    mkdir -p /home/chrisf/.config
-    cat > /home/chrisf/.config/mimeapps.list << 'EOF'
+    mkdir -p ${homeDir}/.config
+    cat > ${homeDir}/.config/mimeapps.list << 'EOF'
     [Default Applications]
     x-scheme-handler/http=firefox.desktop
     x-scheme-handler/https=firefox.desktop
@@ -1758,7 +1807,7 @@ in
     audio/x-wav=clip-player.desktop
     application/ogg=clip-player.desktop
     EOF
-    chown chrisf:users /home/chrisf/.config/mimeapps.list
+    chown ${userName}:${userGroup} ${homeDir}/.config/mimeapps.list
   '';
 
   # Programs

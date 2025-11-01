@@ -1,7 +1,7 @@
 { lib, config, pkgs, ... }:
-let cfg = config.shared.services;
+let cfg = config.hyprvibe.services;
 in {
-  options.shared.services = {
+  options.hyprvibe.services = {
     enable = lib.mkEnableOption "Shared baseline services (pipewire, flatpak, polkit, sudo)";
     openssh.enable = lib.mkEnableOption "OpenSSH server";
     tailscale.enable = lib.mkEnableOption "Tailscale";

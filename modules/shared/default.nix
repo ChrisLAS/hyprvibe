@@ -1,4 +1,4 @@
-{ ... }:
+{ lib, ... }:
 {
   imports = [
     ./packages.nix
@@ -7,6 +7,7 @@
     ./waybar.nix
     ./shell.nix
     ./services.nix
+    ./user.nix
   ];
 }
 

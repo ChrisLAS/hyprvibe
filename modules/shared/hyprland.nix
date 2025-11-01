@@ -1,7 +1,12 @@
 { lib, pkgs, config, ... }:
-let cfg = config.shared.hyprland;
+let
+  cfg = config.hyprvibe.hyprland;
+  user = config.hyprvibe.user;
+  userHome = user.home;
+  userName = user.name;
+  userGroup = user.group;
 in {
-  options.shared.hyprland = {
+  options.hyprvibe.hyprland = {
     enable = lib.mkEnableOption "Hyprland base setup";
     waybar.enable = lib.mkEnableOption "Waybar autostart integration";
     monitorsFile = lib.mkOption {
@@ -24,15 +29,15 @@ in {
 
     # Install base config; host supplies monitor file separately
     system.activationScripts.hyprlandBase = lib.mkAfter ''
-      mkdir -p /home/chrisf/.config/hypr
+      mkdir -p ${userHome}/.config/hypr
       # Remove existing symlinks/files if they exist
-      rm -f /home/chrisf/.config/hypr/hyprland-base.conf
-      ln -sf ${../../configs/hyprland-base.conf} /home/chrisf/.config/hypr/hyprland-base.conf
+      rm -f ${userHome}/.config/hypr/hyprland-base.conf
+      ln -sf ${../../configs/hyprland-base.conf} ${userHome}/.config/hypr/hyprland-base.conf
       ${lib.optionalString (cfg.monitorsFile != null) ''
-        rm -f /home/chrisf/.config/hypr/$(basename ${cfg.monitorsFile})
-        ln -sf ${cfg.monitorsFile} /home/chrisf/.config/hypr/$(basename ${cfg.monitorsFile})
+        rm -f ${userHome}/.config/hypr/$(basename ${cfg.monitorsFile})
+        ln -sf ${cfg.monitorsFile} ${userHome}/.config/hypr/$(basename ${cfg.monitorsFile})
       ''}
-      chown -R chrisf:users /home/chrisf/.config/hypr
+      chown -R ${userName}:${userGroup} ${userHome}/.config/hypr
     '';
   };
 }

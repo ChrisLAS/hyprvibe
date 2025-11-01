@@ -18,13 +18,14 @@
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
 
     nixosModules = {
-      shared = import ./modules/shared;
-      shared-packages = import ./modules/shared/packages.nix;
-      shared-desktop = import ./modules/shared/desktop.nix;
-      shared-hyprland = import ./modules/shared/hyprland.nix;
-      shared-waybar = import ./modules/shared/waybar.nix;
-      shared-shell = import ./modules/shared/shell.nix;
-      shared-services = import ./modules/shared/services.nix;
+      # New hyprvibe-prefixed exports
+      hyprvibe = import ./modules/shared;
+      hyprvibe-packages = import ./modules/shared/packages.nix;
+      hyprvibe-desktop = import ./modules/shared/desktop.nix;
+      hyprvibe-hyprland = import ./modules/shared/hyprland.nix;
+      hyprvibe-waybar = import ./modules/shared/waybar.nix;
+      hyprvibe-shell = import ./modules/shared/shell.nix;
+      hyprvibe-services = import ./modules/shared/services.nix;
     };
 
     nixosConfigurations = {

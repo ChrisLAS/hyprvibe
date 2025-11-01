@@ -1,7 +1,7 @@
 { lib, pkgs, config, ... }:
-let cfg = config.shared.desktop;
+let cfg = config.hyprvibe.desktop;
 in {
-  options.shared.desktop = {
+  options.hyprvibe.desktop = {
     enable = lib.mkEnableOption "Shared desktop (Wayland env, portals, fonts, GTK/Qt)";
     fonts.enable = lib.mkEnableOption "Install recommended Nerd/base fonts";
   };

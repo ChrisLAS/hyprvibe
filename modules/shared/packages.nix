@@ -1,6 +1,6 @@
 { lib, pkgs, config, ... }:
 let
-  cfg = config.shared.packages;
+  cfg = config.hyprvibe.packages;
   # Curated common sets derived from overlaps across hosts
   basePackages = with pkgs; [
     htop btop tree lsof lshw neofetch nmap zip unzip gnupg curl file jq bat fd fzf ripgrep tldr
@@ -17,7 +17,7 @@ let
     steam-run lutris moonlight-qt sunshine vulkan-tools
   ];
 in {
-  options.shared.packages = {
+  options.hyprvibe.packages = {
     enable = lib.mkEnableOption "Shared package groups";
     base.enable = lib.mkEnableOption "Common CLI utilities";
     desktop.enable = lib.mkEnableOption "Desktop helpers for Wayland sessions";
