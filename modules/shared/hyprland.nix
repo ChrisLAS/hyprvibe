@@ -49,6 +49,7 @@ in {
       default = null;
       description = "Directory of Hyprland helper scripts to copy and chmod +x";
     };
+    amd.enable = lib.mkEnableOption "Enable AMD-specific OpenGL/Vulkan env overrides";
   };
 
   config = lib.mkIf cfg.enable {
@@ -84,6 +85,16 @@ in {
       # Idle config
       rm -f ${userHome}/.config/hypr/hypridle.conf
       ln -sf ${if cfg.hypridleConfig != null then cfg.hypridleConfig else defaultIdle} ${userHome}/.config/hypr/hypridle.conf
+      # Local overrides file (always present; may be empty)
+      : > ${userHome}/.config/hypr/hyprland-local.conf
+      ${lib.optionalString cfg.amd.enable ''
+        cat > ${userHome}/.config/hypr/hyprland-local.conf << 'EOF'
+        # AMD-specific overrides (opt-in)
+        env = AMD_VULKAN_ICD,RADV
+        env = MESA_LOADER_DRIVER_OVERRIDE,radeonsi
+        EOF
+        echo "[hyprvibe][hyprland] wrote AMD env overrides to hyprland-local.conf"
+      ''}
       echo "[hyprvibe][hyprland] linked hypridle.conf"
       ${lib.optionalString (cfg.scriptsDir != null) ''
         mkdir -p ${userHome}/.config/hypr/scripts

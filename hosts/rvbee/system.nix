@@ -323,6 +323,7 @@ in
   hyprvibe.hyprland.hyprlockTemplate = ./hyprlock.conf;
   hyprvibe.hyprland.hypridleConfig = ./hypridle.conf;
   hyprvibe.hyprland.scriptsDir = ./scripts;
+  hyprvibe.hyprland.amd.enable = true;
   hyprvibe.waybar.enable = true;
   hyprvibe.waybar.configPath = ./waybar.json;
   hyprvibe.waybar.stylePath = ./waybar.css;
