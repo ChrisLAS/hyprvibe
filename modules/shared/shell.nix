@@ -9,6 +9,10 @@ in {
   options.hyprvibe.shell = {
     enable = lib.mkEnableOption "Fish + Oh My Posh + Atuin basics";
     kittyAsDefault = lib.mkEnableOption "Set kitty as default terminal and env";
+    atuin.enable = lib.mkEnableOption "Enable Atuin integration snippet for Fish";
+    githubToken.enable = lib.mkEnableOption "Export GITHUB_TOKEN from ~/.config/secrets/github_token in Fish";
+    kittyIntegration.enable = lib.mkEnableOption "Enable kitty shell integration snippet in Fish";
+    kittyConfig.enable = lib.mkEnableOption "Write a shared kitty.conf to the user's config";
     ohMyPoshDefault = lib.mkOption {
       type = lib.types.lines;
       default = ''
@@ -98,6 +102,34 @@ in {
       end
       EOF
       echo "[hyprvibe][shell] wrote fish conf.d snippets"
+      ${lib.optionalString (cfg.atuin.enable or false) ''
+        # Atuin integration
+        cat > ${userHome}/.config/fish/conf.d/atuin.fish << 'EOF'
+        if command -q atuin
+          set -g ATUIN_SESSION (atuin uuid)
+          atuin init fish | source
+        end
+        EOF
+      ''}
+      ${lib.optionalString (cfg.githubToken.enable or false) ''
+        # GITHUB_TOKEN import for user sessions
+        mkdir -p ${userHome}/.config/secrets
+        cat > ${userHome}/.config/fish/conf.d/github_token.fish << 'EOF'
+        if test -r ~/.config/secrets/github_token
+          set -gx GITHUB_TOKEN (string trim (cat ~/.config/secrets/github_token))
+        end
+        EOF
+      ''}
+      ${lib.optionalString ((cfg.kittyIntegration.enable or false) || (cfg.kittyAsDefault or false)) ''
+        # Kitty integration
+        cat > ${userHome}/.config/fish/conf.d/kitty-integration.fish << 'EOF'
+        if test "$TERM" = "xterm-kitty"
+          if command -q kitty
+            kitty + complete setup fish | source
+          end
+        end
+        EOF
+      ''}
       mkdir -p ${userHome}/.config/oh-my-posh
       # Only create default config if no config.json exists (preserve user configs)
       if [ ! -f ${userHome}/.config/oh-my-posh/config.json ]; then
@@ -114,6 +146,61 @@ in {
       KITTY_CONFIG_DIRECTORY = "~/.config/kitty";
       KITTY_SHELL_INTEGRATION = "enabled";
     };
+
+    # Optional kitty configuration file
+    system.activationScripts.kitty = lib.mkAfter (lib.optionalString (cfg.kittyConfig.enable or false) ''
+      set -euo pipefail
+      trap 'echo "[hyprvibe][shell][kitty] ERROR at line $LINENO"' ERR
+      mkdir -p ${userHome}/.config/kitty
+      cat > ${userHome}/.config/kitty/kitty.conf << 'EOF'
+      # Hyprvibe Kitty Terminal Configuration
+      font_family FiraCode Nerd Font
+      font_size 12
+      bold_font auto
+      italic_font auto
+      bold_italic_font auto
+      background #1a1b26
+      foreground #c0caf5
+      selection_background #28344a
+      selection_foreground #c0caf5
+      url_color #7aa2f7
+      cursor #c0caf5
+      cursor_text_color #1a1b26
+      active_tab_background #7aa2f7
+      active_tab_foreground #1a1b26
+      inactive_tab_background #1a1b26
+      inactive_tab_foreground #c0caf5
+      tab_bar_background #16161e
+      window_padding_width 10
+      window_margin_width 0
+      window_border_width 0
+      background_opacity 0.95
+      shell_integration enabled
+      copy_on_select yes
+      detect_urls yes
+      show_hyperlink_targets yes
+      underline_hyperlinks always
+      mouse_hide_while_typing yes
+      focus_follows_mouse yes
+      sync_to_monitor yes
+      repaint_delay 10
+      input_delay 3
+      map ctrl+shift+equal change_font_size all +1.0
+      map ctrl+shift+minus change_font_size all -1.0
+      map ctrl+shift+0 change_font_size all 0
+      shell fish
+      enable_audio_bell no
+      visual_bell_duration 0.5
+      visual_bell_color #f7768e
+      cursor_shape beam
+      cursor_beam_thickness 2
+      scrollback_lines 10000
+      scrollback_pager less --chop-long-lines --RAW-CONTROL-CHARS +INPUT_LINE_NUMBER
+      clipboard_control write-clipboard write-primary read-clipboard read-primary
+      EOF
+      chown -R ${userName}:${userGroup} ${userHome}/.config/kitty
+      echo "[hyprvibe][shell][kitty] wrote kitty.conf"
+    '');
   };
 }
 

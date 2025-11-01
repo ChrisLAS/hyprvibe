@@ -327,7 +327,14 @@ in
   hyprvibe.waybar.configPath = ./waybar.json;
   hyprvibe.waybar.stylePath = ./waybar.css;
   hyprvibe.waybar.scriptsDir = ./scripts;
-  hyprvibe.shell = { enable = true; kittyAsDefault = true; };
+  hyprvibe.shell = {
+    enable = true;
+    kittyAsDefault = true;
+    atuin.enable = true;
+    githubToken.enable = true;
+    kittyIntegration.enable = true;
+    kittyConfig.enable = true;
+  };
   # Explicit shared user options including host-specific groups
   hyprvibe.user = {
     name = "chrisf";
