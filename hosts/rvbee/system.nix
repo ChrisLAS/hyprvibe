@@ -327,6 +327,7 @@ in
   hyprvibe.waybar.configPath = ./waybar.json;
   hyprvibe.waybar.stylePath = ./waybar.css;
   hyprvibe.waybar.scriptsDir = ./scripts;
+  hyprvibe.system.enable = true;
   hyprvibe.shell = {
     enable = true;
     kittyAsDefault = true;
@@ -347,8 +348,7 @@ in
   users.groups.plugdev = {};
   hyprvibe.services = {
     enable = true;
-    openssh.enable = true;
-    tailscale.enable = true;
+    
     virt.enable = true;
     docker.enable = true;
   };
@@ -397,11 +397,7 @@ in
     dates = "02:00";
   };
 
-  # Power management
-  powerManagement = {
-    enable = true;
-    cpuFreqGovernor = "performance";
-  };
+  # Power management provided by shared module
 
   # OOM configuration
   systemd = {
@@ -478,20 +474,10 @@ in
 
   # Services
   services = {
-    fstrim.enable = true;
     resolved.enable = true;
     # Desktop support services moved to shared module (udisks2, gvfs, tumbler, blueman, avahi, davfs2, gnome-keyring, gdm)
     printing.enable = true;
-    pipewire = {
-      enable = true;
-      alsa = {
-        enable = true;
-        support32Bit = true;
-      };
-      pulse.enable = true;
-      jack.enable = true;
-      wireplumber.enable = true;
-    };
+    
     openssh.enable = true;
     tailscale.enable = true;
     netdata = {
@@ -516,7 +502,7 @@ in
         };
       };
     };
-    flatpak.enable = true;
+    
     # Atuin shell history service
     atuin = {
       enable = true;
@@ -561,8 +547,7 @@ in
     };
   };
 
-  # No man pages
-  documentation.man.enable = false;
+  # No man pages handled by shared module
 
   # User configuration handled by hyprvibe.user
 
@@ -1775,7 +1760,6 @@ in
 
   # Programs
   programs = {
-    fish.enable = true;
     adb.enable = true;
     virt-manager.enable = true;
     dconf.enable = true;
@@ -1793,11 +1777,7 @@ in
       remotePlay.openFirewall = true;
       dedicatedServer.openFirewall = true;
     };
-    # Hyprland configuration
-    hyprland = {
-      enable = true;
-      xwayland.enable = true;
-    };
+    # Hyprland configuration provided by shared module
     obs-studio = {
       enable = true;
       plugins = [
@@ -1835,15 +1815,8 @@ in
   # Environment
   environment = {
     sessionVariables = {
-      # Atuin environment variables
-      ATUIN_SESSION = "";
       # Cursor theme for consistency across apps
       XCURSOR_THEME = "Bibata-Modern-Ice";
-      # Set Kitty as default terminal
-      TERMINAL = "kitty";
-      # Additional terminal-related environment variables
-      KITTY_CONFIG_DIRECTORY = "~/.config/kitty";
-      KITTY_SHELL_INTEGRATION = "enabled";
       # Audio plugin discovery paths for REAPER and other hosts
       VST_PATH = "/run/current-system/sw/lib/vst";
       VST3_PATH = "/run/current-system/sw/lib/vst3";
