@@ -27,23 +27,26 @@ in {
       mkdir -p ${userHome}/.config/fish/conf.d
       # Minimal, conservative grc integration for Fish
       cat > ${userHome}/.config/fish/conf.d/grc.fish << 'EOF'
-      if set -q GRC_DISABLE
-        exit
-      end
-      if not command -q grc
-        exit
-      end
-      function __grc_wrap
-        grc $argv
-      end
-      set -l __grc_targets diff dig ip last mount netstat ping ping6 ps traceroute traceroute6
-      for t in $__grc_targets
-        alias $t "__grc_wrap $t"
+      if not set -q GRC_DISABLE; and command -q grc
+        function __grc_wrap
+          grc $argv
+        end
+        set -l __grc_targets diff dig ip last mount netstat ping ping6 ps traceroute traceroute6
+        for t in $__grc_targets
+          alias $t "__grc_wrap $t"
+        end
       end
       EOF
       cat > ${userHome}/.config/fish/conf.d/oh-my-posh.fish << 'EOF'
       if command -q oh-my-posh
         oh-my-posh init fish --config ~/.config/oh-my-posh/config.json | source
+      end
+      if not functions -q fish_prompt
+        function fish_prompt
+          set_color cyan
+          echo -n (whoami)'@'(hostname)' > '
+          set_color normal
+        end
       end
       EOF
       # Ensure ~/.local/bin is on PATH
