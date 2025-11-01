@@ -21,6 +21,9 @@ in {
     environment.systemPackages = [ pkgs.oh-my-posh ];
 
     system.activationScripts.shell = lib.mkAfter ''
+      set -euo pipefail
+      trap 'echo "[hyprvibe][shell] ERROR at line $LINENO"' ERR
+      echo "[hyprvibe][shell] starting activation"
       mkdir -p ${userHome}/.config/fish/conf.d
       # Minimal, conservative grc integration for Fish
       cat > ${userHome}/.config/fish/conf.d/grc.fish << 'EOF'
@@ -49,13 +52,16 @@ in {
         fish_add_path "$HOME/.local/bin"
       end
       EOF
+      echo "[hyprvibe][shell] wrote fish conf.d snippets"
       mkdir -p ${userHome}/.config/oh-my-posh
       # Only create default config if no config.json exists (preserve user configs)
       if [ ! -f ${userHome}/.config/oh-my-posh/config.json ]; then
         echo '${cfg.ohMyPoshDefault}' > ${userHome}/.config/oh-my-posh/config-default.json
         cp ${userHome}/.config/oh-my-posh/config-default.json ${userHome}/.config/oh-my-posh/config.json
+        echo "[hyprvibe][shell] installed default oh-my-posh config"
       fi
       chown -R ${userName}:${userGroup} ${userHome}/.config/fish ${userHome}/.config/oh-my-posh
+      echo "[hyprvibe][shell] activation complete"
     '';
 
     environment.sessionVariables = lib.mkIf cfg.kittyAsDefault {

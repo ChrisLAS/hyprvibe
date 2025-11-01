@@ -59,29 +59,40 @@ in {
 
     # Install base config; fall back to shared defaults where host options are not provided
     system.activationScripts.hyprlandBase = lib.mkAfter ''
+      set -euo pipefail
+      trap 'echo "[hyprvibe][hyprland] ERROR at line $LINENO"' ERR
+      echo "[hyprvibe][hyprland] starting activation"
       mkdir -p ${userHome}/.config/hypr
       # Remove existing symlinks/files if they exist
       rm -f ${userHome}/.config/hypr/hyprland-base.conf
       ln -sf ${../../configs/hyprland-base.conf} ${userHome}/.config/hypr/hyprland-base.conf
+      echo "[hyprvibe][hyprland] linked base config -> ${userHome}/.config/hypr/hyprland-base.conf"
       ${lib.optionalString (cfg.monitorsFile != null) ''
         rm -f ${userHome}/.config/hypr/$(basename ${cfg.monitorsFile})
         ln -sf ${cfg.monitorsFile} ${userHome}/.config/hypr/$(basename ${cfg.monitorsFile})
+        echo "[hyprvibe][hyprland] linked monitors -> ${userHome}/.config/hypr/$(basename ${cfg.monitorsFile})"
       ''}
       # Main config
       rm -f ${userHome}/.config/hypr/hyprland.conf
       ln -sf ${if cfg.mainConfig != null then cfg.mainConfig else defaultMain} ${userHome}/.config/hypr/hyprland.conf
+      echo "[hyprvibe][hyprland] linked main -> ${userHome}/.config/hypr/hyprland.conf"
       # Wallpaper-backed configs
       ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${if cfg.wallpaper != null then cfg.wallpaper else defaultWallpaper}#g" ${if cfg.hyprpaperTemplate != null then cfg.hyprpaperTemplate else defaultPaper} > ${userHome}/.config/hypr/hyprpaper.conf
+      echo "[hyprvibe][hyprland] rendered hyprpaper.conf"
       ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${if cfg.wallpaper != null then cfg.wallpaper else defaultWallpaper}#g" ${if cfg.hyprlockTemplate != null then cfg.hyprlockTemplate else defaultLock} > ${userHome}/.config/hypr/hyprlock.conf
+      echo "[hyprvibe][hyprland] rendered hyprlock.conf"
       # Idle config
       rm -f ${userHome}/.config/hypr/hypridle.conf
       ln -sf ${if cfg.hypridleConfig != null then cfg.hypridleConfig else defaultIdle} ${userHome}/.config/hypr/hypridle.conf
+      echo "[hyprvibe][hyprland] linked hypridle.conf"
       ${lib.optionalString (cfg.scriptsDir != null) ''
         mkdir -p ${userHome}/.config/hypr/scripts
         cp -f ${cfg.scriptsDir}/*.sh ${userHome}/.config/hypr/scripts/ 2>/dev/null || true
         chmod +x ${userHome}/.config/hypr/scripts/*.sh 2>/dev/null || true
+        echo "[hyprvibe][hyprland] installed scripts from ${cfg.scriptsDir}"
       ''}
       chown -R ${userName}:${userGroup} ${userHome}/.config/hypr
+      echo "[hyprvibe][hyprland] ownership fixed; activation complete"
     '';
   };
 }

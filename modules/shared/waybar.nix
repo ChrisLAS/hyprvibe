@@ -26,6 +26,9 @@ in {
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ pkgs.waybar ];
     system.activationScripts.waybar = lib.mkAfter ''
+      set -euo pipefail
+      trap 'echo "[hyprvibe][waybar] ERROR at line $LINENO"' ERR
+      echo "[hyprvibe][waybar] starting activation"
       mkdir -p ${userHome}/.config/waybar/scripts
       # Remove existing files/symlinks before creating new ones
       rm -f ${userHome}/.config/waybar/config
@@ -38,6 +41,7 @@ in {
         ln -sf ${c.source} ${userHome}/.config/waybar/${c.destName}
       '') cfg.extraConfigs)}
       chown -R ${userName}:${userGroup} ${userHome}/.config/waybar
+      echo "[hyprvibe][waybar] activation complete"
     '';
   };
 }
