@@ -12,6 +12,8 @@ in {
       MOZ_ENABLE_WAYLAND = "1";
       QT_QPA_PLATFORM = "wayland";
       GDK_BACKEND = "wayland";
+      XCURSOR_THEME = "Bibata-Modern-Ice";
+      XCURSOR_SIZE = "24";
     };
 
     # Display manager for Hyprland sessions

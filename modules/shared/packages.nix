@@ -10,7 +10,7 @@ let
     wl-clipboard grim slurp swappy wf-recorder dunst cliphist brightnessctl playerctl pavucontrol
     qt6Packages.qt6ct
     # Core desktop apps
-    kitty rofi
+    kitty rofi bibata-cursors
     # Hyprland companions started by base config
     hyprpaper hypridle hyprlock
   ];
