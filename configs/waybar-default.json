@@ -1,0 +1,30 @@
+{
+  "layer": "top",
+  "position": "top",
+  "modules-left": ["hyprland/workspaces", "hyprland/window"],
+  "modules-center": [],
+  "modules-right": ["pulseaudio", "network", "battery", "clock"],
+  "pulseaudio": {
+    "format": "  {volume}%",
+    "format-muted": "  {volume}%",
+    "on-click": "pavucontrol"
+  },
+  "network": {
+    "format-wifi": "  {essid} {signal}%",
+    "format-ethernet": "  {ip}",
+    "format-disconnected": "󰖪  offline"
+  },
+  "battery": {
+    "format": "  {capacity}%",
+    "format-charging": "  {capacity}%",
+    "states": {
+      "warning": 30,
+      "critical": 15
+    }
+  },
+  "clock": {
+    "format": "  %a %b %d  %H:%M"
+  }
+}
+
+

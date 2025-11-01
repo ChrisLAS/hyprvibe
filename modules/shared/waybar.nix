@@ -33,8 +33,8 @@ in {
       # Remove existing files/symlinks before creating new ones
       rm -f ${userHome}/.config/waybar/config
       rm -f ${userHome}/.config/waybar/style.css
-      ${lib.optionalString (cfg.configPath != null) ''ln -sf ${cfg.configPath} ${userHome}/.config/waybar/config''}
-      ${lib.optionalString (cfg.stylePath != null) ''ln -sf ${cfg.stylePath} ${userHome}/.config/waybar/style.css''}
+      ${if cfg.configPath != null then ''ln -sf ${cfg.configPath} ${userHome}/.config/waybar/config'' else ''ln -sf ${../../configs/waybar-default.json} ${userHome}/.config/waybar/config''}
+      ${if cfg.stylePath != null then ''ln -sf ${cfg.stylePath} ${userHome}/.config/waybar/style.css'' else ''ln -sf ${../../configs/waybar-default.css} ${userHome}/.config/waybar/style.css''}
       ${lib.optionalString (cfg.scriptsDir != null) ''cp -f ${cfg.scriptsDir}/* ${userHome}/.config/waybar/scripts/ 2>/dev/null || true''}
       # Install extra config variants
       ${lib.concatStringsSep "\n" (map (c: ''
