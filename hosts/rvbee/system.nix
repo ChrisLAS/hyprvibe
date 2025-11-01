@@ -318,6 +318,12 @@ in
   hyprvibe.hyprland.enable = true;
   # Provide per-host monitors and wallpaper paths to shared module
   hyprvibe.hyprland.monitorsFile = ../../configs/hyprland-monitors-rvbee.conf;
+  hyprvibe.hyprland.mainConfig = ./hyprland.conf;
+  hyprvibe.hyprland.wallpaper = wallpaperPath;
+  hyprvibe.hyprland.hyprpaperTemplate = ./hyprpaper.conf;
+  hyprvibe.hyprland.hyprlockTemplate = ./hyprlock.conf;
+  hyprvibe.hyprland.hypridleConfig = ./hypridle.conf;
+  hyprvibe.hyprland.scriptsDir = ./scripts;
   hyprvibe.waybar.enable = true;
   hyprvibe.waybar.configPath = ./waybar.json;
   hyprvibe.waybar.stylePath = ./waybar.css;
@@ -617,7 +623,8 @@ in
   networking.firewall.allowedUDPPorts = (config.networking.firewall.allowedUDPPorts or []) ++ [ 51234 ];
 
   # Copy Hyprland configuration to user's home
-  system.activationScripts.copyHyprlandConfig = ''
+  # Disabled: migrated to hyprvibe.hyprland options
+  system.activationScripts.copyHyprlandConfig_disabled = ''
     mkdir -p ${homeDir}/.config/hypr
     # Ensure base and monitors exist before main hyprland.conf to avoid source= errors
     cp --remove-destination ${../../configs/hyprland-base.conf} ${homeDir}/.config/hypr/hyprland-base.conf
