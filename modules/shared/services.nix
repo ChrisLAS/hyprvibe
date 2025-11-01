@@ -22,6 +22,18 @@ in {
     security.rtkit.enable = true;
     security.sudo.wheelNeedsPassword = false;
 
+    # Desktop support services common to both hosts
+    services.udisks2.enable = true;
+    services.gvfs.enable = true;
+    services.tumbler.enable = true;
+    services.blueman.enable = true;
+    services.avahi = {
+      enable = true;
+      nssmdns4 = true;
+    };
+    services.davfs2.enable = true;
+    services.gnome.gnome-keyring.enable = true;
+
     services.openssh.enable = lib.mkIf cfg.openssh.enable true;
     services.tailscale = lib.mkIf cfg.tailscale.enable {
       enable = true;

@@ -14,6 +14,12 @@ in {
       GDK_BACKEND = "wayland";
     };
 
+    # Display manager for Hyprland sessions
+    services.displayManager.gdm = {
+      enable = true;
+      wayland = true;
+    };
+
     xdg.portal = {
       enable = true;
       xdgOpenUsePortal = true;

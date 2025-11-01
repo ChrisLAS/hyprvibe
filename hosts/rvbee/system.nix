@@ -484,25 +484,7 @@ in
   services = {
     fstrim.enable = true;
     resolved.enable = true;
-    udisks2.enable = true;
-    gvfs.enable = true;
-    tumbler.enable = true;
-    # Bluetooth manager (tray + UI)
-    blueman.enable = true;
-    # Network service discovery for "Browse Network" in Thunar and SMB service discovery
-    avahi = {
-      enable = true;
-      nssmdns4 = true;
-    };
-    # Optional: allow mounting WebDAV as a filesystem (in addition to GVFS WebDAV)
-    davfs2.enable = true;
-    # Secret Service provider for GVFS credentials (SFTP/SMB/WebDAV)
-    gnome.gnome-keyring.enable = true;
-    # Display manager for Hyprland
-    displayManager.gdm = {
-      enable = true;
-      wayland = true;
-    };
+    # Desktop support services moved to shared module (udisks2, gvfs, tumbler, blueman, avahi, davfs2, gnome-keyring, gdm)
     printing.enable = true;
     pipewire = {
       enable = true;

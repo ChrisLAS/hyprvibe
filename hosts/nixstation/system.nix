@@ -724,11 +724,7 @@ in
     # Enable locate - PRESERVING YOUR EXISTING CONFIG
     locate.enable = true;
     
-    # Display manager for Hyprland
-    displayManager.gdm = {
-      enable = true;
-      wayland = true;
-    };
+    # GDM moved to shared module
     
     # Additional services from GitHub config
     udev.packages = [ 
@@ -752,16 +748,7 @@ in
       # Allow users in disk group to access SCSI disk devices
       SUBSYSTEM=="scsi_disk", GROUP="disk", MODE="0664"
     '';
-    udisks2.enable = true;
-    gvfs.enable = true;
-    tumbler.enable = true;
-    blueman.enable = true;
-    avahi = {
-      enable = true;
-      nssmdns4 = true;
-    };
-    davfs2.enable = true;
-    gnome.gnome-keyring.enable = true;
+    # Desktop support services moved to shared module (udisks2, gvfs, tumbler, blueman, avahi, davfs2, gnome-keyring)
     atuin = {
       enable = true;
     };
