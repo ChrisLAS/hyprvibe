@@ -182,7 +182,6 @@ let
     mako
     swaybg
     swayosd
-    rofi
     qt6Packages.qt6ct
     pavucontrol
     networkmanagerapplet
