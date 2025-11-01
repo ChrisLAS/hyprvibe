@@ -11,7 +11,35 @@ in {
     kittyAsDefault = lib.mkEnableOption "Set kitty as default terminal and env";
     ohMyPoshDefault = lib.mkOption {
       type = lib.types.lines;
-      default = ''{"$schema":"https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json","version":1,"final_space":true,"blocks":[]}'';
+      default = ''
+      {
+        "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+        "version": 2,
+        "final_space": true,
+        "blocks": [
+          {
+            "type": "prompt",
+            "alignment": "left",
+            "segments": [
+              {
+                "type": "path",
+                "style": "plain",
+                "properties": { "style": "folder", "max_depth": 3 }
+              },
+              { "type": "git", "style": "plain" }
+            ]
+          },
+          {
+            "type": "prompt",
+            "alignment": "right",
+            "segments": [
+              { "type": "execution_time", "style": "plain", "properties": { "threshold": 5000 } },
+              { "type": "time", "style": "plain", "properties": { "format": "15:04:05" } }
+            ]
+          }
+        ]
+      }
+      '';
       description = "Default OMP config JSON when user config is missing";
     };
   };
