@@ -38,7 +38,7 @@ let
 in {
   options.hyprvibe.user = lib.mkOption {
     type = lib.types.either lib.types.str (lib.types.submodule userSubmodule);
-    default = { name = "chrisf"; group = "users"; home = "/home/chrisf"; };
+    default = { name = "chrisf"; group = "users"; home = "/home/chrisf"; description = "Hyprvibe User"; linger = true; extraGroups = []; };
     description = "Primary user (string short-form or attribute set).";
     apply = value:
       if lib.isString value then
@@ -59,13 +59,13 @@ in {
     baseGroups = [
       "networkmanager" "wheel" "docker" "adbusers" "libvirtd" "video" "render" "audio" "i2c"
     ];
-    finalGroups = lib.unique (baseGroups ++ cfg.extraGroups);
+    finalGroups = lib.unique (baseGroups ++ (cfg.extraGroups or []));
   in {
     users.users."${cfg.name}" = {
       isNormalUser = true;
       shell = pkgs.fish;
-      description = cfg.description;
-      linger = cfg.linger;
+      description = cfg.description or "Hyprvibe User";
+      linger = cfg.linger or true;
       extraGroups = finalGroups;
       group = cfg.group;
       home = cfg.home;
