@@ -511,10 +511,22 @@ in
   hyprvibe.hyprland.enable = true;
   # Provide per-host monitors and wallpaper paths to hyprvibe module
   hyprvibe.hyprland.monitorsFile = ../../configs/hyprland-monitors-nixstation.conf;
+  hyprvibe.hyprland.mainConfig = ./hyprland.conf;
+  hyprvibe.hyprland.wallpaper = wallpaperPath;
+  hyprvibe.hyprland.hyprpaperTemplate = ./hyprpaper.conf;
+  hyprvibe.hyprland.hyprlockTemplate = ./hyprlock.conf;
+  hyprvibe.hyprland.hypridleConfig = ./hypridle.conf;
+  hyprvibe.hyprland.scriptsDir = ./scripts;
   hyprvibe.waybar.enable = true;
   hyprvibe.waybar.configPath = ./waybar.json;
   hyprvibe.waybar.stylePath = ./waybar.css;
   hyprvibe.waybar.scriptsDir = ./scripts;
+  hyprvibe.waybar.extraConfigs = [
+    { source = ./waybar-simple.json; destName = "waybar-simple.json"; }
+    { source = ./waybar-simple-dp1.json; destName = "waybar-simple-dp1.json"; }
+    { source = ./waybar-simple-dp2.json; destName = "waybar-simple-dp2.json"; }
+    { source = ./waybar-simple-hdmi.json; destName = "waybar-simple-hdmi.json"; }
+  ];
   hyprvibe.shell = { enable = true; kittyAsDefault = true; };
   hyprvibe.services = {
     enable = true;
@@ -828,8 +840,8 @@ in
   # User configuration handled by hyprvibe.user
   hyprvibe.user.extraGroups = [ "disk" ];
 
-  # NIXSTATION-specific activation scripts (complementing shared modules)
-  system.activationScripts.nixstationSpecific = ''
+  # Disabled: migrated to hyprvibe modules
+  system.activationScripts.nixstationSpecific_disabled = ''
     # Copy NIXSTATION-specific Hyprland configs
     mkdir -p /home/chrisf/.config/hypr
     cp ${./hyprland.conf} /home/chrisf/.config/hypr/hyprland.conf
@@ -846,33 +858,7 @@ in
     chmod +x /home/chrisf/.config/hypr/scripts/*.sh
     chown -R chrisf:users /home/chrisf/.config/hypr
     
-    # Copy additional waybar configs (shared module handles main config)
-    mkdir -p /home/chrisf/.config/waybar
-    cp ${./waybar-simple.json} /home/chrisf/.config/waybar/waybar-simple.json
-    cp ${./waybar-simple-dp1.json} /home/chrisf/.config/waybar/waybar-simple-dp1.json
-    cp ${./waybar-simple-dp2.json} /home/chrisf/.config/waybar/waybar-simple-dp2.json
-    cp ${./waybar-simple-hdmi.json} /home/chrisf/.config/waybar/waybar-simple-hdmi.json
-    
-    # Copy waybar scripts
-    mkdir -p /home/chrisf/.config/waybar/scripts
-    cp ${./scripts/waybar-timezones.sh} /home/chrisf/.config/waybar/scripts/waybar-timezones.sh
-    
-    # Ensure waybar scripts are executable
-    chmod +x /home/chrisf/.config/waybar/scripts/*.sh 2>/dev/null || true
-    chmod +x /home/chrisf/.config/waybar/scripts/*.py 2>/dev/null || true
-    chown -R chrisf:users /home/chrisf/.config/waybar
-    
-    # Create Atuin Fish configuration
-    mkdir -p /home/chrisf/.config/fish/conf.d
-    cat > /home/chrisf/.config/fish/conf.d/atuin.fish << 'EOF'
-    # Atuin shell history integration
-    if command -q atuin
-      set -g ATUIN_SESSION (atuin uuid)
-      atuin init fish | source
-    end
-    EOF
-    
-    # Additional Fish configuration for better integration
+    # (left intentionally empty)
     cat > /home/chrisf/.config/fish/conf.d/kitty-integration.fish << 'EOF'
     # Kitty terminal integration
     if test "$TERM" = "xterm-kitty"
