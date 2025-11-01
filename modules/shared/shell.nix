@@ -14,27 +14,31 @@ in {
       default = ''
       {
         "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
-        "version": 2,
+        "version": 3,
         "final_space": true,
         "blocks": [
           {
             "type": "prompt",
             "alignment": "left",
             "segments": [
-              {
-                "type": "path",
-                "style": "plain",
-                "properties": { "style": "folder", "max_depth": 3 }
-              },
-              { "type": "git", "style": "plain" }
+              { "type": "root", "style": "powerline", "background": "#ffe9aa", "foreground": "#100e23", "powerline_symbol": "\ue0b0", "template": " \uf0e7 " },
+              { "type": "session", "style": "powerline", "background": "#ffffff", "foreground": "#100e23", "powerline_symbol": "\ue0b0", "template": " {{ .UserName }}@{{ .HostName }} " },
+              { "type": "path", "style": "powerline", "background": "#91ddff", "foreground": "#100e23", "powerline_symbol": "\ue0b0", "properties": { "style": "agnoster", "max_depth": 2, "max_width": 50, "folder_icon": "\uf115", "home_icon": "\ueb06", "folder_separator_icon": " \ue0b1 " }, "template": " {{ .Path }} " },
+              { "type": "git", "style": "powerline", "background": "#95ffa4", "background_templates": [ "{{ if or (.Working.Changed) (.Staging.Changed) }}#FF9248{{ end }}", "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#ff4500{{ end }}", "{{ if gt .Ahead 0 }}#B388FF{{ end }}", "{{ if gt .Behind 0 }}#B388FF{{ end }}" ], "foreground": "#193549", "powerline_symbol": "\ue0b0", "properties": { "fetch_status": true, "fetch_upstream": true, "fetch_upstream_icon": true, "display_stash_count": true, "branch_template": "{{ trunc 25 .Branch }}" }, "template": " {{ .UpstreamIcon }}{{ .HEAD }}{{ if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }} \uf044 {{ .Working.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Staging.Changed }} \uf046 {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} \ueb4b {{ .StashCount }}{{ end }} " },
+              { "type": "node", "style": "powerline", "background": "#6CA35E", "foreground": "#ffffff", "powerline_symbol": "\ue0b0", "properties": { "fetch_version": true, "display_mode": "files" }, "template": " \ue718 {{ if .PackageManagerIcon }}{{ .PackageManagerIcon }} {{ end }}{{ .Full }} " },
+              { "type": "python", "style": "powerline", "background": "#FFDE57", "foreground": "#111111", "powerline_symbol": "\ue0b0", "properties": { "fetch_virtual_env": true, "display_version": true, "display_mode": "files" }, "template": " \ue235 {{ if .Venv }}{{ .Venv }} {{ end }}{{ .Full }} " },
+              { "type": "go", "style": "powerline", "background": "#8ED1F7", "foreground": "#111111", "powerline_symbol": "\ue0b0", "properties": { "fetch_version": true, "display_mode": "files" }, "template": " \ue626 {{ .Full }} " },
+              { "type": "rust", "style": "powerline", "background": "#FF9E64", "foreground": "#111111", "powerline_symbol": "\ue0b0", "properties": { "fetch_version": true, "display_mode": "files" }, "template": " \ue7a8 {{ .Full }} " },
+              { "type": "docker_context", "style": "powerline", "background": "#7aa2f7", "foreground": "#1a1b26", "powerline_symbol": "\ue0b0", "properties": { "display_default": false }, "template": " \uf308 {{ .Context }} " },
+              { "type": "execution_time", "style": "powerline", "background": "#9aa5ce", "foreground": "#1a1b26", "powerline_symbol": "\ue0b0", "properties": { "threshold": 5000, "style": "text" }, "template": " {{ .FormattedMs }} " },
+              { "type": "exit", "style": "powerline", "background": "#f7768e", "foreground": "#ffffff", "powerline_symbol": "\ue0b0", "properties": { "display_exit_code": true, "error_color": "#f7768e", "success_color": "#9ece6a" }, "template": " {{ if gt .Code 0 }}\uf071 {{ .Code }}{{ end }} " }
             ]
           },
           {
-            "type": "prompt",
-            "alignment": "right",
+            "type": "rprompt",
             "segments": [
-              { "type": "execution_time", "style": "plain", "properties": { "threshold": 5000 } },
-              { "type": "time", "style": "plain", "properties": { "format": "15:04:05" } }
+              { "type": "text", "style": "plain", "properties": { "text": " " } },
+              { "type": "time", "style": "plain", "foreground": "#9aa5ce", "background": "#1a1b26", "properties": { "time_format": "15:04", "display_date": false }, "template": " {{ .CurrentDate | date .Format }} " }
             ]
           }
         ]

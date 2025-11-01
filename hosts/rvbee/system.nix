@@ -29,7 +29,6 @@ let
     github-cli
     lazygit
     kitty
-    oh-my-posh
     lazydocker
   ];
 
@@ -1850,7 +1849,7 @@ in
       ++ applications
       ++ gaming
       ++ gtkApps
-      ++ [ pkgs.oh-my-posh ];
+      
     # Disable Orca in GDM greeter to silence missing TryExec logs
     etc = {
       "xdg/autostart/orca-autostart.desktop".text = ''
