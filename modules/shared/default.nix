@@ -16,6 +16,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     # Base common experience across hosts
+    documentation.man.enable = false;
     hyprvibe.desktop = {
       enable = true;
       fonts.enable = true;

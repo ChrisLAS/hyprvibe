@@ -825,26 +825,8 @@ in
   # No man pages
   documentation.man.enable = false;
 
-  # User configuration - PRESERVING YOUR EXISTING CONFIG
-  users.users.chrisf = {
-    isNormalUser = true;
-    shell = pkgs.fish;
-    description = "Chris Fisher";
-    linger = true;
-    extraGroups = [
-      "networkmanager"
-      "wheel"
-      "docker"
-      "adbusers"
-      "libvirtd"
-      "video"
-      "render"
-      "audio"
-      "i2c"
-      "disk"
-    ];
-    home = "/home/chrisf";
-  };
+  # User configuration handled by hyprvibe.user
+  hyprvibe.user.extraGroups = [ "disk" ];
 
   # NIXSTATION-specific activation scripts (complementing shared modules)
   system.activationScripts.nixstationSpecific = ''

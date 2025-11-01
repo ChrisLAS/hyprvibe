@@ -323,11 +323,12 @@ in
   hyprvibe.waybar.stylePath = ./waybar.css;
   hyprvibe.waybar.scriptsDir = ./scripts;
   hyprvibe.shell = { enable = true; kittyAsDefault = true; };
-  # Explicit shared user options (keeps behavior unchanged while enabling overrides)
+  # Explicit shared user options including host-specific groups
   hyprvibe.user = {
     name = "chrisf";
     group = "users";
     home = "/home/chrisf";
+    extraGroups = [ "plugdev" ];
   };
   hyprvibe.services = {
     enable = true;
@@ -579,28 +580,7 @@ in
   # No man pages
   documentation.man.enable = false;
 
-  # User configuration
-  users.users."${userName}" = {
-    isNormalUser = true;
-    shell = pkgs.fish;
-    description = "Chris Fisher";
-    linger = true;
-    extraGroups = [
-      "networkmanager"
-      "wheel"
-      "adbusers"
-      "libvirtd"
-      "video"
-      "render"
-      "audio"
-      "docker"
-      "i2c"
-      "plugdev"
-    ];
-    # Primary group and home from shared.user
-    group = userGroup;
-    home = homeDir;
-  };
+  # User configuration handled by hyprvibe.user
 
   # Podman + declarative Companion container
   virtualisation.podman.enable = true;
