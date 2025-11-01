@@ -21,6 +21,7 @@ in {
       fonts.enable = true;
     };
     hyprvibe.hyprland.enable = true;
+    hyprvibe.waybar.enable = true;
     hyprvibe.shell.enable = true;
     hyprvibe.services = {
       enable = true;
@@ -31,7 +32,6 @@ in {
       base.enable = true;
       desktop.enable = true;
     };
-    # Intentionally do not auto-enable Waybar by default, since it requires per-host config.
   };
 }
 
