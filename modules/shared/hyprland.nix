@@ -9,11 +9,6 @@ in {
       default = null;
       description = "Per-host Hyprland monitors config file path";
     };
-    wallpaper = lib.mkOption {
-      type = lib.types.nullOr lib.types.path;
-      default = null;
-      description = "Wallpaper file path for hyprpaper/hyprlock generation";
-    };
   };
 
   config = lib.mkIf cfg.enable {
