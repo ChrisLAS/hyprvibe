@@ -351,6 +351,7 @@ in
     
     virt.enable = true;
     docker.enable = true;
+    direnv.enable = true;
   };
 
   # Android ADB udev support now covered by systemd uaccess rules; keep brightnessctl
