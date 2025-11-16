@@ -315,7 +315,7 @@ in
   };
   hyprvibe.hyprland.enable = true;
   # Provide per-host monitors and wallpaper paths to shared module
-  hyprvibe.hyprland.monitorsFile = ../../configs/hyprland-monitors-rvbee.conf;
+  hyprvibe.hyprland.monitorsFile = ../../configs/hyprland-monitors-rvbee-120hz.conf;
   hyprvibe.hyprland.mainConfig = ./hyprland.conf;
   hyprvibe.hyprland.wallpaper = wallpaperPath;
   hyprvibe.hyprland.hyprpaperTemplate = ./hyprpaper.conf;
@@ -1842,6 +1842,48 @@ in
     };
   };
 
+  # Ensure dunst is configured for this user: auto-dismiss after 60s and suppress
+  # noisy Bluetooth connect/disconnect notifications from Blueman.
+  system.activationScripts.configureDunst = ''
+    homeDir="${homeDir}"
+    mkdir -p "$homeDir/.config/dunst"
+    cat > "$homeDir/.config/dunst/dunstrc" << 'EOF'
+    [global]
+    follow = mouse
+    history_length = 20
+    indicate_hidden = yes
+    separator_height = 2
+    sort = yes
+    idle_threshold = 0
+    # Fallback timeout (seconds); urgency-specific values override this.
+    timeout = 60
+    
+    [urgency_low]
+    timeout = 60
+    
+    [urgency_normal]
+    timeout = 60
+    
+    [urgency_critical]
+    timeout = 60
+    
+    # Suppress noisy Bluetooth device connect/disconnect popups from Blueman
+    [bluetooth_blueman_connected]
+    appname = "Blueman"
+    summary = ".*(Connected|Disconnected).*"
+    skip_display = true
+    skip_history = true
+    
+    # Some environments label as "Bluetooth"
+    [bluetooth_generic_connected]
+    appname = "Bluetooth"
+    summary = ".*(Connected|Disconnected).*"
+    skip_display = true
+    skip_history = true
+    EOF
+    chown -R ${userName}:${userGroup} "$homeDir/.config/dunst"
+  '';
+
   # Prefer Hyprland XDG portal
   xdg.portal = {
     enable = true;
@@ -1868,6 +1910,7 @@ in
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.permittedInsecurePackages = [
     "libsoup-2.74.3"
+    "jitsi-meet-1.0.8792"
   ];
   # Workaround: upstream mat2 test regression (breaks metadata-cleaner)
   nixpkgs.overlays = [
