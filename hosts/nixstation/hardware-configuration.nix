@@ -10,7 +10,7 @@
 
   boot.initrd.availableKernelModules = [ "xhci_pci" "ehci_pci" "nvme" "usbhid" "uas" "sd_mod" ];
   boot.initrd.kernelModules = [ "amdgpu" ];
-  boot.kernelModules = [ "kvm-intel" ];
+  # boot.kernelModules removed - defined in system.nix with complete list
   boot.extraModulePackages = [ ];
   boot.kernelParams = [ 
     "elevator=none"
