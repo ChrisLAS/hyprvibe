@@ -8,7 +8,7 @@ let
   ];
   desktopPackages = with pkgs; [
     wl-clipboard grim slurp swappy wf-recorder dunst cliphist brightnessctl playerctl pavucontrol
-    qt6Packages.qt6ct
+    # qt6ct  # Temporarily disabled - pulls in qgnomeplatform which has build failure in current nixpkgs
     # Core desktop apps
     kitty rofi bibata-cursors
     # Hyprland companions started by base config
