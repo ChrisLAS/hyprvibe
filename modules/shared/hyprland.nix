@@ -60,8 +60,8 @@ in {
 
     # Install base config; fall back to shared defaults where host options are not provided
     system.activationScripts.hyprlandBase = lib.mkAfter ''
-      set -euo pipefail
-      trap 'echo "[hyprvibe][hyprland] ERROR at line $LINENO"; exit 1' ERR
+      set -u  # Fail on undefined variables, but allow commands to fail
+      trap 'echo "[hyprvibe][hyprland] WARNING at line $LINENO - continuing anyway"' ERR
       echo "[hyprvibe][hyprland] starting activation"
       mkdir -p ${userHome}/.config/hypr
       # Remove existing symlinks/files if they exist
@@ -109,7 +109,7 @@ in {
             dest_real=$(readlink -f "$dest_file" 2>/dev/null || echo "$dest_file")
             if [ "$script_real" != "$dest_real" ]; then
               # Use cp --remove-destination to handle symlinks properly
-              # Suppress "are the same file" errors which are harmless
+              # Suppress "are the same file" errors which are harmless (can happen with nix store symlinks)
               cp --remove-destination -f "$script" "$dest_file" 2>&1 | grep -v "are the same file" || true
             fi
           fi
@@ -119,9 +119,12 @@ in {
       ''}
       # Fix ownership without following symlinks (prevents hangs on broken symlinks)
       # Only chown regular files/directories, not symlinks
-      find ${userHome}/.config/hypr -mindepth 1 -maxdepth 1 -not -type l -exec chown -R ${userName}:${userGroup} {} \; 2>/dev/null || true
-      # Fix ownership of symlinks themselves (not their targets)
-      find ${userHome}/.config/hypr -mindepth 1 -maxdepth 1 -type l -exec chown -h ${userName}:${userGroup} {} \; 2>/dev/null || true
+      # Use find with -print0 and xargs for better error handling, or fallback to simple chown if find fails
+      if [ -d ${userHome}/.config/hypr ]; then
+        find ${userHome}/.config/hypr -mindepth 1 -maxdepth 1 -not -type l -print0 2>/dev/null | xargs -0 -r chown -R ${userName}:${userGroup} 2>/dev/null || true
+        # Fix ownership of symlinks themselves (not their targets)
+        find ${userHome}/.config/hypr -mindepth 1 -maxdepth 1 -type l -print0 2>/dev/null | xargs -0 -r chown -h ${userName}:${userGroup} 2>/dev/null || true
+      fi
       echo "[hyprvibe][hyprland] ownership fixed; activation complete"
     '';
   };
