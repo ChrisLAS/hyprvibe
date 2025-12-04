@@ -1,4 +1,4 @@
-{ config, pkgs, hyprland, ... }:
+{ config, lib, pkgs, hyprland, ... }:
 
 let
   # Package groups - preserving your existing packages
@@ -75,6 +75,28 @@ let
     vlc
     ffmpeg-full
     lame
+    reaper
+    (pkgs.writeShellScriptBin "reaper-x11" ''
+      # Ensure an X11 DISPLAY is set; avoid Nix interpolation issues
+      if [ -z "$DISPLAY" ]; then
+        export DISPLAY=:0
+      fi
+      exec env -u WAYLAND_DISPLAY -u QT_QPA_PLATFORM -u GDK_BACKEND -u XDG_SESSION_TYPE \
+        QT_QPA_PLATFORM=xcb \
+        GDK_BACKEND=x11 \
+        XDG_SESSION_TYPE=x11 \
+        reaper -newinst "$@"
+    '')
+    (pkgs.makeDesktopItem {
+      name = "reaper-x11";
+      desktopName = "REAPER (X11)";
+      comment = "Launch REAPER using X11/XWayland for Wayland compositors";
+      exec = "reaper-x11 %F";
+      terminal = false;
+      categories = [ "AudioVideo" "Audio" "Midi" ];
+      icon = "reaper";
+      type = "Application";
+    })
     qjackctl
     qpwgraph
     x32edit
@@ -571,6 +593,12 @@ in
   }];
 
   # zram provided by shared module
+  # Batch 1: Configure ZRAM size (50% of RAM for 6-core system)
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    memoryPercent = 50;  # Use 50% of RAM for ZRAM
+  };
 
   # Enable OOM - PRESERVING YOUR EXISTING CONFIG
   systemd.oomd.enable = true;
@@ -605,6 +633,13 @@ in
     '';
   };
 
+  # Batch 1: Systemd performance optimizations
+  systemd.settings.Manager = {
+    # Increase default service limits for better performance
+    DefaultLimitNOFILE = "65535";
+    DefaultLimitNPROC = "32768";
+  };
+
   # Networking - PRESERVING YOUR EXISTING CONFIG
   networking = {
     hostName = "nixstation";
@@ -615,6 +650,8 @@ in
       useDHCP = true;
     };
   };
+
+  # Batch 1: TCP performance tuning via sysctl (added to hardware-configuration.nix sysctl)
 
   # Time zone - PRESERVING YOUR EXISTING CONFIG
   time.timeZone = "America/Los_Angeles";
@@ -667,6 +704,7 @@ in
       ];
       extraPackages32 = with pkgs.pkgsi686Linux; [ libva-vdpau-driver ];
     };
+    # Batch 2: GPU optimizations are handled via kernel parameters (amdgpu.powerplay=1)
     i2c.enable = true;
     steam-hardware.enable = true;
   };
@@ -711,9 +749,11 @@ in
 
     
     # Enable Tailscale Service - PRESERVING YOUR EXISTING CONFIG
+    # useRoutingFeatures = "client" allows nixstation to accept and use subnet routes
+    # advertised by other devices, without acting as a subnet router itself
     tailscale = {
       enable = true;
-      useRoutingFeatures = "both";
+      useRoutingFeatures = lib.mkForce "client";
     };
     
     # Enable the OpenSSH daemon - PRESERVING YOUR EXISTING CONFIG
@@ -747,6 +787,12 @@ in
       SUBSYSTEM=="scsi_disk", GROUP="disk", MODE="0664"
       # Disable power management for network interface to prevent link drops
       SUBSYSTEM=="net", KERNEL=="eno1", ATTR{power/control}="on"
+      
+      # Batch 1: I/O scheduler and queue depth optimizations
+      # Set I/O scheduler for SATA drives (rotational)
+      ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="mq-deadline"
+      # Increase I/O queue depth for better performance (NVMe and SATA)
+      ACTION=="add|change", KERNEL=="sd[a-z]|nvme[0-9]*n[0-9]*", ATTR{queue/nr_requests}="1024"
     '';
     # Desktop support services moved to shared module (udisks2, gvfs, tumbler, blueman, avahi, davfs2, gnome-keyring)
     atuin = {
@@ -1387,6 +1433,23 @@ in
   # Workaround for GNOME autologin - PRESERVING YOUR EXISTING CONFIG
   systemd.services."getty@tty1".enable = false;
   systemd.services."autovt@tty1".enable = false;
+
+  # Fix Tailscale shutdown hang - reduce timeout and allow faster termination
+  # This prevents Tailscale from blocking shutdown/reboot for extended periods
+  systemd.services.tailscaled = {
+    serviceConfig = {
+      # Reduce shutdown timeout from default (often 90s) to 10 seconds
+      TimeoutStopSec = 10;
+      # Allow systemd to kill the process group if it doesn't stop gracefully
+      KillMode = "mixed";
+      # Send SIGTERM first, then SIGKILL after timeout
+      KillSignal = "SIGTERM";
+      # Final kill signal if SIGTERM doesn't work
+      FinalKillSignal = "SIGKILL";
+      # Send KILL signal if service doesn't stop in time
+      SendSIGKILL = true;
+    };
+  };
 
   # System version
   system.stateVersion = "24.05";
