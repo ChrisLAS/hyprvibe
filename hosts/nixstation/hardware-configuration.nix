@@ -22,14 +22,68 @@
     "e1000e.InterruptThrottleRate=1"
     "e1000e.eee=0"
     "e1000e.FlowControl=0"
+    # Batch 2: CPU optimizations for Haswell-E (i7-5820K)
+    "intel_idle.max_cstate=1"  # Reduce C-state latency (faster wake from idle)
+    "processor.max_cstate=1"  # Limit processor C-states for lower latency
+    "intel_pstate=disable"  # Use acpi-cpufreq for better control
+    # Batch 2: RCU tuning for 6-core CPU
+    "rcu_nocbs=0-5"  # Offload RCU callbacks from all 6 cores
+    "nohz_full=0-5"  # Enable full dynticks on all cores (reduces timer interrupts)
+    # Batch 2: Transparent hugepages for better memory performance
+    "transparent_hugepage=always"  # Always use hugepages when possible
+    # Batch 2: GPU power management
+    "amdgpu.powerplay=1"  # Enable AMD GPU power management
   ];
 
   boot.kernel.sysctl = {
+    # Memory management - Batch 1 optimizations
     "vm.min_free_kbytes" = 65536;  # Ensure there's always some free memory
     "vm.swappiness" = 10;  # Reduce swapping aggressiveness
     "vm.vfs_cache_pressure" = 50;  # Balance between inode and dentry caches
     "vm.dirty_background_ratio" = 5;  # Flush dirty pages more aggressively
     "vm.dirty_ratio" = 10;  # Hard limit for dirty pages
+    "vm.dirty_expire_centisecs" = 3000;  # How long dirty pages can stay (30s)
+    "vm.dirty_writeback_centisecs" = 500;  # How often writeback happens (5s)
+    "vm.overcommit_memory" = 1;  # Allow overcommit (better for desktop)
+    "vm.overcommit_ratio" = 50;  # Allow 50% overcommit
+    "vm.page-cluster" = 0;  # Disable page clustering for faster swap (if needed)
+    "vm.oom_kill_allocating_task" = 0;  # Don't kill the allocating task
+    "vm.stat_interval" = 10;  # Update VM stats every 10s (reduced from 60s)
+    
+    # Kernel memory management
+    "kernel.panic_on_oom" = 0;  # Don't panic on OOM
+    "vm.oom_dump_tasks" = 1;  # Dump tasks on OOM for debugging
+    
+    # File system cache
+    "vm.drop_caches" = 0;  # Don't drop caches automatically
+    
+    # Batch 2: Transparent hugepages tuning
+    "vm.nr_hugepages" = 0;  # Let system manage hugepages automatically
+    "vm.nr_overcommit_hugepages" = 0;  # No overcommit of hugepages
+    
+    # Batch 2: Memory compaction and fragmentation
+    "vm.compact_memory" = 0;  # Don't force compaction
+    "vm.extfrag_threshold" = 500;  # Threshold for external fragmentation (lower = more aggressive)
+    
+    # Batch 2: Page reclaim and swap tuning
+    "vm.zone_reclaim_mode" = 0;  # Disable zone reclaim (better for NUMA, but also helps UMA)
+    
+    # Batch 1: Network TCP tuning for better throughput
+    "net.core.rmem_max" = 67108864;  # 64MB max receive buffer
+    "net.core.wmem_max" = 67108864;  # 64MB max send buffer
+    "net.core.rmem_default" = 87380;  # Default receive buffer
+    "net.core.wmem_default" = 65536;  # Default send buffer
+    "net.ipv4.tcp_rmem" = "4096 87380 67108864";  # TCP receive buffer (min default max)
+    "net.ipv4.tcp_wmem" = "4096 65536 67108864";  # TCP send buffer (min default max)
+    "net.ipv4.tcp_window_scaling" = 1;  # Enable TCP window scaling
+    "net.ipv4.tcp_timestamps" = 1;  # Enable TCP timestamps
+    "net.ipv4.tcp_sack" = 1;  # Enable TCP SACK
+    "net.ipv4.tcp_fastopen" = 3;  # Enable TCP Fast Open (client and server)
+    "net.core.netdev_max_backlog" = 5000;  # Increase network device backlog
+    "net.ipv4.tcp_fin_timeout" = 10;  # Reduce FIN timeout for faster connection cleanup
+    "net.ipv4.tcp_keepalive_time" = 600;  # TCP keepalive time
+    "net.ipv4.tcp_keepalive_probes" = 3;  # TCP keepalive probes
+    "net.ipv4.tcp_keepalive_intvl" = 15;  # TCP keepalive interval
   };
 
   fileSystems."/" =
@@ -41,19 +95,23 @@
     device = "/dev/disk/by-uuid/a10f0323-3b33-4dec-b460-606c8a8cd795";
     fsType = "btrfs";
     neededForBoot = true;
-    options = [ "noatime" "compress=zstd" ];
+    # Batch 1: Add commit interval to reduce fsync overhead
+    options = [ "noatime" "compress=zstd" "commit=60" ];
   };
 
   fileSystems."/home" = {
     device = "/dev/disk/by-uuid/5de63f28-ca1a-4866-86e1-f592905c9ba3";
     fsType = "btrfs";
     neededForBoot = true;
-    options = [ "noatime" "compress=zstd" ];
+    # Batch 1: Add commit interval to reduce fsync overhead
+    options = [ "noatime" "compress=zstd" "commit=60" ];
   };
 
   fileSystems."/scary" =
     { device = "/dev/disk/by-uuid/3808bc5f-0619-4920-8045-e36264f0cb2c";
       fsType = "xfs";
+      # Batch 1: Optimize XFS for performance
+      options = [ "noatime" "largeio" "inode64" ];
     };
   
   swapDevices = [ ];
@@ -66,5 +124,7 @@
   # networking.interfaces.eno1.useDHCP = lib.mkDefault true;
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  # Batch 1: Ensure Intel microcode is enabled for Haswell-E (i7-5820K)
+  hardware.cpu.intel.updateMicrocode = true;
+  hardware.enableRedistributableFirmware = true;
 } 
