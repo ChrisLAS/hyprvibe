@@ -4,11 +4,16 @@ let
 in {
   options.hyprvibe.system = {
     enable = lib.mkEnableOption "Enable shared system/kernel performance settings";
+    kernelPackages = lib.mkOption {
+      type = lib.types.nullOr lib.types.unspecified;
+      default = pkgs.linuxPackages_zen;
+      description = "Kernel packages to use. Defaults to Zen kernel. Set to null to use system default, or override with pkgs.linuxPackages for regular kernel.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
-    # Kernel: use Zen by default
-    boot.kernelPackages = pkgs.linuxPackages_zen;
+    # Kernel: use Zen by default, but allow per-host override
+    boot.kernelPackages = cfg.kernelPackages;
 
     # Trim SSDs weekly (harmless on HDDs)
     services.fstrim = {
@@ -37,5 +42,3 @@ in {
     };
   };
 }
-
-
