@@ -13,6 +13,7 @@ in {
     ./services.nix
     ./system.nix
     ./user.nix
+    ./power.nix
   ];
 
   config = lib.mkIf cfg.enable {

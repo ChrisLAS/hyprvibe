@@ -328,6 +328,21 @@ in
   hyprvibe.waybar.stylePath = ./waybar.css;
   hyprvibe.waybar.scriptsDir = ./scripts;
   hyprvibe.system.enable = true;
+  # Power management: Performance-biased with manual low-power mode
+  hyprvibe.power = {
+    enable = true;
+    autoSleepOnBatteryMinutes = 30;
+    performanceMode = {
+      cpuGovernor = "performance";
+      wifiPowerSave = false;
+      diskPowerSave = false;
+    };
+    powerSaverMode = {
+      cpuGovernor = "powersave";
+      wifiPowerSave = true;
+      diskPowerSave = true;
+    };
+  };
   # Kernel selection: Try Zen kernel for better desktop performance
   # Previous issues with Zen 6.18, but newer versions (6.12+) are more stable
   # Fallback options: pkgs.linuxPackages (regular), pkgs.linuxPackages_latest, pkgs.linuxPackages_6_1
@@ -351,9 +366,9 @@ in
 
   # Define custom groups referenced by udev rules
   users.groups.plugdev = {};
+  # Services configuration (hyprvibe.services.enable is already true from shared module)
   hyprvibe.services = {
-    enable = true;
-    
+    tailscale.enable = true;  # Enable Tailscale via shared module (configures useRoutingFeatures = "both")
     virt.enable = true;
     docker.enable = true;
   };
@@ -497,9 +512,10 @@ in
   };
 
   # Power management optimizations
+  # Note: Dynamic power management is handled by hyprvibe.power module
   powerManagement = {
     enable = true;
-    cpuFreqGovernor = "performance";  # Maximum performance (already set by shared module, but explicit)
+    cpuFreqGovernor = "performance";  # Default to performance (hyprvibe.power can override)
     powertop.enable = true;           # Enable powertop for power tuning
   };
   
@@ -605,7 +621,10 @@ in
     printing.enable = true;
     
     openssh.enable = true;
-    tailscale.enable = true;
+    # Tailscale is configured via hyprvibe.services.tailscale.enable (see above)
+    # The shared module sets useRoutingFeatures = "both" by default
+    # Override here if you need "client" mode (use routes but don't advertise):
+    # tailscale.useRoutingFeatures = "client";
     netdata = {
       enable = true;
       # Drop-in config to disable the Postgres collector (go.d plugin)
@@ -1739,6 +1758,10 @@ in
     # Install rofi brightness menu
     install -m 0755 ${./scripts/rofi-brightness.sh} ${homeDir}/.local/bin/rofi-brightness
     chown ${userName}:${userGroup} ${homeDir}/.local/bin/rofi-brightness
+    
+    # Install rofi power profile menu
+    install -m 0755 ${./scripts/rofi-power-profile.sh} ${homeDir}/.local/bin/rofi-power-profile
+    chown ${userName}:${userGroup} ${homeDir}/.local/bin/rofi-power-profile
     
     # Install Oh My Posh theme switcher
     cat > ${homeDir}/.local/bin/switch-oh-my-posh-theme << 'EOF'
