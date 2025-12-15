@@ -1,0 +1,595 @@
+{ config, pkgs, hyprland, ... }:
+
+let
+  # Hyprvibe user options (from modules/shared/user.nix)
+  userName = config.hyprvibe.user.name;
+  userGroup = config.hyprvibe.user.group;
+  homeDir = config.hyprvibe.user.home;
+  # Package groups
+  devTools = with pkgs; [
+    git
+    gcc
+    cmake
+    python3
+    go
+    gh
+    gitui
+    patchelf
+    binutils
+    nixfmt-rfc-style
+    zed-editor
+    # Additional development tools from Omarchy
+    cargo
+    clang
+    llvm
+    mise
+    imagemagick
+    mariadb
+    postgresql
+    github-cli
+    lazygit
+    kitty
+    lazydocker
+  ];
+
+  multimedia = with pkgs; [
+    mpv
+    vlc
+    ffmpeg-full
+    # haruna
+    reaper
+    (pkgs.writeShellScriptBin "reaper-x11" ''
+      # Ensure an X11 DISPLAY is set; avoid Nix interpolation issues
+      if [ -z "$DISPLAY" ]; then
+        export DISPLAY=:0
+      fi
+      exec env -u WAYLAND_DISPLAY -u QT_QPA_PLATFORM -u GDK_BACKEND -u XDG_SESSION_TYPE \
+        QT_QPA_PLATFORM=xcb \
+        GDK_BACKEND=x11 \
+        XDG_SESSION_TYPE=x11 \
+        reaper -newinst "$@"
+    '')
+    (pkgs.makeDesktopItem {
+      name = "reaper-x11";
+      desktopName = "REAPER (X11)";
+      comment = "Launch REAPER using X11/XWayland for Wayland compositors";
+      exec = "reaper-x11 %F";
+      terminal = false;
+      categories = [ "AudioVideo" "Audio" "Midi" ];
+      icon = "reaper";
+      type = "Application";
+    })
+    lame
+    # carla
+    qjackctl
+    qpwgraph
+    # sonobus
+    # krita
+    x32edit
+    # pwvucontrol
+    easyeffects
+    wayfarer
+    # OBS configured via programs.obs-studio with plugins
+    # obs-studio-plugins.waveform
+    libepoxy
+    audacity
+    # Additional multimedia tools from Omarchy
+    yabridge
+    yabridgectl
+    lsp-plugins
+    ffmpegthumbnailer
+    gnome.gvfs
+    imv
+  ];
+
+  utilities = with pkgs; [
+    ghostty
+    htop
+    btop
+    neofetch
+    socat
+    nmap
+    mosh
+    yt-dlp
+    zip
+    unzip
+    gnupg
+    restic
+    autorestic
+    restique
+    cool-retro-term
+    #    ventoy
+    hddtemp
+    smartmontools
+    iotop
+    lm_sensors
+    tree
+    lsof
+    lshw
+    # rustdesk-flutter
+    tor-browser
+    # lmstudio
+    vdhcoapp
+    ulauncher
+    #    python312Packages.todoist-api-python
+    wmctrl
+    # Hyprland utilities
+    waybar
+    wl-clipboard
+    grim
+    slurp
+    swappy
+    wf-recorder
+    wlroots
+    xdg-desktop-portal-hyprland
+    xdg-desktop-portal-gtk
+    xdg-utils
+    desktop-file-utils
+    kdePackages.polkit-kde-agent-1
+    qt6.qtbase
+    qt6.qtwayland
+    # Additional Hyprland utilities
+    wofi
+    dunst
+    cliphist
+    brightnessctl
+    playerctl
+    kdePackages.kwallet
+    kdePackages.kwallet-pam
+    kdePackages.kate
+    # Notification daemon
+    libnotify
+    # Additional terminal utilities from Omarchy
+    fd
+    eza
+    fzf
+    ripgrep
+    zoxide
+    bat
+    jq
+    xmlstarlet
+    tldr
+    plocate
+    # man  # removed since manpages are disabled
+    less
+    whois
+    bash-completion
+    # Additional desktop utilities from Omarchy
+    pamixer
+    wiremix
+    fcitx5
+    fcitx5-gtk
+    kdePackages.fcitx5-qt
+    nautilus
+    sushi
+    # Additional Hyprland utilities from Omarchy
+    # polkit_gnome  # removed to avoid duplicate agents; using KDE polkit agent
+    libqalculate
+    mako
+    swaybg
+    swayosd
+    qt6Packages.qt6ct
+    pavucontrol
+    networkmanagerapplet
+    # Shell history replacement
+    atuin
+    oh-my-posh
+    ddcutil
+    curl
+    v4l-utils
+    openssh
+    glib-networking
+    rclone
+  ];
+
+  systemTools = with pkgs; [
+    btrfs-progs
+    btrfs-snap
+    pciutils
+    cifs-utils
+    samba
+    fuse
+    fuse3
+    docker-compose
+  ];
+
+  applications = with pkgs; [
+    firefox
+    brave
+    google-chrome
+    slack
+    # telegram-desktop (moved to Flatpak)
+    element-desktop
+    nextcloud-client
+    trayscale
+    maestral-gui
+    qownnotes
+    libation
+    audible-cli
+    # Additional applications from Omarchy
+    chromium
+    gnome-calculator
+    gnome-keyring
+    signal-desktop
+    libreoffice
+    kdePackages.kdenlive
+    xournalpp
+    localsend
+    # Note: Some packages like pinta, typora, spotify, zoom may need to be installed via other means
+    # or may have different names in Nix
+    _1password-gui
+    _1password-cli
+    hyprpicker
+    hyprshot
+    wl-clip-persist
+    hyprpaper
+    hypridle
+    hyprlock
+    hyprsunset
+    yazi
+    starship
+    # zoxide  # deduped; present in utilities
+    rclone-browser
+    code-cursor
+    
+  ];
+
+  gaming = with pkgs; [
+    # steam - now managed by programs.steam
+    steam-run
+    moonlight-qt
+    sunshine
+    adwaita-icon-theme
+    lutris
+    playonlinux
+    wineWowPackages.staging
+    winetricks
+    vulkan-tools
+  ];
+
+  # GTK applications (replacing GNOME apps)
+  gtkApps = with pkgs; [
+    # File manager
+    kdePackages.dolphin
+    kdePackages.kio-extras
+    kdePackages.kio-fuse
+    kdePackages.kio-admin
+    kdePackages.kdenetwork-filesharing
+    kdePackages.ffmpegthumbs
+    kdePackages.kdegraphics-thumbnailers
+    kdePackages.kimageformats
+    kdePackages.ark
+    kdePackages.konsole
+    # Also include Thunar alongside Dolphin
+    xfce.thunar
+    xfce.tumbler
+    gvfs
+    # Theming packages
+    tokyonight-gtk-theme
+    papirus-icon-theme
+    bibata-cursors
+    # Document viewer
+    evince
+    # Image viewer
+    eog
+    # Calculator
+    gnome-calculator
+    # Archive manager
+    file-roller
+    # Video player
+    celluloid
+    # Torrent client
+    fragments
+    # Ebook reader (moved to Flatpak)
+    # Background sounds
+    blanket
+    # Translation app (moved to Flatpak)
+    # Drawing app
+    drawing
+  ];
+  # Centralized wallpaper path used by hyprpaper and hyprlock (standardized repo path)
+  wallpaperPath = ../../wallpapers/aishot-2602.jpg;
+
+  # Script to import GITHUB_TOKEN into systemd --user environment
+  setGithubTokenScript = pkgs.writeShellScript "set-github-token" ''
+    if [ -r "$HOME/.config/secrets/github_token" ]; then
+      value="$(tr -d '\n' < "$HOME/.config/secrets/github_token")"
+      systemctl --user set-environment GITHUB_TOKEN="$value"
+    fi
+  '';
+in
+{
+  imports = [
+    # Import the Hyprland flake module
+    hyprland.nixosModules.default
+    # Import your hardware configuration
+    ./hardware-configuration.nix
+    # Shared scaffolding (non-host-specific)
+    ../../modules/shared
+  ];
+
+  # Enable shared module toggles
+  hyprvibe.desktop = {
+    enable = true;
+    fonts.enable = true;
+  };
+  hyprvibe.hyprland.enable = true;
+  # Provide per-host monitors and wallpaper paths to shared module
+  hyprvibe.hyprland.monitorsFile = ../../configs/hyprland-monitors-nixbook.conf;
+  hyprvibe.hyprland.mainConfig = ./hyprland.conf;
+  hyprvibe.hyprland.wallpaper = wallpaperPath;
+  hyprvibe.hyprland.hyprpaperTemplate = ./hyprpaper.conf;
+  hyprvibe.hyprland.hyprlockTemplate = ./hyprlock.conf;
+  hyprvibe.hyprland.hypridleConfig = ./hypridle.conf;
+  hyprvibe.hyprland.scriptsDir = ./scripts;
+  # Intel GPU - no AMD-specific configuration needed
+  hyprvibe.waybar.enable = true;
+  hyprvibe.waybar.configPath = ./waybar.json;
+  hyprvibe.waybar.stylePath = ./waybar.css;
+  hyprvibe.waybar.scriptsDir = ./scripts;
+  hyprvibe.system.enable = true;
+  # Override kernel to use regular kernel instead of Zen to avoid kernel panic
+  # Zen kernel (6.18) appears to be incompatible with this hardware
+  # Set via hyprvibe.system.kernelPackages so the shared module respects this override
+  hyprvibe.system.kernelPackages = pkgs.linuxPackages;
+  hyprvibe.shell = {
+    enable = true;
+    kittyAsDefault = true;
+    atuin.enable = true;
+    githubToken.enable = true;
+    kittyIntegration.enable = true;
+    kittyConfig.enable = true;
+  };
+  # Explicit shared user options including host-specific groups
+  hyprvibe.user = {
+    name = "chrisf";
+    group = "users";
+    home = "/home/chrisf";
+    extraGroups = [ "plugdev" ];
+  };
+
+  # Define custom groups referenced by udev rules
+  users.groups.plugdev = {};
+  hyprvibe.services = {
+    enable = true;
+    
+    virt.enable = true;
+    docker.enable = true;
+  };
+
+  # Android ADB udev support now covered by systemd uaccess rules; keep brightnessctl
+  services.udev.packages = [ pkgs.brightnessctl ];
+  services.udev.extraRules = ''
+    # Google (Pixel/Nexus) generic USB (MTP/ADB)
+    SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", MODE="0666", GROUP="adbusers"
+    # Elgato Stream Deck (USB + hidraw)
+    SUBSYSTEM=="usb", ATTR{idVendor}=="0fd9", MODE="0660", GROUP="plugdev"
+    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0fd9", MODE="0660", GROUP="plugdev"
+  '';
+  hyprvibe.packages = {
+    enable = true;
+    base.enable = true;
+    desktop.enable = true;
+    dev.enable = true;
+    gaming.enable = true;
+  };
+
+  # Boot loader configuration (kernel package provided by shared module)
+  boot = {
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
+    };
+    # v4l2loopback for virtual webcam support (OBS, conferencing apps)
+    kernelModules = [ "v4l2loopback" ];
+    extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
+    extraModprobeConfig = ''
+      # Dedicated virtual camera for OBS capture, fixed at /dev/video10
+      options v4l2loopback video_nr=10 exclusive_caps=1 card_label=ClipPlayer-VCam
+    '';
+  };
+
+  # System performance settings moved to shared module
+
+  # Automatic system updates (use flake to avoid channel-based reverts)
+  system.autoUpgrade = {
+    enable = true;
+    flake = "github:ChrisLAS/hyprvibe#nixbook";
+    operation = "boot";
+    randomizedDelaySec = "45min";
+    allowReboot = false;
+    dates = "02:00";
+  };
+
+  # Power management provided by shared module
+
+  # OOM configuration
+  systemd = {
+    slices."nix-daemon".sliceConfig = {
+      ManagedOOMMemoryPressure = "kill";
+      ManagedOOMMemoryPressureLimit = "95%";
+    };
+    services."nix-daemon" = {
+      serviceConfig = {
+        Slice = "nix-daemon.slice";
+        OOMScoreAdjust = 1000;
+      };
+    };
+    # Keep Netdata unit installed but do not enable it at boot
+    services.netdata.wantedBy = pkgs.lib.mkForce [];
+    services.netdata.restartIfChanged = false;
+    user.services.kwalletd = {
+      description = "KWallet user daemon";
+      after = [ "graphical-session.target" ];
+      wantedBy = [ "graphical-session.target" ];
+      serviceConfig = {
+        Environment = [
+          "QT_QPA_PLATFORM=wayland"
+          "XDG_RUNTIME_DIR=%t"
+        ];
+        ExecStart = "${pkgs.kdePackages.kwallet}/bin/kwalletd6";
+        Restart = "on-failure";
+      };
+    };
+
+    # Load GITHUB_TOKEN into the systemd user manager environment from a local secret file
+    user.services.set-github-token = {
+      description = "Set GITHUB_TOKEN in systemd --user environment from ~/.config/secrets/github_token";
+      after = [ "default.target" ];
+      wantedBy = [ "default.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = "${setGithubTokenScript}";
+      };
+    };
+  };
+
+  # Networking
+  networking = {
+    hostName = "nixbook";
+    networkmanager.enable = true;
+    networkmanager.dns = "systemd-resolved";
+    firewall = {
+      enable = false;
+    };
+  };
+
+  # Hardware configuration
+  hardware = {
+    bluetooth = {
+      enable = true;
+      powerOnBoot = true;
+      # Enable experimental features (battery, LC3, etc.)
+      settings = {
+        General = {
+          Experimental = true;
+          Enable = "Source,Sink,Media,Socket";
+        };
+      };
+    };
+    graphics = {
+      enable = true;
+      enable32Bit = true;
+    };
+    i2c.enable = true;
+    steam-hardware.enable = true;
+  };
+
+  # Services
+  services = {
+    resolved.enable = true;
+    # Desktop support services moved to shared module (udisks2, gvfs, tumbler, blueman, avahi, davfs2, gnome-keyring, gdm)
+    printing.enable = true;
+    
+    openssh.enable = true;
+    tailscale.enable = true;
+    netdata = {
+      enable = true;
+      # Drop-in config to disable the Postgres collector (go.d plugin)
+      configDir = {
+        "go.d.conf" = pkgs.writeText "go.d.conf" ''
+          modules:
+            postgres: no
+        '';
+        "go.d/postgres.conf" = pkgs.writeText "postgres.conf" ''
+          enabled: no
+        '';
+      };
+      config = {
+        plugins = {
+          "logs-management" = "no";
+          "ioping" = "no";
+          "perf" = "no";
+          "freeipmi" = "no";
+          "charts.d" = "no";
+        };
+      };
+    };
+    
+    # Atuin shell history service
+    atuin = {
+      enable = true;
+      # Optional: Configure a server for sync (uncomment and configure if needed)
+      # server = {
+      #   enable = true;
+      #   host = "0.0.0.0";
+      #   port = 8888;
+      # };
+    };
+  };
+
+  # Auto Tune
+  services.bpftune.enable = true;
+  programs.bcc.enable = true;
+
+  # Security
+  security = {
+    rtkit.enable = true;
+    polkit.enable = true;
+    sudo.wheelNeedsPassword = false;
+    pam.services = {
+      login.kwallet.enable = true;
+      gdm.kwallet.enable = true;
+      gdm-password.kwallet.enable = true;
+      hyprlock = { };
+      # Unlock GNOME Keyring on login for GVFS credentials
+      login.enableGnomeKeyring = true;
+      gdm-password.enableGnomeKeyring = true;
+    };
+  };
+
+  # Virtualization
+  virtualisation = {
+    libvirtd.enable = true;
+    docker = {
+      enable = true;
+      autoPrune = {
+        enable = true;
+        dates = "weekly";
+      };
+    };
+  };
+
+  # No man pages handled by shared module
+
+  # User configuration handled by hyprvibe.user
+
+  # Podman + declarative Companion container
+  virtualisation.podman.enable = true;
+  virtualisation.oci-containers.backend = "podman";
+  virtualisation.oci-containers.containers.companion = {
+    image = "ghcr.io/bitfocus/companion/companion:latest";
+    autoStart = true;
+    # Note: image defaults to user "companion"; override via extraOptions
+    ports = [
+      "8000:8000"
+      "51234:51234"
+    ];
+    volumes = [
+      "/var/lib/companion:/companion"
+      "/run/udev:/run/udev:ro"
+      "/dev/bus/usb:/dev/bus/usb"
+    ];
+    extraOptions = [
+      "--privileged"
+      "--user=0:0"
+    ];
+    labels = {
+      "io.containers.autoupdate" = "registry";
+    };
+  };
+
+  # Ensure persistent data directory exists
+  systemd.tmpfiles.rules = [
+    "d /var/lib/companion 0777 root root -"
+  ];
+
+  # Open firewall for Companion
+  networking.firewall.allowedTCPPorts = (config.networking.firewall.allowedTCPPorts or []) ++ [ 8000 51234 ];
+  networking.firewall.allowedUDPPorts = (config.networking.firewall.allowedUDPPorts or []) ++ [ 51234 ];
+
+  # Copy Hyprland configuration to user's home
+  # Disabled: migrated to hyprvibe.hyprland options
+  # Removed disabled script - functionality now handled by hyprvibe.hyprland module
+

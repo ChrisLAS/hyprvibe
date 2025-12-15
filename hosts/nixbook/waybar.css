@@ -1,0 +1,104 @@
+/* Cyberpunk-inspired, high-contrast, readable */
+* {
+  font-family: "FiraCode Nerd Font", "Fira Code", monospace;
+  font-size: 12pt;
+}
+
+window#waybar {
+  background: rgba(10, 10, 16, 0.75);
+  color: #e6e6e6;
+  border-bottom: 2px solid #00ffd2; /* neon cyan */
+}
+
+#workspaces {
+  padding: 0 8px;
+}
+
+#workspaces button {
+  padding: 4px 10px;
+  color: #9ae6ff; /* soft cyan */
+  border: 1px solid transparent;
+  margin: 2px;
+}
+
+#workspaces button.active {
+  color: #0a0a10;
+  background: linear-gradient(135deg, #00ffd2, #ff00aa);
+  border-color: #00ffd2;
+}
+
+#workspaces button.urgent {
+  background: #ff0055;
+  color: #fff;
+}
+
+/* Large, readable workspace indicator */
+#workspaces button label {
+  font-weight: 700;
+  font-size: 14pt;
+}
+
+#clock, #memory, #cpu, #tray, #network, #pulseaudio, #custom-public_ip, #custom-amd_gpu, #custom-weather, #custom-dunst, #window {
+  padding: 0 10px;
+}
+
+#clock {
+  color: #ffe86b; /* warm */
+}
+
+#network {
+  color: #7af7a7;
+}
+
+#pulseaudio.muted {
+  color: #888;
+}
+
+#custom-amd_gpu {
+  color: #ff8bd1; /* neon pink */
+}
+
+#custom-weather {
+  color: #7ad1ff; /* sky */
+}
+
+#custom-btc {
+  color: #F7931A; /* BTC orange */
+}
+
+#window {
+  color: #e6e6e6;
+}
+
+/* Tooltips */
+tooltip {
+  background: #0f0f17;
+  color: #f2f2f2;
+  border: 1px solid #00ffd2;
+}
+
+/* Module “chips”: add subtle boxes with padding so width changes don't jitter neighbors */
+.modules-left > widget,
+.modules-center > widget,
+.modules-right > widget {
+  background-color: rgba(20, 20, 32, 0.55);
+  border: none;
+  border-radius: 8px;
+  padding: 2px 10px;
+  margin: 2px 4px;
+}
+
+/* Avoid double-styling workspaces block; buttons already styled above */
+#workspaces {
+  background: transparent;
+  border: none;
+  padding: 0 8px;
+  margin: 0 4px;
+}
+
+/* Fix widths for metrics to reduce layout shift */
+#cpu { min-width: 8em; }
+#memory { min-width: 8em; }
+#network { min-width: 14em; }
+#pulseaudio { min-width: 8em; }
+
