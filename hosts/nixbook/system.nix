@@ -1,0 +1,2074 @@
+{ config, pkgs, hyprland, ... }:
+
+let
+  # Hyprvibe user options (from modules/shared/user.nix)
+  userName = config.hyprvibe.user.name;
+  userGroup = config.hyprvibe.user.group;
+  homeDir = config.hyprvibe.user.home;
+  # Package groups
+  devTools = with pkgs; [
+    git
+    gcc
+    cmake
+    python3
+    go
+    gh
+    gitui
+    patchelf
+    binutils
+    nixfmt-rfc-style
+    zed-editor
+    # Additional development tools from Omarchy
+    cargo
+    clang
+    llvm
+    mise
+    imagemagick
+    mariadb
+    postgresql
+    github-cli
+    lazygit
+    kitty
+    lazydocker
+  ];
+
+  multimedia = with pkgs; [
+    mpv
+    vlc
+    ffmpeg-full
+    # haruna
+    reaper
+    (pkgs.writeShellScriptBin "reaper-x11" ''
+      # Ensure an X11 DISPLAY is set; avoid Nix interpolation issues
+      if [ -z "$DISPLAY" ]; then
+        export DISPLAY=:0
+      fi
+      exec env -u WAYLAND_DISPLAY -u QT_QPA_PLATFORM -u GDK_BACKEND -u XDG_SESSION_TYPE \
+        QT_QPA_PLATFORM=xcb \
+        GDK_BACKEND=x11 \
+        XDG_SESSION_TYPE=x11 \
+        reaper -newinst "$@"
+    '')
+    (pkgs.makeDesktopItem {
+      name = "reaper-x11";
+      desktopName = "REAPER (X11)";
+      comment = "Launch REAPER using X11/XWayland for Wayland compositors";
+      exec = "reaper-x11 %F";
+      terminal = false;
+      categories = [ "AudioVideo" "Audio" "Midi" ];
+      icon = "reaper";
+      type = "Application";
+    })
+    lame
+    # carla
+    qjackctl
+    qpwgraph
+    # sonobus
+    # krita
+    x32edit
+    # pwvucontrol
+    easyeffects
+    wayfarer
+    # OBS configured via programs.obs-studio with plugins
+    # obs-studio-plugins.waveform
+    libepoxy
+    audacity
+    # Additional multimedia tools from Omarchy
+    yabridge
+    yabridgectl
+    lsp-plugins
+    ffmpegthumbnailer
+    gnome.gvfs
+    imv
+  ];
+
+  utilities = with pkgs; [
+    ghostty
+    htop
+    btop
+    neofetch
+    socat
+    nmap
+    mosh
+    yt-dlp
+    zip
+    unzip
+    gnupg
+    restic
+    autorestic
+    restique
+    cool-retro-term
+    #    ventoy
+    hddtemp
+    smartmontools
+    iotop
+    lm_sensors
+    tree
+    lsof
+    lshw
+    # rustdesk-flutter
+    tor-browser
+    # lmstudio
+    vdhcoapp
+    ulauncher
+    #    python312Packages.todoist-api-python
+    wmctrl
+    # Hyprland utilities
+    waybar
+    wl-clipboard
+    grim
+    slurp
+    swappy
+    wf-recorder
+    wlroots
+    xdg-desktop-portal-hyprland
+    xdg-desktop-portal-gtk
+    xdg-utils
+    desktop-file-utils
+    kdePackages.polkit-kde-agent-1
+    qt6.qtbase
+    qt6.qtwayland
+    # Additional Hyprland utilities
+    wofi
+    dunst
+    cliphist
+    brightnessctl
+    playerctl
+    kdePackages.kwallet
+    kdePackages.kwallet-pam
+    kdePackages.kate
+    # Notification daemon
+    libnotify
+    # Additional terminal utilities from Omarchy
+    fd
+    eza
+    fzf
+    ripgrep
+    zoxide
+    bat
+    jq
+    xmlstarlet
+    tldr
+    plocate
+    # man  # removed since manpages are disabled
+    less
+    whois
+    bash-completion
+    # Additional desktop utilities from Omarchy
+    pamixer
+    wiremix
+    fcitx5
+    fcitx5-gtk
+    kdePackages.fcitx5-qt
+    nautilus
+    sushi
+    # Additional Hyprland utilities from Omarchy
+    # polkit_gnome  # removed to avoid duplicate agents; using KDE polkit agent
+    libqalculate
+    mako
+    swaybg
+    swayosd
+    qt6Packages.qt6ct
+    pavucontrol
+    networkmanagerapplet
+    # Shell history replacement
+    atuin
+    oh-my-posh
+    ddcutil
+    curl
+    v4l-utils
+    openssh
+    glib-networking
+    rclone
+  ];
+
+  systemTools = with pkgs; [
+    btrfs-progs
+    btrfs-snap
+    pciutils
+    cifs-utils
+    samba
+    fuse
+    fuse3
+    docker-compose
+  ];
+
+  applications = with pkgs; [
+    firefox
+    brave
+    google-chrome
+    slack
+    # telegram-desktop (moved to Flatpak)
+    element-desktop
+    nextcloud-client
+    trayscale
+    maestral-gui
+    qownnotes
+    libation
+    audible-cli
+    # Additional applications from Omarchy
+    chromium
+    gnome-calculator
+    gnome-keyring
+    signal-desktop
+    libreoffice
+    kdePackages.kdenlive
+    xournalpp
+    localsend
+    # Note: Some packages like pinta, typora, spotify, zoom may need to be installed via other means
+    # or may have different names in Nix
+    _1password-gui
+    _1password-cli
+    hyprpicker
+    hyprshot
+    wl-clip-persist
+    hyprpaper
+    hypridle
+    hyprlock
+    hyprsunset
+    yazi
+    starship
+    # zoxide  # deduped; present in utilities
+    rclone-browser
+    code-cursor
+    
+  ];
+
+  gaming = with pkgs; [
+    # steam - now managed by programs.steam
+    steam-run
+    moonlight-qt
+    sunshine
+    adwaita-icon-theme
+    lutris
+    playonlinux
+    wineWowPackages.staging
+    winetricks
+    vulkan-tools
+  ];
+
+  # GTK applications (replacing GNOME apps)
+  gtkApps = with pkgs; [
+    # File manager
+    kdePackages.dolphin
+    kdePackages.kio-extras
+    kdePackages.kio-fuse
+    kdePackages.kio-admin
+    kdePackages.kdenetwork-filesharing
+    kdePackages.ffmpegthumbs
+    kdePackages.kdegraphics-thumbnailers
+    kdePackages.kimageformats
+    kdePackages.ark
+    kdePackages.konsole
+    # Also include Thunar alongside Dolphin
+    xfce.thunar
+    xfce.tumbler
+    gvfs
+    # Theming packages
+    tokyonight-gtk-theme
+    papirus-icon-theme
+    bibata-cursors
+    # Document viewer
+    evince
+    # Image viewer
+    eog
+    # Calculator
+    gnome-calculator
+    # Archive manager
+    file-roller
+    # Video player
+    celluloid
+    # Torrent client
+    fragments
+    # Ebook reader (moved to Flatpak)
+    # Background sounds
+    blanket
+    # Translation app (moved to Flatpak)
+    # Drawing app
+    drawing
+  ];
+  # Centralized wallpaper path used by hyprpaper and hyprlock (standardized repo path)
+  wallpaperPath = ../../wallpapers/aishot-2602.jpg;
+
+  # Script to import GITHUB_TOKEN into systemd --user environment
+  setGithubTokenScript = pkgs.writeShellScript "set-github-token" ''
+    if [ -r "$HOME/.config/secrets/github_token" ]; then
+      value="$(tr -d '\n' < "$HOME/.config/secrets/github_token")"
+      systemctl --user set-environment GITHUB_TOKEN="$value"
+    fi
+  '';
+in
+{
+  imports = [
+    # Import the Hyprland flake module
+    hyprland.nixosModules.default
+    # Import your hardware configuration
+    ./hardware-configuration.nix
+    # Shared scaffolding (non-host-specific)
+    ../../modules/shared
+  ];
+
+  # Enable shared module toggles
+  hyprvibe.desktop = {
+    enable = true;
+    fonts.enable = true;
+  };
+  hyprvibe.hyprland.enable = true;
+  # Provide per-host monitors and wallpaper paths to shared module
+  hyprvibe.hyprland.monitorsFile = ../../configs/hyprland-monitors-nixbook.conf;
+  hyprvibe.hyprland.mainConfig = ./hyprland.conf;
+  hyprvibe.hyprland.wallpaper = wallpaperPath;
+  hyprvibe.hyprland.hyprpaperTemplate = ./hyprpaper.conf;
+  hyprvibe.hyprland.hyprlockTemplate = ./hyprlock.conf;
+  hyprvibe.hyprland.hypridleConfig = ./hypridle.conf;
+  hyprvibe.hyprland.scriptsDir = ./scripts;
+  # Intel GPU - no AMD-specific configuration needed
+  hyprvibe.waybar.enable = true;
+  hyprvibe.waybar.configPath = ./waybar.json;
+  hyprvibe.waybar.stylePath = ./waybar.css;
+  hyprvibe.waybar.scriptsDir = ./scripts;
+  hyprvibe.system.enable = true;
+  # Kernel selection: Try Zen kernel for better desktop performance
+  # Previous issues with Zen 6.18, but newer versions (6.12+) are more stable
+  # Fallback options: pkgs.linuxPackages (regular), pkgs.linuxPackages_latest, pkgs.linuxPackages_6_1
+  # If Zen causes issues, change to: pkgs.linuxPackages_latest
+  hyprvibe.system.kernelPackages = pkgs.linuxPackages_zen;
+  hyprvibe.shell = {
+    enable = true;
+    kittyAsDefault = true;
+    atuin.enable = true;
+    githubToken.enable = true;
+    kittyIntegration.enable = true;
+    kittyConfig.enable = true;
+  };
+  # Explicit shared user options including host-specific groups
+  hyprvibe.user = {
+    name = "chrisf";
+    group = "users";
+    home = "/home/chrisf";
+    extraGroups = [ "plugdev" ];
+  };
+
+  # Define custom groups referenced by udev rules
+  users.groups.plugdev = {};
+  hyprvibe.services = {
+    enable = true;
+    
+    virt.enable = true;
+    docker.enable = true;
+  };
+
+  # Android ADB udev support now covered by systemd uaccess rules; keep brightnessctl
+  services.udev.packages = [ pkgs.brightnessctl ];
+  services.udev.extraRules = ''
+    # Google (Pixel/Nexus) generic USB (MTP/ADB)
+    SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", MODE="0666", GROUP="adbusers"
+    # Elgato Stream Deck (USB + hidraw)
+    SUBSYSTEM=="usb", ATTR{idVendor}=="0fd9", MODE="0660", GROUP="plugdev"
+    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0fd9", MODE="0660", GROUP="plugdev"
+  '';
+  hyprvibe.packages = {
+    enable = true;
+    base.enable = true;
+    desktop.enable = true;
+    dev.enable = true;
+    gaming.enable = true;
+  };
+
+  # Boot loader configuration (kernel package provided by shared module)
+  boot = {
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
+    };
+    # v4l2loopback for virtual webcam support (OBS, conferencing apps)
+    # Load v4l2loopback via systemd instead of early boot to avoid kernel panic
+    # The module will be loaded on-demand when needed
+    extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
+    extraModprobeConfig = ''
+      # Dedicated virtual camera for OBS capture, fixed at /dev/video10
+      options v4l2loopback video_nr=10 exclusive_caps=1 card_label=ClipPlayer-VCam
+    '';
+    # Kernel parameters for Intel Core i7-10810U (Comet Lake) + Intel UHD Graphics
+    # Performance optimizations while maintaining stability
+    #
+    # Stability fixes (Priority 1-3 - keep these):
+    # Priority 1: C-state limiting prevents kernel panics on Dell Latitude 5410
+    # Priority 2: Intel graphics driver fixes (i915)
+    # Priority 3: ACPI compatibility fixes
+    #
+    # Performance optimizations (Priority 4-7):
+    # Priority 4: CPU performance (RCU, NOHZ for 6-core/12-thread CPU)
+    # Priority 5: Intel GPU performance (FBC, PSR, DC)
+    # Priority 6: I/O scheduler (NVMe optimization)
+    # Priority 7: Memory (transparent hugepages)
+    kernelParams = [
+      # Stability fixes (Priority 1-3)
+      "intel_idle.max_cstate=1"   # Reduce C-state depth (prevents deep sleep panics)
+      "processor.max_cstate=1"    # Limit processor C-states system-wide
+      "i915.enable_guc=0"         # Disable Intel GPU GuC firmware loading (stability)
+      "i915.enable_huc=0"         # Disable Intel GPU HuC firmware loading (stability)
+      "acpi_osi=Linux"            # Tell ACPI we're Linux (better compatibility)
+      
+      # Performance optimizations (Priority 4-7)
+      # CPU: RCU and NOHZ tuning for 6-core/12-thread CPU (i7-10810U)
+      "rcu_nocbs=0-11"            # Offload RCU callbacks from all 12 threads
+      "nohz_full=0-11"            # Enable full dynticks (reduce timer interrupts)
+      # Intel GPU: Performance features (safe to enable)
+      "i915.enable_fbc=1"         # Enable frame buffer compression (saves power, improves performance)
+      "i915.enable_psr=1"         # Enable panel self-refresh (saves power)
+      "i915.enable_dc=1"          # Enable display C-states (power saving)
+      "i915.modeset=1"            # Force modesetting (explicit, already default)
+      # I/O: NVMe optimization (assuming NVMe drive)
+      "elevator=none"              # No-op scheduler for NVMe (best performance)
+      # Memory: Transparent hugepages for better memory performance
+      "transparent_hugepage=always" # Always use hugepages when possible
+    ];
+    
+    # Kernel sysctl tuning for performance
+    kernel.sysctl = {
+      # Memory management optimizations
+      "vm.swappiness" = 10;                    # Reduce swapping aggressiveness (default: 60)
+      "vm.vfs_cache_pressure" = 50;            # Balance between inode and dentry caches
+      "vm.dirty_background_ratio" = 5;         # Flush dirty pages more aggressively (default: 10)
+      "vm.dirty_ratio" = 10;                   # Hard limit for dirty pages (default: 20)
+      "vm.dirty_expire_centisecs" = 3000;     # How long dirty pages can stay (30s, default: 3000)
+      "vm.dirty_writeback_centisecs" = 500;   # How often writeback happens (5s, default: 500)
+      "vm.overcommit_memory" = 1;              # Allow overcommit (better for desktop, default: 0)
+      "vm.overcommit_ratio" = 50;              # Allow 50% overcommit (default: 50)
+      "vm.min_free_kbytes" = 65536;            # Ensure minimum free memory (default varies)
+      "vm.zone_reclaim_mode" = 0;              # Disable zone reclaim (better for UMA systems)
+      
+      # Network TCP tuning for better throughput
+      "net.core.rmem_max" = 67108864;          # 64MB max receive buffer
+      "net.core.wmem_max" = 67108864;          # 64MB max send buffer
+      "net.core.rmem_default" = 87380;         # Default receive buffer
+      "net.core.wmem_default" = 65536;         # Default send buffer
+      "net.ipv4.tcp_rmem" = "4096 87380 67108864";  # TCP receive buffer (min default max)
+      "net.ipv4.tcp_wmem" = "4096 65536 67108864";  # TCP send buffer (min default max)
+      "net.ipv4.tcp_fastopen" = 3;             # Enable TCP Fast Open (client + server)
+      "net.core.netdev_max_backlog" = 5000;    # Increase network device backlog
+      "net.ipv4.tcp_slow_start_after_idle" = 0; # Disable slow start after idle (better for persistent connections)
+      
+      # Kernel memory management
+      "kernel.panic_on_oom" = 0;               # Don't panic on OOM (let systemd-oomd handle it)
+      "vm.oom_dump_tasks" = 1;                 # Dump tasks on OOM for debugging
+    };
+  };
+
+  # Filesystem performance optimizations
+  fileSystems."/".options = [ "noatime" "nodiratime" "discard" ];
+  fileSystems."/home".options = [ "noatime" "nodiratime" "discard" ];
+
+  # Systemd performance optimizations
+  systemd.settings.Manager = {
+    # Increase default service limits for better performance
+    DefaultLimitNOFILE = "65535";
+    DefaultLimitNPROC = "32768";
+  };
+
+  # Journald performance tuning
+  services.journald = {
+    rateLimitBurst = 1000;
+    rateLimitInterval = "30s";
+    extraConfig = ''
+      Storage=auto
+      SystemMaxUse=200M
+      RuntimeMaxUse=50M
+    '';
+  };
+
+  # ZRAM configuration (override shared module defaults for this system)
+  # 6-core CPU with 12 threads benefits from more ZRAM
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    memoryPercent = 50;  # Use 50% of RAM for ZRAM (good for 16GB+ systems)
+  };
+
+  # Automatic system updates (use flake to avoid channel-based reverts)
+  system.autoUpgrade = {
+    enable = true;
+    flake = "github:ChrisLAS/hyprvibe#nixbook";
+    operation = "boot";
+    randomizedDelaySec = "45min";
+    allowReboot = false;
+    dates = "02:00";
+  };
+
+  # Power management optimizations
+  powerManagement = {
+    enable = true;
+    cpuFreqGovernor = "performance";  # Maximum performance (already set by shared module, but explicit)
+    powertop.enable = true;           # Enable powertop for power tuning
+  };
+  
+  # CPU microcode updates (critical for Intel CPUs)
+  hardware.cpu.intel.updateMicrocode = true;
+
+  # OOM configuration
+  systemd = {
+    slices."nix-daemon".sliceConfig = {
+      ManagedOOMMemoryPressure = "kill";
+      ManagedOOMMemoryPressureLimit = "95%";
+    };
+    services."nix-daemon" = {
+      serviceConfig = {
+        Slice = "nix-daemon.slice";
+        OOMScoreAdjust = 1000;
+      };
+    };
+    # Keep Netdata unit installed but do not enable it at boot
+    services.netdata.wantedBy = pkgs.lib.mkForce [];
+    services.netdata.restartIfChanged = false;
+    # Load v4l2loopback module after system is ready (not during early boot)
+    # This avoids kernel panic during early boot if module has compatibility issues
+    services.load-v4l2loopback = {
+      description = "Load v4l2loopback kernel module";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "systemd-modules-load.service" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = "${pkgs.kmod}/bin/modprobe v4l2loopback";
+      };
+    };
+    user.services.kwalletd = {
+      description = "KWallet user daemon";
+      after = [ "graphical-session.target" ];
+      wantedBy = [ "graphical-session.target" ];
+      serviceConfig = {
+        Environment = [
+          "QT_QPA_PLATFORM=wayland"
+          "XDG_RUNTIME_DIR=%t"
+        ];
+        ExecStart = "${pkgs.kdePackages.kwallet}/bin/kwalletd6";
+        Restart = "on-failure";
+      };
+    };
+
+    # Load GITHUB_TOKEN into the systemd user manager environment from a local secret file
+    user.services.set-github-token = {
+      description = "Set GITHUB_TOKEN in systemd --user environment from ~/.config/secrets/github_token";
+      after = [ "default.target" ];
+      wantedBy = [ "default.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = "${setGithubTokenScript}";
+      };
+    };
+  };
+
+  # Networking
+  networking = {
+    hostName = "nixbook";
+    networkmanager.enable = true;
+    networkmanager.dns = "systemd-resolved";
+    firewall = {
+      enable = false;
+    };
+  };
+
+  # Hardware configuration
+  hardware = {
+    bluetooth = {
+      enable = true;
+      powerOnBoot = true;
+      # Enable experimental features (battery, LC3, etc.)
+      settings = {
+        General = {
+          Experimental = true;
+          Enable = "Source,Sink,Media,Socket";
+        };
+      };
+    };
+    graphics = {
+      enable = true;
+      enable32Bit = true;
+      # Intel GPU optimizations for Comet Lake UHD Graphics
+      extraPackages = with pkgs; [
+        intel-media-driver      # VAAPI video acceleration for Intel GPUs (modern)
+        intel-vaapi-driver      # Legacy VAAPI driver (fallback, renamed from vaapiIntel)
+        libva-vdpau-driver      # VDPAU wrapper for VAAPI (renamed from vaapiVdpau)
+        libvdpau-va-gl          # VDPAU driver with VAAPI backend
+      ];
+    };
+    i2c.enable = true;
+    steam-hardware.enable = true;
+  };
+
+  # Services
+  services = {
+    resolved.enable = true;
+    # Desktop support services moved to shared module (udisks2, gvfs, tumbler, blueman, avahi, davfs2, gnome-keyring, gdm)
+    printing.enable = true;
+    
+    openssh.enable = true;
+    tailscale.enable = true;
+    netdata = {
+      enable = true;
+      # Drop-in config to disable the Postgres collector (go.d plugin)
+      configDir = {
+        "go.d.conf" = pkgs.writeText "go.d.conf" ''
+          modules:
+            postgres: no
+        '';
+        "go.d/postgres.conf" = pkgs.writeText "postgres.conf" ''
+          enabled: no
+        '';
+      };
+      config = {
+        plugins = {
+          "logs-management" = "no";
+          "ioping" = "no";
+          "perf" = "no";
+          "freeipmi" = "no";
+          "charts.d" = "no";
+        };
+      };
+    };
+    
+    # Atuin shell history service
+    atuin = {
+      enable = true;
+      # Optional: Configure a server for sync (uncomment and configure if needed)
+      # server = {
+      #   enable = true;
+      #   host = "0.0.0.0";
+      #   port = 8888;
+      # };
+    };
+  };
+
+  # Auto Tune
+  services.bpftune.enable = true;
+  programs.bcc.enable = true;
+
+  # Security
+  security = {
+    rtkit.enable = true;
+    polkit.enable = true;
+    sudo.wheelNeedsPassword = false;
+    # Increase file descriptor limits for better performance
+    pam.loginLimits = [
+      {
+        domain = "*";
+        type = "soft";
+        item = "nofile";
+        value = "65535";
+      }
+      {
+        domain = "*";
+        type = "hard";
+        item = "nofile";
+        value = "65535";
+      }
+    ];
+    pam.services = {
+      login.kwallet.enable = true;
+      gdm.kwallet.enable = true;
+      gdm-password.kwallet.enable = true;
+      hyprlock = { };
+      # Unlock GNOME Keyring on login for GVFS credentials
+      login.enableGnomeKeyring = true;
+      gdm-password.enableGnomeKeyring = true;
+    };
+  };
+
+  # Virtualization
+  virtualisation = {
+    libvirtd.enable = true;
+    docker = {
+      enable = true;
+      autoPrune = {
+        enable = true;
+        dates = "weekly";
+      };
+    };
+  };
+
+  # No man pages handled by shared module
+
+  # User configuration handled by hyprvibe.user
+
+  # Podman + declarative Companion container
+  virtualisation.podman.enable = true;
+  virtualisation.oci-containers.backend = "podman";
+  virtualisation.oci-containers.containers.companion = {
+    image = "ghcr.io/bitfocus/companion/companion:latest";
+    autoStart = true;
+    # Note: image defaults to user "companion"; override via extraOptions
+    ports = [
+      "8000:8000"
+      "51234:51234"
+    ];
+    volumes = [
+      "/var/lib/companion:/companion"
+      "/run/udev:/run/udev:ro"
+      "/dev/bus/usb:/dev/bus/usb"
+    ];
+    extraOptions = [
+      "--privileged"
+      "--user=0:0"
+    ];
+    labels = {
+      "io.containers.autoupdate" = "registry";
+    };
+  };
+
+  # Ensure persistent data directory exists
+  systemd.tmpfiles.rules = [
+    "d /var/lib/companion 0777 root root -"
+  ];
+
+  # Open firewall for Companion
+  networking.firewall.allowedTCPPorts = (config.networking.firewall.allowedTCPPorts or []) ++ [ 8000 51234 ];
+  networking.firewall.allowedUDPPorts = (config.networking.firewall.allowedUDPPorts or []) ++ [ 51234 ];
+
+  # Copy Hyprland configuration to user's home
+  # Disabled: migrated to hyprvibe.hyprland options
+  system.activationScripts.copyHyprlandConfig_disabled = ''
+    mkdir -p ${homeDir}/.config/hypr
+    # Ensure base and monitors exist before main hyprland.conf to avoid source= errors
+    cp --remove-destination ${../../configs/hyprland-base.conf} ${homeDir}/.config/hypr/hyprland-base.conf
+    cp --remove-destination ${../../configs/hyprland-monitors-rvbee.conf} ${homeDir}/.config/hypr/hyprland-monitors-rvbee.conf
+    cp --remove-destination ${./hyprland.conf} ${homeDir}/.config/hypr/hyprland.conf
+    # Render wallpaper path into hyprpaper/hyprlock configs
+    ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprpaper.conf} > ${homeDir}/.config/hypr/hyprpaper.conf
+    ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprlock.conf} > ${homeDir}/.config/hypr/hyprlock.conf
+    cp --remove-destination ${./hypridle.conf} ${homeDir}/.config/hypr/hypridle.conf
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/hypr
+    # BTC script for hyprlock
+    cp --remove-destination ${./scripts/hyprlock-btc.sh} ${homeDir}/.config/hypr/hyprlock-btc.sh
+    chmod +x ${homeDir}/.config/hypr/hyprlock-btc.sh
+    
+    mkdir -p ${homeDir}/.config/waybar
+    cp --remove-destination ${./waybar.json} ${homeDir}/.config/waybar/config
+    # Theme and scripts for Waybar (cyberpunk aesthetic + custom modules)
+    cp --remove-destination ${./waybar.css} ${homeDir}/.config/waybar/style.css
+    mkdir -p ${homeDir}/.config/waybar/scripts
+    cp --remove-destination ${./scripts/waybar-dunst.sh} ${homeDir}/.config/waybar/scripts/waybar-dunst.sh
+    cp --remove-destination ${./scripts/waybar-public-ip.sh} ${homeDir}/.config/waybar/scripts/waybar-public-ip.sh
+    cp --remove-destination ${./scripts/waybar-amd-gpu.sh} ${homeDir}/.config/waybar/scripts/waybar-amd-gpu.sh
+    cp --remove-destination ${./scripts/waybar-weather.sh} ${homeDir}/.config/waybar/scripts/waybar-weather.sh
+    cp --remove-destination ${./scripts/waybar-brightness.sh} ${homeDir}/.config/waybar/scripts/waybar-brightness.sh
+    cp --remove-destination ${./scripts/waybar-btc.py} ${homeDir}/.config/waybar/scripts/waybar-btc.py
+    # CoinGecko BTC-only
+    cp --remove-destination ${./scripts/waybar-btc-coingecko.sh} ${homeDir}/.config/waybar/scripts/waybar-btc-coingecko.sh
+    cp --remove-destination ${./scripts/waybar-reboot.sh} ${homeDir}/.config/waybar/scripts/waybar-reboot.sh
+    cp --remove-destination ${./scripts/waybar-mpris.sh} ${homeDir}/.config/waybar/scripts/waybar-mpris.sh
+    chmod +x ${homeDir}/.config/waybar/scripts/*.sh
+    chmod +x ${homeDir}/.config/waybar/scripts/*.py || true
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/waybar
+    
+    # Configure Kitty terminal
+    mkdir -p ${homeDir}/.config/kitty
+    cat > ${homeDir}/.config/kitty/kitty.conf << 'EOF'
+    # Kitty Terminal Configuration
+    
+    # Font configuration
+    font_family FiraCode Nerd Font
+    font_size 12
+    bold_font auto
+    italic_font auto
+    bold_italic_font auto
+    
+    # Colors - Tokyo Night inspired
+    background #1a1b26
+    foreground #c0caf5
+    selection_background #28344a
+    selection_foreground #c0caf5
+    url_color #7aa2f7
+    cursor #c0caf5
+    cursor_text_color #1a1b26
+    
+    # Tabs
+    active_tab_background #7aa2f7
+    active_tab_foreground #1a1b26
+    inactive_tab_background #1a1b26
+    inactive_tab_foreground #c0caf5
+    tab_bar_background #16161e
+    
+    # Window settings
+    window_padding_width 10
+    window_margin_width 0
+    window_border_width 0
+    background_opacity 0.95
+    
+    # Shell integration
+    shell_integration enabled
+    
+    # Copy on select
+    copy_on_select yes
+    
+    # URL detection and hyperlinks
+    detect_urls yes
+    show_hyperlink_targets yes
+    underline_hyperlinks always
+    
+    # Mouse settings
+    mouse_hide_while_typing yes
+    focus_follows_mouse yes
+    
+    # Performance
+    sync_to_monitor yes
+    repaint_delay 10
+    input_delay 3
+    
+    # Key bindings
+    map ctrl+shift+equal change_font_size all +1.0
+    map ctrl+shift+minus change_font_size all -1.0
+    map ctrl+shift+0 change_font_size all 0
+    
+    # Fish shell integration
+    shell fish
+    
+    # Terminal bell
+    enable_audio_bell no
+    visual_bell_duration 0.5
+    visual_bell_color #f7768e
+    
+    # Cursor
+    cursor_shape beam
+    cursor_beam_thickness 2
+    
+    # Scrollback
+    scrollback_lines 10000
+    scrollback_pager less --chop-long-lines --RAW-CONTROL-CHARS +INPUT_LINE_NUMBER
+    
+    # Clipboard
+    clipboard_control write-clipboard write-primary read-clipboard read-primary
+    
+    # Allow remote control
+    allow_remote_control yes
+    listen_on unix:/tmp/kitty
+    EOF
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/kitty
+    
+    # Configure Oh My Posh default (preserve user-selected theme if present)
+    mkdir -p ${homeDir}/.config/oh-my-posh
+    cat > ${homeDir}/.config/oh-my-posh/config-default.json << 'EOF'
+    {
+      "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+      "version": 1,
+      "final_space": true,
+      "blocks": [
+        {
+          "type": "prompt",
+          "alignment": "left",
+          "segments": [
+            {
+              "type": "path",
+              "style": "plain",
+              "properties": {
+                "style": "folder",
+                "max_depth": 2,
+                "max_width": 50
+              },
+              "foreground": "#7aa2f7",
+              "background": "#1a1b26"
+            },
+            {
+              "type": "git",
+              "style": "plain",
+              "properties": {
+                "display_stash_count": true,
+                "display_upstream_icon": true,
+                "fetch_stash_count": true,
+                "fetch_status": true,
+                "fetch_upstream": true
+              },
+              "foreground": "#bb9af7",
+              "background": "#1a1b26"
+            },
+            {
+              "type": "node",
+              "style": "plain",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "foreground": "#7dcfff",
+              "background": "#1a1b26"
+            },
+            {
+              "type": "python",
+              "style": "plain",
+              "properties": {
+                "fetch_virtual_env": true,
+                "display_version": true,
+                "display_mode": "files"
+              },
+              "foreground": "#7dcfff",
+              "background": "#1a1b26"
+            },
+            {
+              "type": "go",
+              "style": "plain",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "foreground": "#7dcfff",
+              "background": "#1a1b26"
+            },
+            {
+              "type": "rust",
+              "style": "plain",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "foreground": "#ff9e64",
+              "background": "#1a1b26"
+            },
+            {
+              "type": "docker_context",
+              "style": "plain",
+              "properties": {
+                "display_default": false
+              },
+              "foreground": "#7aa2f7",
+              "background": "#1a1b26"
+            },
+            {
+              "type": "execution_time",
+              "style": "plain",
+              "properties": {
+                "threshold": 5000,
+                "style": "text"
+              },
+              "foreground": "#9aa5ce",
+              "background": "#1a1b26"
+            },
+            {
+              "type": "exit",
+              "style": "plain",
+              "properties": {
+                "display_exit_code": true,
+                "error_color": "#f7768e",
+                "success_color": "#9ece6a"
+              },
+              "foreground": "#c0caf5",
+              "background": "#1a1b26"
+            }
+          ]
+        },
+        {
+          "type": "prompt",
+          "alignment": "right",
+          "segments": [
+            {
+              "type": "text",
+              "style": "plain",
+              "properties": {
+                "text": " "
+              }
+            },
+            {
+              "type": "time",
+              "style": "plain",
+              "properties": {
+                "time_format": "15:04",
+                "display_date": false
+              },
+              "foreground": "#9aa5ce",
+              "background": "#1a1b26"
+            }
+          ]
+        }
+      ]
+    }
+    EOF
+    [ -f ${homeDir}/.config/oh-my-posh/config.json ] || cp ${homeDir}/.config/oh-my-posh/config-default.json ${homeDir}/.config/oh-my-posh/config.json
+    
+    # Create additional Oh My Posh theme configurations
+    cat > ${homeDir}/.config/oh-my-posh/config-enhanced.json << 'EOF'
+    {
+      "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+      "version": 3,
+      "final_space": true,
+      "blocks": [
+        {
+          "type": "prompt",
+          "alignment": "left",
+          "segments": [
+            {
+              "type": "root",
+              "style": "powerline",
+              "background": "#ffe9aa",
+              "foreground": "#100e23",
+              "powerline_symbol": "\ue0b0",
+              "template": " \uf0e7 "
+            },
+            {
+              "type": "session",
+              "style": "powerline",
+              "background": "#ffffff",
+              "foreground": "#100e23",
+              "powerline_symbol": "\ue0b0",
+              "template": " {{ .UserName }}@{{ .HostName }} "
+            },
+            {
+              "type": "path",
+              "style": "powerline",
+              "background": "#91ddff",
+              "foreground": "#100e23",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "style": "agnoster",
+                "max_depth": 2,
+                "max_width": 50,
+                "folder_icon": "\uf115",
+                "home_icon": "\ueb06",
+                "folder_separator_icon": " \ue0b1 "
+              },
+              "template": " {{ .Path }} "
+            },
+            {
+              "type": "git",
+              "style": "powerline",
+              "background": "#95ffa4",
+              "background_templates": [
+                "{{ if or (.Working.Changed) (.Staging.Changed) }}#FF9248{{ end }}",
+                "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#ff4500{{ end }}",
+                "{{ if gt .Ahead 0 }}#B388FF{{ end }}",
+                "{{ if gt .Behind 0 }}#B388FF{{ end }}"
+              ],
+              "foreground": "#193549",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_status": true,
+                "fetch_upstream": true,
+                "fetch_upstream_icon": true,
+                "display_stash_count": true,
+                "branch_template": "{{ trunc 25 .Branch }}"
+              },
+              "template": " {{ .UpstreamIcon }}{{ .HEAD }}{{ if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }} \uf044 {{ .Working.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Staging.Changed }} \uf046 {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} \ueb4b {{ .StashCount }}{{ end }} "
+            },
+            {
+              "type": "node",
+              "style": "powerline",
+              "background": "#6CA35E",
+              "foreground": "#ffffff",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "template": " \ue718 {{ if .PackageManagerIcon }}{{ .PackageManagerIcon }} {{ end }}{{ .Full }} "
+            },
+            {
+              "type": "python",
+              "style": "powerline",
+              "background": "#FFDE57",
+              "foreground": "#111111",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_virtual_env": true,
+                "display_version": true,
+                "display_mode": "files"
+              },
+              "template": " \ue235 {{ if .Venv }}{{ .Venv }} {{ end }}{{ .Full }} "
+            },
+            {
+              "type": "go",
+              "style": "powerline",
+              "background": "#8ED1F7",
+              "foreground": "#111111",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "template": " \ue626 {{ .Full }} "
+            },
+            {
+              "type": "rust",
+              "style": "powerline",
+              "background": "#FF9E64",
+              "foreground": "#111111",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "template": " \ue7a8 {{ .Full }} "
+            },
+            {
+              "type": "docker_context",
+              "style": "powerline",
+              "background": "#7aa2f7",
+              "foreground": "#1a1b26",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "display_default": false
+              },
+              "template": " \uf308 {{ .Context }} "
+            },
+            {
+              "type": "execution_time",
+              "style": "powerline",
+              "background": "#9aa5ce",
+              "foreground": "#1a1b26",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "threshold": 5000,
+                "style": "text"
+              },
+              "template": " {{ .FormattedMs }} "
+            },
+            {
+              "type": "exit",
+              "style": "powerline",
+              "background": "#f7768e",
+              "foreground": "#ffffff",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "display_exit_code": true,
+                "error_color": "#f7768e",
+                "success_color": "#9ece6a"
+              },
+              "template": " {{ if gt .Code 0 }}\uf071 {{ .Code }}{{ end }} "
+            }
+          ]
+        },
+        {
+          "type": "rprompt",
+          "segments": [
+            {
+              "type": "text",
+              "style": "plain",
+              "properties": {
+                "text": " "
+              }
+            },
+            {
+              "type": "time",
+              "style": "plain",
+              "foreground": "#9aa5ce",
+              "background": "#1a1b26",
+              "properties": {
+                "time_format": "15:04",
+                "display_date": false
+              },
+              "template": " {{ .CurrentDate | date .Format }} "
+            }
+          ]
+        }
+      ]
+    }
+    EOF
+    
+    cat > ${homeDir}/.config/oh-my-posh/config-minimal.json << 'EOF'
+    {
+      "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+      "version": 3,
+      "final_space": true,
+      "blocks": [
+        {
+          "type": "prompt",
+          "alignment": "left",
+          "segments": [
+            {
+              "type": "text",
+              "style": "plain",
+              "foreground": "#98C379",
+              "template": "\u279c"
+            },
+            {
+              "type": "path",
+              "style": "plain",
+              "foreground": "#56B6C2",
+              "properties": {
+                "style": "folder",
+                "max_depth": 2,
+                "max_width": 40
+              },
+              "template": "  {{ .Path }}"
+            },
+            {
+              "type": "git",
+              "style": "plain",
+              "foreground": "#D0666F",
+              "properties": {
+                "fetch_status": true,
+                "display_stash_count": true
+              },
+              "template": " <#5FAAE8>git:(</>{{ .HEAD }}<#5FAAE8>)</>"
+            },
+            {
+              "type": "exit",
+              "style": "plain",
+              "foreground": "#BF616A",
+              "template": " {{ if gt .Code 0 }}\u2717{{ end }}"
+            }
+          ]
+        },
+        {
+          "type": "rprompt",
+          "segments": [
+            {
+              "type": "time",
+              "style": "plain",
+              "foreground": "#9aa5ce",
+              "properties": {
+                "time_format": "15:04",
+                "display_date": false
+              },
+              "template": " {{ .CurrentDate | date .Format }}"
+            }
+          ]
+        }
+      ]
+    }
+    EOF
+    
+    cat > ${homeDir}/.config/oh-my-posh/config-professional.json << 'EOF'
+    {
+      "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+      "version": 3,
+      "final_space": true,
+      "blocks": [
+        {
+          "type": "prompt",
+          "alignment": "left",
+          "segments": [
+            {
+              "type": "shell",
+              "style": "diamond",
+              "background": "#0077c2",
+              "foreground": "#ffffff",
+              "leading_diamond": "\u256d\u2500\ue0b6",
+              "template": "\uf120 {{ .Name }} "
+            },
+            {
+              "type": "root",
+              "style": "diamond",
+              "background": "#ef5350",
+              "foreground": "#FFFB38",
+              "template": "<parentBackground>\ue0b0</> \uf292 "
+            },
+            {
+              "type": "path",
+              "style": "powerline",
+              "background": "#FF9248",
+              "foreground": "#2d3436",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "style": "folder",
+                "max_depth": 2,
+                "max_width": 50,
+                "folder_icon": " \uf07b ",
+                "home_icon": "\ue617"
+              },
+              "template": " \uf07b\uea9c {{ .Path }} "
+            },
+            {
+              "type": "git",
+              "style": "powerline",
+              "background": "#FFFB38",
+              "background_templates": [
+                "{{ if or (.Working.Changed) (.Staging.Changed) }}#ffeb95{{ end }}",
+                "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#c5e478{{ end }}",
+                "{{ if gt .Ahead 0 }}#C792EA{{ end }}",
+                "{{ if gt .Behind 0 }}#C792EA{{ end }}"
+              ],
+              "foreground": "#011627",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_status": true,
+                "fetch_upstream": true,
+                "fetch_upstream_icon": true,
+                "display_stash_count": true,
+                "branch_icon": "\ue725 "
+              },
+              "template": " {{ .UpstreamIcon }}{{ .HEAD }}{{ if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }} \uf044 {{ .Working.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Staging.Changed }} \uf046 {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} \ueb4b {{ .StashCount }}{{ end }} "
+            },
+            {
+              "type": "node",
+              "style": "powerline",
+              "background": "#6CA35E",
+              "foreground": "#ffffff",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "template": " \ue718 {{ .Full }} "
+            },
+            {
+              "type": "python",
+              "style": "powerline",
+              "background": "#FFDE57",
+              "foreground": "#111111",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_virtual_env": true,
+                "display_version": true,
+                "display_mode": "files"
+              },
+              "template": " \ue235 {{ if .Venv }}{{ .Venv }} {{ end }}{{ .Full }} "
+            },
+            {
+              "type": "go",
+              "style": "powerline",
+              "background": "#8ED1F7",
+              "foreground": "#111111",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "template": " \ue626 {{ .Full }} "
+            },
+            {
+              "type": "rust",
+              "style": "powerline",
+              "background": "#FF9E64",
+              "foreground": "#111111",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "fetch_version": true,
+                "display_mode": "files"
+              },
+              "template": " \ue7a8 {{ .Full }} "
+            },
+            {
+              "type": "docker_context",
+              "style": "powerline",
+              "background": "#7aa2f7",
+              "foreground": "#1a1b26",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "display_default": false
+              },
+              "template": " \uf308 {{ .Context }} "
+            },
+            {
+              "type": "execution_time",
+              "style": "powerline",
+              "background": "#9aa5ce",
+              "foreground": "#1a1b26",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "threshold": 5000,
+                "style": "text"
+              },
+              "template": " {{ .FormattedMs }} "
+            },
+            {
+              "type": "exit",
+              "style": "powerline",
+              "background": "#f7768e",
+              "foreground": "#ffffff",
+              "powerline_symbol": "\ue0b0",
+              "properties": {
+                "display_exit_code": true,
+                "error_color": "#f7768e",
+                "success_color": "#9ece6a"
+              },
+              "template": " {{ if gt .Code 0 }}\uf071 {{ .Code }}{{ end }} "
+            }
+          ]
+        },
+        {
+          "type": "rprompt",
+          "segments": [
+            {
+              "type": "text",
+              "style": "plain",
+              "properties": {
+                "text": " "
+              }
+            },
+            {
+              "type": "time",
+              "style": "plain",
+              "foreground": "#9aa5ce",
+              "background": "#1a1b26",
+              "properties": {
+                "time_format": "15:04",
+                "display_date": false
+              },
+              "template": " {{ .CurrentDate | date .Format }} "
+            }
+          ]
+        }
+      ]
+    }
+    EOF
+    
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/oh-my-posh
+    
+    # Create Atuin Fish configuration
+    mkdir -p ${homeDir}/.config/fish/conf.d
+    cat > ${homeDir}/.config/fish/conf.d/atuin.fish << 'EOF'
+    # Atuin shell history integration
+    if command -q atuin
+      set -g ATUIN_SESSION (atuin uuid)
+      atuin init fish | source
+    end
+    EOF
+    
+    # Create Oh My Posh Fish configuration
+    cat > ${homeDir}/.config/fish/conf.d/oh-my-posh.fish << 'EOF'
+    # Oh My Posh prompt configuration
+    if command -q oh-my-posh
+      # Initialize Oh My Posh with a custom theme
+      oh-my-posh init fish --config ~/.config/oh-my-posh/config.json | source
+    end
+    EOF
+    
+    # Additional Fish configuration for better integration
+    cat > ${homeDir}/.config/fish/conf.d/kitty-integration.fish << 'EOF'
+    # Kitty terminal integration
+    if test "$TERM" = "xterm-kitty"
+      # Enable kitty shell integration
+      kitty + complete setup fish | source
+      
+      # Set kitty-specific environment variables
+      set -gx KITTY_SHELL_INTEGRATION enabled
+    end
+    EOF
+    
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/fish
+
+    # Hard-override fish prompt to bootstrap Oh My Posh on first prompt draw
+    mkdir -p ${homeDir}/.config/fish/functions
+    cat > ${homeDir}/.config/fish/functions/fish_prompt.fish << 'EOF'
+    function fish_prompt
+      if command -q oh-my-posh
+        oh-my-posh print primary --config ~/.config/oh-my-posh/config.json
+        return
+      end
+      printf '%s> ' (prompt_pwd)
+    end
+    EOF
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/fish/functions
+
+    # Ensure Oh My Posh is initialized for all interactive Fish sessions
+    mkdir -p ${homeDir}/.config/fish
+    if ! grep -q "oh-my-posh init fish" ${homeDir}/.config/fish/config.fish 2>/dev/null; then
+      cat >> ${homeDir}/.config/fish/config.fish << 'EOF'
+    # Initialize Oh My Posh (fallback to ensure prompt loads)
+    if status is-interactive
+      if command -q oh-my-posh
+        oh-my-posh init fish --config ~/.config/oh-my-posh/config.json | source
+      end
+    end
+    EOF
+    fi
+    # GitHub token export for fish, read from local untracked file if present
+    mkdir -p ${homeDir}/.config/secrets
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/secrets
+    chmod 700 ${homeDir}/.config/secrets
+    cat > ${homeDir}/.config/fish/conf.d/github_token.fish << 'EOF'
+    if test -r ${homeDir}/.config/secrets/github_token
+      set -gx GITHUB_TOKEN (string trim (cat ${homeDir}/.config/secrets/github_token))
+    end
+    EOF
+
+    # Ensure ~/.local/bin is on PATH for user-installed scripts
+    cat > ${homeDir}/.config/fish/conf.d/local-bin.fish << 'EOF'
+    if test -d "$HOME/.local/bin"
+      fish_add_path "$HOME/.local/bin"
+    end
+    EOF
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/fish
+    # Install crypto-price (u3mur4) for Waybar module
+    mkdir -p ${homeDir}/.local/bin
+    chown -R ${userName}:${userGroup} ${homeDir}/.local
+    runuser -s ${pkgs.bash}/bin/bash -l ${userName} -c 'GOBIN=$HOME/.local/bin ${pkgs.go}/bin/go install github.com/u3mur4/crypto-price/cmd/crypto-price@latest' || true
+    
+    # Copy monitor setup helper script
+    cp ${../../scripts/setup-monitors.sh} ${homeDir}/.local/bin/setup-monitors
+    chmod +x ${homeDir}/.local/bin/setup-monitors
+
+    # Install OBS/MPV placement helper
+    cat > ${homeDir}/.local/bin/place-obs-mpv << 'EOF'
+    #!/run/current-system/sw/bin/bash
+    set -euo pipefail
+    # Requires: hyprctl, jq
+    HYPRCTL=/run/current-system/sw/bin/hyprctl
+    JQ=/run/current-system/sw/bin/jq
+    # Get active monitor geometry
+    read -r X Y W H < <($HYPRCTL -j monitors | $JQ -r '.[] | select(.focused==true) | "\(.x) \(.y) \(.width) \(.height)"')
+    # Quarters
+    HALF_W=$(( W / 2 ))
+    HALF_H=$(( H / 2 ))
+    LEFT_X=$X
+    RIGHT_X=$(( X + HALF_W ))
+    TOP_Y=$Y
+    BOTTOM_Y=$(( Y + HALF_H ))
+    # Positions
+    OBS_W=$HALF_W
+    OBS_H=$HALF_H
+    OBS_X=$LEFT_X
+    OBS_Y=$BOTTOM_Y
+    MPV_W=$HALF_W
+    MPV_H=$HALF_H
+    MPV_X=$RIGHT_X
+    MPV_Y=$TOP_Y
+    # Apply geometry (only MPV; leave OBS to tiling)
+    $HYPRCTL dispatch resizewindowpixel exact "title:^(ClipPlayer)$" $MPV_W $MPV_H || true
+    $HYPRCTL dispatch movewindowpixel exact "title:^(ClipPlayer)$" $MPV_X $MPV_Y || true
+    EOF
+    chmod +x ${homeDir}/.local/bin/place-obs-mpv
+
+    # Install ClipPlayer launcher (normalize video and mirror to /dev/video10 + preview)
+    cat > ${homeDir}/.local/bin/clip-player << 'EOF'
+    #!/run/current-system/sw/bin/bash
+    set -euo pipefail
+
+    DEV="/dev/video10"
+    WIDTH="''${CLIPPLAYER_WIDTH:-1920}"
+    HEIGHT="''${CLIPPLAYER_HEIGHT:-1080}"
+    FPS="''${CLIPPLAYER_FPS:-30}"
+
+    if [ ! -e "$DEV" ]; then
+      echo "Error: $DEV not found. Is v4l2loopback loaded?" >&2
+      exit 1
+    fi
+
+    if [ $# -lt 1 ]; then
+      echo "Usage: clip-player <video-file-or-url> [extra-ffmpeg-args...]" >&2
+      exit 2
+    fi
+
+    INPUT="$1"; shift || true
+
+    LOOP_ARGS=()
+    FEED_IS_FILE=0
+    if [ -f "$INPUT" ]; then
+      LOOP_ARGS=(-re -stream_loop -1)
+      FEED_IS_FILE=1
+    else
+      LOOP_ARGS=(-re)
+    fi
+
+    # Normalize to 1080p YUV420P and target FPS; keep aspect via scale+pad
+    VF="scale=''${WIDTH}:''${HEIGHT}:force_original_aspect_ratio=decrease,pad=''${WIDTH}:''${HEIGHT}:(ow-iw)/2:(oh-ih)/2:black,format=yuv420p,fps=''${FPS}"
+
+    # Manage a single active feed; kill any prior producer if still running
+    RUNDIR="/run/user/$(id -u)"
+    FEED_PIDFILE="$RUNDIR/clip-player-feed.pid"
+
+    if [ -f "$FEED_PIDFILE" ]; then
+      OLD_PID=$(cat "$FEED_PIDFILE" 2>/dev/null || echo "")
+      if [ -n "$OLD_PID" ] && kill -0 "$OLD_PID" 2>/dev/null; then
+        kill -TERM "$OLD_PID" 2>/dev/null || true
+        # give it a moment, then force if needed
+        sleep 0.3
+        kill -KILL "$OLD_PID" 2>/dev/null || true
+      fi
+      rm -f "$FEED_PIDFILE" || true
+    fi
+
+    # Launch mpv controller and set up FIFO so mpv fully drives the feed
+    SOCK="$RUNDIR/mpv-clipplayer.sock"
+    PIPE="$RUNDIR/clip-player.yuv"
+    LOG="$RUNDIR/clip-player.log"
+    rm -f "$PIPE" 2>/dev/null || true
+    mkfifo -m 600 "$PIPE"
+    : > "$LOG"
+    # Start ffmpeg reader first (so writer doesn't block on opening FIFO)
+    /run/current-system/sw/bin/ffmpeg -hide_banner -loglevel info \
+      -f rawvideo -pix_fmt yuv420p -video_size "''${WIDTH}x''${HEIGHT}" -framerate "''${FPS}" -i "$PIPE" \
+      -f v4l2 "''${DEV}" >>"$LOG" 2>&1 &
+    FF_PID=$!
+    # Launch mpv writer into FIFO with visible controls
+    /run/current-system/sw/bin/mpv \
+      --force-window=immediate \
+      --title=ClipPlayer \
+      --vo=gpu --gpu-context=wayland --gpu-api=opengl \
+      --osc \
+      --osd-bar \
+      --ao=null \
+      --input-ipc-server="$SOCK" \
+      --vf="$VF" \
+      --ovc=rawvideo --of=rawvideo --o="$PIPE" \
+      --msg-level=all=info \
+      "$INPUT" >>"$LOG" 2>&1 &
+    MPV_PID=$!
+    cleanup() {
+      kill -TERM "$FF_PID" 2>/dev/null || true
+      kill -TERM "$MPV_PID" 2>/dev/null || true
+      rm -f "$PIPE" 2>/dev/null || true
+    }
+    trap cleanup EXIT INT TERM
+    wait "$MPV_PID" 2>/dev/null || true
+    cleanup
+    exit 0
+
+    # Function to (re)start the ffmpeg producer, optionally at a time offset (seconds)
+    start_feed() {
+      local offset="$1"
+      local args=( -hide_banner -loglevel warning )
+      if [ "$FEED_IS_FILE" = "1" ] && [ -n "$offset" ]; then
+        args+=( -re -stream_loop -1 -ss "$offset" -i "$INPUT" )
+      else
+        args+=( "''${LOOP_ARGS[@]}" -i "$INPUT" )
+      fi
+      /run/current-system/sw/bin/ffmpeg "''${args[@]}" \
+        -map 0:v:0 -vf "$VF" -an \
+        -pix_fmt yuv420p -framerate "''${FPS}" -video_size "''${WIDTH}x''${HEIGHT}" \
+        -f v4l2 "''${DEV}" &
+      FF_PID=$!
+      echo "$FF_PID" > "$FEED_PIDFILE"
+    }
+    # initial start (no offset)
+    start_feed ""
+
+    # Pause/Resume sync controller: poll mpv "pause" and SIGSTOP/SIGCONT ffmpeg
+    JQ=/run/current-system/sw/bin/jq
+    SOCAT=/run/current-system/sw/bin/socat
+    controller() {
+      last=""
+      last_pos=""
+      # Wait for MPV IPC socket to be ready
+      for i in $(/run/current-system/sw/bin/seq 1 50); do
+        [ -S "$SOCK" ] && break
+        sleep 0.1
+      done
+      while kill -0 "$MPV_PID" 2>/dev/null; do
+        resp=$(printf '{ "command": ["get_property", "pause"] }\n' | "$SOCAT" - "UNIX-CONNECT:$SOCK" 2>/dev/null || true)
+        if [ -z "$resp" ]; then
+          sleep 0.2
+          continue
+        fi
+        paused=$(printf '%s' "$resp" | "$JQ" -r '.data // empty' 2>/dev/null || true)
+        if [ "$paused" != "$last" ]; then
+          if [ "$paused" = "true" ]; then
+            kill -STOP "$FF_PID" 2>/dev/null || true
+          elif [ "$paused" = "false" ]; then
+            kill -CONT "$FF_PID" 2>/dev/null || true
+          fi
+          last="$paused"
+        fi
+        # Detect seeks/jumps and sync ffmpeg by restarting at new position
+        resp_pos=$(printf '{ "command": ["get_property", "time-pos"] }\n' | "$SOCAT" - "UNIX-CONNECT:$SOCK" 2>/dev/null || true)
+        cur_pos=$(printf '%s' "$resp_pos" | "$JQ" -r '.data // empty' 2>/dev/null || true)
+        if [ -n "$cur_pos" ] && [ -n "$last_pos" ]; then
+          # treat jump backwards or forwards > 1.0s as a seek
+          awk_check=$(printf '%s %s' "$cur_pos" "$last_pos" | /run/current-system/sw/bin/awk '{d=$1-$2; if (d<-0.5 || d>1.0) print 1; else print 0;}')
+          if [ "$awk_check" = "1" ]; then
+            kill -TERM "$FF_PID" 2>/dev/null || true
+            wait "$FF_PID" 2>/dev/null || true
+            start_feed "$cur_pos"
+            # honor pause state immediately after restart
+            if [ "$paused" = "true" ]; then
+              kill -STOP "$FF_PID" 2>/dev/null || true
+            fi
+          fi
+        fi
+        [ -n "$cur_pos" ] && last_pos="$cur_pos"
+        sleep 0.25
+      done
+    }
+    controller &
+    CTRL_PID=$!
+
+    # Tie lifecycles together: when preview exits, stop the feed and controller
+    cleanup() {
+      kill -TERM "$FF_PID" 2>/dev/null || true
+      kill -TERM "$MPV_PID" 2>/dev/null || true
+      kill -TERM "$CTRL_PID" 2>/dev/null || true
+      rm -f "$FEED_PIDFILE" || true
+    }
+    trap cleanup EXIT INT TERM
+
+    # Wait specifically for the preview window to close, then cleanup
+    wait "$MPV_PID" 2>/dev/null || true
+    cleanup
+    exit 0
+    EOF
+    chmod +x ${homeDir}/.local/bin/clip-player
+
+
+    # Apply GTK theming (Tokyo Night Dark + Papirus-Dark + Bibata cursor)
+    mkdir -p ${homeDir}/.config/gtk-3.0
+    cat > ${homeDir}/.config/gtk-3.0/settings.ini << 'EOF'
+    [Settings]
+    gtk-theme-name=Tokyonight-Dark-B
+    gtk-icon-theme-name=Papirus-Dark
+    gtk-cursor-theme-name=Bibata-Modern-Ice
+    gtk-cursor-theme-size=24
+    gtk-application-prefer-dark-theme=true
+    EOF
+    mkdir -p ${homeDir}/.config/gtk-4.0
+    cat > ${homeDir}/.config/gtk-4.0/settings.ini << 'EOF'
+    [Settings]
+    gtk-theme-name=Tokyonight-Dark-B
+    gtk-icon-theme-name=Papirus-Dark
+    gtk-cursor-theme-name=Bibata-Modern-Ice
+    gtk-cursor-theme-size=24
+    gtk-application-prefer-dark-theme=true
+    EOF
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/gtk-3.0 ${homeDir}/.config/gtk-4.0
+
+    # Configure qt6ct to use Adwaita-Dark and Papirus icons for closer match
+    mkdir -p ${homeDir}/.config/qt6ct
+    cat > ${homeDir}/.config/qt6ct/qt6ct.conf << 'EOF'
+    [Appearance]
+    style=adwaita-dark
+    icon_theme=Papirus-Dark
+    standard_dialogs=gtk3
+    palette=
+    [Fonts]
+    fixed=@Variant(\0\0\0\x7f\0\0\0\n\0M\0o\0n\0o\0s\0p\0a\0c\0e\0\0\0\0\0\0\0\0\0\x1e\0\0\0\0\0\0\0\0\0\0\0\0\0\0)
+    general=@Variant(\0\0\0\x7f\0\0\0\n\0I\0n\0t\0e\0r\0\0\0\0\0\0\0\0\0\x1e\0\0\0\0\0\0\0\0\0\0\0\0\0\0)
+    [Interface]
+    double_click_interval=400
+    cursor_flash_time=1000
+    buttonbox_layout=0
+    keyboard_scheme=2
+    gui_effects=@Invalid()
+    wheel_scroll_lines=3
+    resolve_symlinks=true
+    single_click_activate=false
+    tabs_behavior=0
+    [SettingsWindow]
+    geometry=@ByteArray(AdnQywADAAAAAAAAB3wAAAQqAAAADwAAAB9AAAAEKgAAAA8AAAAAAAEAAAHfAAAAAQAAAAQAAAAfAAAABCg=)
+    [Troubleshooting]
+    force_raster_widgets=false
+    ignore_platform_theme=false
+    EOF
+    chown -R ${userName}:${userGroup} ${homeDir}/.config/qt6ct
+    # Install rofi brightness menu
+    install -m 0755 ${./scripts/rofi-brightness.sh} ${homeDir}/.local/bin/rofi-brightness
+    chown ${userName}:${userGroup} ${homeDir}/.local/bin/rofi-brightness
+    
+    # Install Oh My Posh theme switcher
+    cat > ${homeDir}/.local/bin/switch-oh-my-posh-theme << 'EOF'
+    #!/run/current-system/sw/bin/bash
+
+    # Oh My Posh Theme Switcher
+    # Easily switch between different Oh My Posh themes
+
+    THEME_DIR="$HOME/.config/oh-my-posh"
+    CURRENT_CONFIG="$THEME_DIR/config.json"
+
+    # Available themes
+    THEMES=(
+        "default"      # Your current Tokyo Night theme
+        "enhanced"     # Feature-rich Agnoster-inspired theme
+        "minimal"      # Clean Robby Russell-inspired theme
+        "professional" # Modern Atomic-inspired diamond theme
+    )
+
+    show_usage() {
+        echo "Oh My Posh Theme Switcher"
+        echo "========================="
+        echo
+        echo "Usage: $0 [theme_name]"
+        echo
+        echo "Available themes:"
+        for theme in "''${THEMES[@]}"; do
+            echo "  - $theme"
+        done
+        echo
+        echo "Examples:"
+        echo "  $0 enhanced    # Switch to enhanced development theme"
+        echo "  $0 minimal     # Switch to minimalist theme"
+        echo "  $0 professional # Switch to professional diamond theme"
+        echo "  $0 default     # Switch back to default theme"
+        echo
+        echo "Current theme: $(basename $(readlink -f "$CURRENT_CONFIG" 2>/dev/null || echo "config.json"))"
+    }
+
+    switch_theme() {
+        local theme_name="$1"
+        local theme_file="$THEME_DIR/config-''${theme_name}.json"
+        
+        if [[ "$theme_name" == "default" ]]; then
+            theme_file="$THEME_DIR/config.json"
+        fi
+        
+        if [[ ! -f "$theme_file" ]]; then
+            echo "Error: Theme '$theme_name' not found at $theme_file"
+            echo "Available themes:"
+            for theme in "''${THEMES[@]}"; do
+                if [[ -f "$THEME_DIR/config-''${theme}.json" ]] || [[ "$theme" == "default" && -f "$CURRENT_CONFIG" ]]; then
+                    echo "  - $theme"
+                fi
+            done
+            exit 1
+        fi
+        
+        # Create backup of current config
+        if [[ -f "$CURRENT_CONFIG" ]]; then
+            cp "$CURRENT_CONFIG" "$THEME_DIR/config-backup-$(date +%Y%m%d-%H%M%S).json"
+        fi
+        
+        # Switch to new theme
+        if [[ "$theme_name" == "default" ]]; then
+            # Restore original config
+            if [[ -f "$THEME_DIR/config-original.json" ]]; then
+                cp "$THEME_DIR/config-original.json" "$CURRENT_CONFIG"
+            fi
+        else
+            # Copy theme to main config
+            cp "$theme_file" "$CURRENT_CONFIG"
+        fi
+        
+        echo "✅ Switched to '$theme_name' theme"
+        echo "🔄 Restart your terminal or run 'exec fish' to see changes"
+        echo
+        echo "Theme descriptions:"
+        echo "  default     - Tokyo Night inspired, balanced features"
+        echo "  enhanced    - Feature-rich with comprehensive dev tools"
+        echo "  minimal     - Clean, distraction-free for productivity"
+        echo "  professional - Modern diamond style for presentations"
+    }
+
+    # Main script logic
+    if [[ $# -eq 0 ]]; then
+        show_usage
+        exit 0
+    fi
+
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        show_usage
+        exit 0
+    fi
+
+    switch_theme "$1"
+    EOF
+    chmod +x ${homeDir}/.local/bin/switch-oh-my-posh-theme
+    chown ${userName}:${userGroup} ${homeDir}/.local/bin/switch-oh-my-posh-theme
+    
+    # Set Kitty as default terminal in desktop environment
+    mkdir -p ${homeDir}/.local/share/applications
+    cat > ${homeDir}/.local/share/applications/kitty.desktop << 'EOF'
+    [Desktop Entry]
+    Version=1.0
+    Type=Application
+    Name=Kitty
+    GenericName=Terminal
+    Comment=Fast, feature-rich, GPU based terminal emulator
+    Exec=kitty
+    Icon=kitty
+    Terminal=false
+    Categories=System;TerminalEmulator;
+    EOF
+    chown ${userName}:${userGroup} ${homeDir}/.local/share/applications/kitty.desktop
+    
+    # Update desktop database to register Kitty and ClipPlayer
+    runuser -s ${pkgs.bash}/bin/bash -l chrisf -c '${pkgs.desktop-file-utils}/bin/update-desktop-database ~/.local/share/applications' || true
+    
+    # ClipPlayer desktop entry for file associations
+    cat > ${homeDir}/.local/share/applications/clip-player.desktop << 'EOF'
+    [Desktop Entry]
+    Version=1.0
+    Type=Application
+    Name=ClipPlayer
+    GenericName=Media Player
+    Comment=Launch MPV with a stable title for OBS capture
+    Exec=${homeDir}/.local/bin/clip-player %U
+    Icon=mpv
+    Terminal=false
+    Categories=AudioVideo;Video;Player;
+    MimeType=video/mp4;video/x-matroska;video/webm;video/x-msvideo;video/quicktime;video/ogg;audio/mpeg;audio/mp3;audio/ogg;audio/flac;audio/x-flac;audio/wav;audio/x-wav;application/ogg;
+    EOF
+    chown ${userName}:${userGroup} ${homeDir}/.local/share/applications/clip-player.desktop
+    
+    # Set ClipPlayer as default for common media MIME types
+    mkdir -p ${homeDir}/.config
+    cat > ${homeDir}/.config/mimeapps.list << 'EOF'
+    [Default Applications]
+    x-scheme-handler/http=firefox.desktop
+    x-scheme-handler/https=firefox.desktop
+    text/html=firefox.desktop
+    video/mp4=clip-player.desktop
+    video/x-matroska=clip-player.desktop
+    video/webm=clip-player.desktop
+    video/x-msvideo=clip-player.desktop
+    video/quicktime=clip-player.desktop
+    video/ogg=clip-player.desktop
+    audio/mpeg=clip-player.desktop
+    audio/mp3=clip-player.desktop
+    audio/ogg=clip-player.desktop
+    audio/flac=clip-player.desktop
+    audio/x-flac=clip-player.desktop
+    audio/wav=clip-player.desktop
+    audio/x-wav=clip-player.desktop
+    application/ogg=clip-player.desktop
+    EOF
+    chown ${userName}:${userGroup} ${homeDir}/.config/mimeapps.list
+  '';
+
+  # Programs
+  programs = {
+    adb.enable = true;
+    virt-manager.enable = true;
+    dconf.enable = true;
+    gamemode.enable = true;
+    thunar = {
+      enable = true;
+      plugins = with pkgs.xfce; [
+        thunar-archive-plugin
+        thunar-volman
+      ];
+    };
+    steam = {
+      enable = true;
+      gamescopeSession.enable = true;
+      remotePlay.openFirewall = true;
+      dedicatedServer.openFirewall = true;
+    };
+    # Hyprland configuration provided by shared module
+    obs-studio = {
+      enable = true;
+      plugins = [
+        pkgs.obs-studio-plugins.obs-pipewire-audio-capture
+        pkgs.obs-studio-plugins.wlrobs
+        pkgs.obs-studio-plugins.waveform
+        pkgs.obs-studio-plugins.obs-stroke-glow-shadow
+        pkgs.obs-studio-plugins.obs-source-record
+        pkgs.obs-studio-plugins.obs-dir-watch-media
+        pkgs.obs-studio-plugins.obs-backgroundremoval
+        pkgs.obs-studio-plugins.obs-advanced-masks
+      ];
+    };
+  };
+
+
+
+  # Fonts
+  fonts.packages = with pkgs; [
+    noto-fonts
+    ubuntu-classic
+    noto-fonts-color-emoji
+    noto-fonts-color-emoji
+    liberation_ttf
+    fira-code
+    fira-code-symbols
+    nerd-fonts.fira-code
+    nerd-fonts.hack
+    nerd-fonts.ubuntu
+    mplus-outline-fonts.githubRelease
+    dina-font
+    fira
+  ];
+
+  # Environment
+  environment = {
+    sessionVariables = {
+      # Cursor theme for consistency across apps
+      XCURSOR_THEME = "Bibata-Modern-Ice";
+      # Audio plugin discovery paths for REAPER and other hosts
+      VST_PATH = "/run/current-system/sw/lib/vst";
+      VST3_PATH = "/run/current-system/sw/lib/vst3";
+      LADSPA_PATH = "/run/current-system/sw/lib/ladspa";
+      LV2_PATH = "/run/current-system/sw/lib/lv2";
+      CLAP_PATH = "/run/current-system/sw/lib/clap";
+    };
+    systemPackages =
+      devTools
+      ++ multimedia
+      ++ utilities
+      ++ systemTools
+      ++ applications
+      ++ gaming
+      ++ gtkApps;
+      
+    # Disable Orca in GDM greeter to silence missing TryExec logs
+    etc = {
+      "xdg/autostart/orca-autostart.desktop".text = ''
+        [Desktop Entry]
+        Hidden=true
+      '';
+    };
+  };
+
+  # Ensure dunst is configured for this user: auto-dismiss after 60s and suppress
+  # noisy Bluetooth connect/disconnect notifications from Blueman.
+  system.activationScripts.configureDunst = ''
+    homeDir="${homeDir}"
+    mkdir -p "$homeDir/.config/dunst"
+    cat > "$homeDir/.config/dunst/dunstrc" << 'EOF'
+    [global]
+    follow = mouse
+    history_length = 20
+    indicate_hidden = yes
+    separator_height = 2
+    sort = yes
+    idle_threshold = 0
+    # Fallback timeout (seconds); urgency-specific values override this.
+    timeout = 60
+    
+    [urgency_low]
+    timeout = 60
+    
+    [urgency_normal]
+    timeout = 60
+    
+    [urgency_critical]
+    timeout = 60
+    
+    # Suppress noisy Bluetooth device connect/disconnect popups from Blueman
+    [bluetooth_blueman_connected]
+    appname = "Blueman"
+    summary = ".*(Connected|Disconnected).*"
+    skip_display = true
+    skip_history = true
+    
+    # Some environments label as "Bluetooth"
+    [bluetooth_generic_connected]
+    appname = "Bluetooth"
+    summary = ".*(Connected|Disconnected).*"
+    skip_display = true
+    skip_history = true
+    EOF
+    chown -R ${userName}:${userGroup} "$homeDir/.config/dunst"
+  '';
+
+  # Prefer Hyprland XDG portal
+  xdg.portal = {
+    enable = true;
+    xdgOpenUsePortal = true;
+    # Hyprland module provides its own portal; include only GTK here to avoid duplicate units
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    config = {
+      common = {
+        default = [ "hyprland" "gtk" ];
+        "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
+      };
+    };
+  };
+
+  # Make Qt apps follow GNOME/GTK settings for closer match to GTK theme
+  qt = {
+    enable = true;
+    platformTheme = null;
+    style = "adwaita-dark";
+  };
+
+  # Nix settings
+  nix.settings.experimental-features = ["nix-command" "flakes"];
+  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.permittedInsecurePackages = [
+    "libsoup-2.74.3"
+    "jitsi-meet-1.0.8792"
+  ];
+  # Workaround: upstream mat2 test regression (breaks metadata-cleaner)
+  nixpkgs.overlays = [
+    (final: prev: {
+      python3Packages = prev.python3Packages.override {
+        overrides = self: super: {
+          mat2 = super.mat2.overridePythonAttrs (old: { doCheck = false; });
+        };
+      };
+      python313Packages = prev.python313Packages.override {
+        overrides = self: super: {
+          mat2 = super.mat2.overridePythonAttrs (old: { doCheck = false; });
+        };
+      };
+    })
+  ];
+
+  # System version
+  system.stateVersion = "25.11";
+} 
