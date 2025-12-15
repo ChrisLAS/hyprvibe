@@ -49,6 +49,16 @@
           inherit hyprland;
         };
       };
+      nixbook = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/nixbook/system.nix
+          prettyswitch.nixosModules.default
+        ];
+        specialArgs = {
+          inherit hyprland;
+        };
+      };
     };
   };
 }
