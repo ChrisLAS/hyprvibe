@@ -138,6 +138,8 @@ in {
         echo "[hyprvibe][shell] installed default oh-my-posh config"
       fi
       # Normalize ownership on common XDG dirs in case they were recreated by root
+      # Ensure directories exist before chowning (prevents kernel panic if .cache doesn't exist)
+      mkdir -p ${userHome}/.config ${userHome}/.local ${userHome}/.cache
       chown -R ${userName}:${userGroup} ${userHome}/.config ${userHome}/.local ${userHome}/.cache
       echo "[hyprvibe][shell] activation complete"
     '';
