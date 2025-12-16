@@ -148,7 +148,7 @@ in {
       # Power profile switcher for NixOS + Hyprland
       # Supports: performance, balanced, power-saver
       
-      PROFILE="${1:-}"
+      PROFILE="''${1:-}"
       
       if [ -z "$PROFILE" ]; then
         echo "Usage: power-profile [performance|balanced|power-saver|status]"

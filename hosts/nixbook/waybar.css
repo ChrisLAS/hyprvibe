@@ -38,7 +38,7 @@ window#waybar {
   font-size: 14pt;
 }
 
-#clock, #memory, #cpu, #tray, #network, #pulseaudio, #custom-public_ip, #custom-amd_gpu, #custom-weather, #custom-dunst, #window {
+#clock, #memory, #cpu, #tray, #network, #pulseaudio, #custom-public_ip, #custom-amd_gpu, #custom-dunst, #window {
   padding: 0 10px;
 }
 
@@ -56,10 +56,6 @@ window#waybar {
 
 #custom-amd_gpu {
   color: #ff8bd1; /* neon pink */
-}
-
-#custom-weather {
-  color: #7ad1ff; /* sky */
 }
 
 #custom-btc {

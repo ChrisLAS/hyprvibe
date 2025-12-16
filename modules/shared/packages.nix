@@ -4,7 +4,7 @@ let
   # Curated common sets derived from overlaps across hosts
   basePackages = with pkgs; [
     htop btop tree lsof lshw neofetch nmap zip unzip gnupg curl file jq bat fd fzf ripgrep tldr
-    whois plocate less eza grc
+    whois plocate less eza grc cursor-cli
   ];
   desktopPackages = with pkgs; [
     wl-clipboard grim slurp swappy wf-recorder dunst cliphist brightnessctl playerctl pavucontrol
