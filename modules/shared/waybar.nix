@@ -35,7 +35,14 @@ in {
       rm -f ${userHome}/.config/waybar/style.css
       ${if cfg.configPath != null then ''ln -sf ${cfg.configPath} ${userHome}/.config/waybar/config'' else ''ln -sf ${../../configs/waybar-rvbee.json} ${userHome}/.config/waybar/config''}
       ${if cfg.stylePath != null then ''ln -sf ${cfg.stylePath} ${userHome}/.config/waybar/style.css'' else ''ln -sf ${../../configs/waybar-rvbee.css} ${userHome}/.config/waybar/style.css''}
-      ${lib.optionalString (cfg.scriptsDir != null) ''cp -f ${cfg.scriptsDir}/* ${userHome}/.config/waybar/scripts/ 2>/dev/null || true''}
+      ${lib.optionalString (cfg.scriptsDir != null) ''
+        # Copy all scripts from scriptsDir and set executable permissions
+        if [ -d ${cfg.scriptsDir} ]; then
+          find ${cfg.scriptsDir} -type f -exec cp -f {} ${userHome}/.config/waybar/scripts/ \;
+          chmod +x ${userHome}/.config/waybar/scripts/*.sh 2>/dev/null || true
+          chmod +x ${userHome}/.config/waybar/scripts/*.py 2>/dev/null || true
+        fi
+      ''}
       ${lib.optionalString (cfg.scriptsDir == null) ''
         # Install RVBEE-inspired default scripts and brightness helper
         cp -f ${../../configs/waybar-scripts}/* ${userHome}/.config/waybar/scripts/ 2>/dev/null || true

@@ -18,7 +18,6 @@
     "cpu",
     "memory",
     "gamemode",
-    "custom/weather",
     "tray",
     "bluetooth",
     "custom/dunst",
@@ -84,12 +83,14 @@
     "format": "{}"
   },
   "network": {
-    "format-wifi": "{essid} ({signalStrength}%) ",
+    "format-wifi": "📶 {essid} ({signalStrength}%) ",
     "format-ethernet": "🖧 {ipaddr}/{cidr} ",
     "format-linked": "{ifname} (No IP) ",
     "format-disconnected": "Disconnected ⚠",
     "format-alt": "🖧 {ifname}: {ipaddr}/{cidr}",
-    "on-click": "nm-connection-editor"
+    "on-click": "/home/chrisf/.config/waybar/scripts/waybar-wifi.sh",
+    "on-click-right": "nm-connection-editor",
+    "tooltip-format": "{ifname}\n{ipaddr}/{cidr}\n{essid} ({signalStrength}%)"
   },
   "custom/public_ip": {
     "return-type": "json",
@@ -112,13 +113,6 @@
       "activated": "☀️",
       "deactivated": "🌙"
     }
-  },
-  "custom/weather": {
-    "return-type": "json",
-    "exec": "/home/chrisf/.config/waybar/scripts/waybar-weather.sh",
-    "interval": 600,
-    "tooltip": true,
-    "format": "{}"
   },
   "gamemode": {
     "format": "GM {count}"

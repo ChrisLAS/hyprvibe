@@ -69,9 +69,24 @@ in {
       ln -sf ${../../configs/hyprland-base.conf} ${userHome}/.config/hypr/hyprland-base.conf
       echo "[hyprvibe][hyprland] linked base config -> ${userHome}/.config/hypr/hyprland-base.conf"
       ${lib.optionalString (cfg.monitorsFile != null) ''
-        rm -f ${userHome}/.config/hypr/$(basename ${cfg.monitorsFile})
-        ln -sf ${cfg.monitorsFile} ${userHome}/.config/hypr/$(basename ${cfg.monitorsFile})
-        echo "[hyprvibe][hyprland] linked monitors -> ${userHome}/.config/hypr/$(basename ${cfg.monitorsFile})"
+        # Extract the actual filename from the store path (strip hash prefix if present)
+        # Nix store paths have format: /nix/store/HASH-filename
+        # Use a pattern that matches the source file path to determine the target filename
+        # For nixbook: hyprland-monitors-nixbook.conf
+        # For rvbee: hyprland-monitors-rvbee.conf or hyprland-monitors-rvbee-120hz.conf
+        # For nixstation: hyprland-monitors-nixstation.conf
+        # Extract filename by removing hash prefix from basename
+        MONITORS_SOURCE="${cfg.monitorsFile}"
+        MONITORS_BASENAME=$(basename "$MONITORS_SOURCE")
+        # Pattern: remove 32-character hash prefix followed by dash
+        MONITORS_FILENAME=$(echo "$MONITORS_BASENAME" | ${pkgs.gnused}/bin/sed -E 's/^[a-z0-9]{32}-//')
+        # If sed didn't change anything (not a store path), use basename as-is
+        if [ "$MONITORS_FILENAME" = "$MONITORS_BASENAME" ]; then
+          MONITORS_FILENAME="$MONITORS_BASENAME"
+        fi
+        rm -f ${userHome}/.config/hypr/"$MONITORS_FILENAME"
+        ln -sf "$MONITORS_SOURCE" ${userHome}/.config/hypr/"$MONITORS_FILENAME"
+        echo "[hyprvibe][hyprland] linked monitors -> ${userHome}/.config/hypr/$MONITORS_FILENAME"
       ''}
       # Main config - ensure we remove any existing file/symlink before creating symlink
       rm -f ${userHome}/.config/hypr/hyprland.conf

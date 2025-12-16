@@ -231,6 +231,7 @@ let
     # zoxide  # deduped; present in utilities
     rclone-browser
     code-cursor
+    cursor-cli
     
   ];
 
@@ -366,12 +367,65 @@ in
 
   # Define custom groups referenced by udev rules
   users.groups.plugdev = {};
-  # Services configuration (hyprvibe.services.enable is already true from shared module)
+  # Services configuration
   hyprvibe.services = {
+    enable = true;  # Enable baseline services (pipewire, flatpak, polkit, etc.)
     tailscale.enable = true;  # Enable Tailscale via shared module (configures useRoutingFeatures = "both")
     virt.enable = true;
     docker.enable = true;
   };
+
+  # Add Flathub remote system-wide if it doesn't exist (Flatpak is enabled via hyprvibe.services)
+  system.activationScripts.addFlathubRemote = ''
+    if ! ${pkgs.flatpak}/bin/flatpak remote-list --system 2>/dev/null | grep -q "^flathub"; then
+      ${pkgs.flatpak}/bin/flatpak remote-add --if-not-exists --system flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+    fi
+  '';
+
+  # Declaratively install Flatpak applications
+  system.activationScripts.installFlatpaks = ''
+    # Ensure Flathub remote exists before installing packages
+    if ! ${pkgs.flatpak}/bin/flatpak remote-list --system 2>/dev/null | grep -q "^flathub"; then
+      ${pkgs.flatpak}/bin/flatpak remote-add --if-not-exists --system flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+    fi
+    
+    # Update Flathub remote to ensure we have latest package information
+    ${pkgs.flatpak}/bin/flatpak update --appstream --system flathub 2>/dev/null || true
+    
+    # List of flatpak applications to install
+    FLATPAKS=(
+      "flathub:com.usebottles.bottles"
+      "flathub:org.telegram.desktop"
+      "flathub:org.kde.haruna"
+      "flathub:com.github.tchx84.Flatseal"
+      "flathub:md.obsidian.Obsidian"
+      "flathub:app.zen_browser.zen"
+      "flathub:com.github.wwmm.easyeffects"
+      "flathub:com.rustdesk.RustDesk"
+      "flathub:org.flameshot.Flameshot"
+      "flathub:org.filezillaproject.Filezilla"
+      "flathub:com.slack.Slack"
+      "flathub:org.gnome.baobab"
+      "flathub:com.transmissionbt.Transmission"
+      "flathub:io.github.giantpinkrobots.flatsweep"
+      "flathub:dev.fredol.open-tv"
+      "flathub:im.riot.Riot"
+      "flathub:io.gitlab.adhami3310.Converter"
+      "flathub:io.github.xyproto.zsnes"
+    )
+    
+    # Install each flatpak if not already installed
+    for pkg in "''${FLATPAKS[@]}"; do
+      # Extract the app ID from the package string (e.g., "flathub:com.usebottles.bottles" -> "com.usebottles.bottles")
+      app_id="''${pkg#*:}"
+      if ! ${pkgs.flatpak}/bin/flatpak list --system --columns=application 2>/dev/null | grep -q "^''${app_id}$"; then
+        echo "Installing flatpak: ''${pkg}"
+        ${pkgs.flatpak}/bin/flatpak install --system --noninteractive --assumeyes "''${pkg}" || true
+      else
+        echo "Flatpak already installed: ''${app_id}"
+      fi
+    done
+  '';
 
   # Android ADB udev support now covered by systemd uaccess rules; keep brightnessctl
   services.udev.packages = [ pkgs.brightnessctl ];
@@ -586,6 +640,9 @@ in
     };
   };
 
+  # Time zone
+  time.timeZone = "America/Los_Angeles";
+
   # Hardware configuration
   hardware = {
     bluetooth = {
@@ -770,8 +827,8 @@ in
     cp --remove-destination ${./scripts/waybar-dunst.sh} ${homeDir}/.config/waybar/scripts/waybar-dunst.sh
     cp --remove-destination ${./scripts/waybar-public-ip.sh} ${homeDir}/.config/waybar/scripts/waybar-public-ip.sh
     cp --remove-destination ${./scripts/waybar-amd-gpu.sh} ${homeDir}/.config/waybar/scripts/waybar-amd-gpu.sh
-    cp --remove-destination ${./scripts/waybar-weather.sh} ${homeDir}/.config/waybar/scripts/waybar-weather.sh
     cp --remove-destination ${./scripts/waybar-brightness.sh} ${homeDir}/.config/waybar/scripts/waybar-brightness.sh
+    cp --remove-destination ${./scripts/waybar-wifi.sh} ${homeDir}/.config/waybar/scripts/waybar-wifi.sh
     cp --remove-destination ${./scripts/waybar-btc.py} ${homeDir}/.config/waybar/scripts/waybar-btc.py
     # CoinGecko BTC-only
     cp --remove-destination ${./scripts/waybar-btc-coingecko.sh} ${homeDir}/.config/waybar/scripts/waybar-btc-coingecko.sh
@@ -1454,18 +1511,9 @@ in
     
     chown -R ${userName}:${userGroup} ${homeDir}/.config/fish
 
-    # Hard-override fish prompt to bootstrap Oh My Posh on first prompt draw
-    mkdir -p ${homeDir}/.config/fish/functions
-    cat > ${homeDir}/.config/fish/functions/fish_prompt.fish << 'EOF'
-    function fish_prompt
-      if command -q oh-my-posh
-        oh-my-posh print primary --config ~/.config/oh-my-posh/config.json
-        return
-      end
-      printf '%s> ' (prompt_pwd)
-    end
-    EOF
-    chown -R ${userName}:${userGroup} ${homeDir}/.config/fish/functions
+    # Note: fish_prompt function is handled by oh-my-posh init fish in conf.d/oh-my-posh.fish
+    # Removing the hard-override to allow proper right prompt (rprompt) support
+    # The oh-my-posh init fish command properly sets up both left and right prompts
 
     # Ensure Oh My Posh is initialized for all interactive Fish sessions
     mkdir -p ${homeDir}/.config/fish
@@ -1928,6 +1976,8 @@ in
     virt-manager.enable = true;
     dconf.enable = true;
     gamemode.enable = true;
+    # Enable nix-ld to allow dynamically linked executables (like cursor-agent) to run
+    nix-ld.enable = true;
     thunar = {
       enable = true;
       plugins = with pkgs.xfce; [
