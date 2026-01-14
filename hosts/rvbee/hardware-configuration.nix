@@ -20,7 +20,18 @@
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/0a78cb30-c575-4884-ba20-c542212f7acb";
     fsType = "btrfs";
-    options = ["subvol=@"];
+    options = [
+      "subvol=@"
+      "compress=zstd"
+      "ssd"
+      "ssd_spread"
+      "autodefrag"
+      "noatime"
+      "nodiratime"
+      "discard=async"
+      "space_cache=v2"
+      "thread_pool=8"
+    ];
   };
 
   fileSystems."/boot" = {
