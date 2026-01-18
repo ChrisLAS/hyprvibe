@@ -341,6 +341,7 @@ in
     name = "chrisf";
     group = "users";
     home = "/home/chrisf";
+    description = "Chris Fisher";
     extraGroups = [ "plugdev" ];
   };
 

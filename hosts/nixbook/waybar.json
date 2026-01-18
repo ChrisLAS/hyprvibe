@@ -17,6 +17,7 @@
     "custom/public_ip",
     "cpu",
     "memory",
+    "custom/battery",
     "gamemode",
     "tray",
     "bluetooth",
@@ -106,6 +107,13 @@
   "memory": {
     "format": "🤖 {percentage}% ",
     "tooltip": false
+  },
+  "custom/battery": {
+    "return-type": "json",
+    "exec": "/home/chrisf/.config/waybar/scripts/waybar-battery.sh",
+    "interval": 5,
+    "tooltip": true,
+    "format": "{}"
   },
   "idle_inhibitor": {
     "format": "{icon}",
