@@ -5,6 +5,7 @@ let
   userName = config.hyprvibe.user.name;
   userGroup = config.hyprvibe.user.group;
   homeDir = config.hyprvibe.user.home;
+
   # Package groups
   devTools = with pkgs; [
     git
@@ -36,6 +37,19 @@ let
     mpv
     vlc
     ffmpeg-full
+    # Optical media (DVD/BluRay) support & tools
+    libdvdcss
+    libdvdread
+    libdvdnav
+    libbluray
+    libaacs
+    # Disc inspection / ripping / conversion
+    dvdplusrwtools
+    udftools
+    xorriso
+    makemkv
+    handbrake
+    lsdvd
     # haruna
     reaper
     (pkgs.writeShellScriptBin "reaper-x11" ''
@@ -104,6 +118,7 @@ let
     iotop
     lm_sensors
     tree
+    android-tools
     lsof
     lshw
     # rustdesk-flutter
@@ -191,6 +206,8 @@ let
     fuse
     fuse3
     docker-compose
+    libva-utils
+    mesa-demos
   ];
 
   applications = with pkgs; [
@@ -202,6 +219,8 @@ let
     element-desktop
     nextcloud-client
     trayscale
+    # Dropbox client (CLI + Qt GUI share the same config in ~/.config/maestral)
+    maestral
     maestral-gui
     qownnotes
     libation
@@ -297,6 +316,16 @@ let
       systemctl --user set-environment GITHUB_TOKEN="$value"
     fi
   '';
+  # Script to set AMD EPP to performance at boot across all policies
+  setEppPerformanceScript = pkgs.writeShellScript "set-epp-performance" ''
+    set -euo pipefail
+    for p in /sys/devices/system/cpu/cpufreq/policy*; do
+      f="$p/energy_performance_preference"
+      if [ -w "$f" ]; then
+        echo performance > "$f"
+      fi
+    done
+  '';
 in
 {
   imports = [
@@ -318,6 +347,8 @@ in
   hyprvibe.hyprland.monitorsFile = ../../configs/hyprland-monitors-rvbee-120hz.conf;
   hyprvibe.hyprland.mainConfig = ./hyprland.conf;
   hyprvibe.hyprland.wallpaper = wallpaperPath;
+  hyprvibe.hyprland.wallpaperOutputs = [ "DP-1" ];
+  hyprvibe.hyprland.wallpaperBackend = "swaybg";
   hyprvibe.hyprland.hyprpaperTemplate = ./hyprpaper.conf;
   hyprvibe.hyprland.hyprlockTemplate = ./hyprlock.conf;
   hyprvibe.hyprland.hypridleConfig = ./hypridle.conf;
@@ -357,11 +388,13 @@ in
   # Android ADB udev support now covered by systemd uaccess rules; keep brightnessctl
   services.udev.packages = [ pkgs.brightnessctl ];
   services.udev.extraRules = ''
-    # Google (Pixel/Nexus) generic USB (MTP/ADB)
-    SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", MODE="0666", GROUP="adbusers"
     # Elgato Stream Deck (USB + hidraw)
     SUBSYSTEM=="usb", ATTR{idVendor}=="0fd9", MODE="0660", GROUP="plugdev"
     KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0fd9", MODE="0660", GROUP="plugdev"
+
+    # Optical drives (DVD/BluRay): allow the active user (seat) to access SCSI generic nodes.
+    # Needed for tools like MakeMKV which use /dev/sg* (scsi_generic) in addition to /dev/sr*.
+    SUBSYSTEM=="scsi_generic", ATTRS{type}=="5", TAG+="uaccess", GROUP="cdrom", MODE="0660"
   '';
   hyprvibe.packages = {
     enable = true;
@@ -377,8 +410,22 @@ in
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
     };
+    # Add extra debug output so kernel / systemd messages are visible on console.
+    # Use panic=0 to avoid automatic reboot on panic so we can see the full trace.
+    kernelParams = [
+      "tsc=unstable"
+      "debug"
+      "ignore_loglevel"
+      "log_buf_len=4M"
+      "panic=0"
+      "systemd.log_level=debug"
+      "systemd.log_target=console"
+    ];
+    consoleLogLevel = 7;
+    initrd.verbose = true;
     # v4l2loopback for virtual webcam support (OBS, conferencing apps)
-    kernelModules = [ "v4l2loopback" ];
+    # sg is required to create /dev/sg* nodes (SCSI generic), used by MakeMKV and some disc tools.
+    kernelModules = [ "v4l2loopback" "sg" ];
     extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
     extraModprobeConfig = ''
       # Dedicated virtual camera for OBS capture, fixed at /dev/video10
@@ -412,6 +459,17 @@ in
         OOMScoreAdjust = 1000;
       };
     };
+    # Set AMD EPP to performance on boot
+    services.set-epp-performance = {
+      description = "Set AMD EPP to performance for all CPU policies";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "sysinit.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${setEppPerformanceScript}";
+        RemainAfterExit = true;
+      };
+    };
     # Keep Netdata unit installed but do not enable it at boot
     services.netdata.wantedBy = pkgs.lib.mkForce [];
     services.netdata.restartIfChanged = false;
@@ -426,6 +484,55 @@ in
         ];
         ExecStart = "${pkgs.kdePackages.kwallet}/bin/kwalletd6";
         Restart = "on-failure";
+      };
+    };
+
+    # Write dunst config in the user's home *after login* (NOT during activation).
+    # Boot-time activation runs very early; failures there can terminate PID 1 and kernel panic.
+    user.services.hyprvibe-setup-dunst = {
+      description = "Hyprvibe: write dunst config";
+      wantedBy = [ "default.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = "${pkgs.writeShellScript "hyprvibe-setup-dunst" ''
+          set -euo pipefail
+          mkdir -p ${homeDir}/.config/dunst
+          cat > ${homeDir}/.config/dunst/dunstrc << 'EOF'
+          [global]
+          follow = mouse
+          history_length = 20
+          indicate_hidden = yes
+          separator_height = 2
+          sort = yes
+          idle_threshold = 0
+          # Fallback timeout (seconds); urgency-specific values override this.
+          timeout = 60
+
+          [urgency_low]
+          timeout = 60
+
+          [urgency_normal]
+          timeout = 60
+
+          [urgency_critical]
+          timeout = 60
+
+          # Suppress noisy Bluetooth device connect/disconnect popups from Blueman
+          [bluetooth_blueman_connected]
+          appname = "Blueman"
+          summary = ".*(Connected|Disconnected).*"
+          skip_display = true
+          skip_history = true
+
+          # Some environments label as "Bluetooth"
+          [bluetooth_generic_connected]
+          appname = "Bluetooth"
+          summary = ".*(Connected|Disconnected).*"
+          skip_display = true
+          skip_history = true
+          EOF
+        ''}";
       };
     };
 
@@ -451,6 +558,8 @@ in
       enable = false;
     };
   };
+  # Speed up boot: disable NetworkManager-wait-online blocking service
+  systemd.services."NetworkManager-wait-online".enable = false;
 
   # Hardware configuration
   hardware = {
@@ -580,25 +689,41 @@ in
   # Ensure persistent data directory exists
   systemd.tmpfiles.rules = [
     "d /var/lib/companion 0777 root root -"
+    # Disable CoW on directories that benefit from it (databases, VMs, downloads)
+    "d /var/lib/docker 0755 root root -"
+    "d /var/lib/libvirt 0755 root root -"
+    "d /home/chrisf/Downloads 0755 chrisf users -"
+    "d /home/chrisf/.steam 0755 chrisf users -"
+    "d /home/chrisf/.local/share/Steam 0755 chrisf users -"
+    "d /tmp 1777 root root -"
+    "d /var/tmp 1777 root root -"
   ];
 
   # Open firewall for Companion
   networking.firewall.allowedTCPPorts = (config.networking.firewall.allowedTCPPorts or []) ++ [ 8000 51234 ];
+
+  # Disable CoW on specific directories for better performance
+  systemd.services.disable-cow = {
+    description = "Disable Copy-on-Write on specific directories";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "local-fs.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.bash}/bin/bash -c '${pkgs.coreutils}/bin/chattr +C /var/lib/docker /var/lib/libvirt /home/chrisf/Downloads /home/chrisf/.steam /home/chrisf/.local/share/Steam /tmp /var/tmp 2>/dev/null || true'";
+      RemainAfterExit = true;
+    };
+  };
   networking.firewall.allowedUDPPorts = (config.networking.firewall.allowedUDPPorts or []) ++ [ 51234 ];
 
   # Copy Hyprland configuration to user's home
   # Disabled: migrated to hyprvibe.hyprland options
   system.activationScripts.copyHyprlandConfig_disabled = ''
-    mkdir -p ${homeDir}/.config/hypr
-    # Ensure base and monitors exist before main hyprland.conf to avoid source= errors
-    cp --remove-destination ${../../configs/hyprland-base.conf} ${homeDir}/.config/hypr/hyprland-base.conf
-    cp --remove-destination ${../../configs/hyprland-monitors-rvbee.conf} ${homeDir}/.config/hypr/hyprland-monitors-rvbee.conf
-    cp --remove-destination ${./hyprland.conf} ${homeDir}/.config/hypr/hyprland.conf
-    # Render wallpaper path into hyprpaper/hyprlock configs
-    ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprpaper.conf} > ${homeDir}/.config/hypr/hyprpaper.conf
-    ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprlock.conf} > ${homeDir}/.config/hypr/hyprlock.conf
-    cp --remove-destination ${./hypridle.conf} ${homeDir}/.config/hypr/hypridle.conf
-    chown -R ${userName}:${userGroup} ${homeDir}/.config/hypr
+    # Legacy Hyprland/Waybar/kitty/Oh My Posh setup script disabled.
+    # All of these configs are now managed by hyprvibe.hyprland, hyprvibe.waybar, and hyprvibe.shell.
+    # Keep the original body below for reference only; it is never executed.
+    # IMPORTANT: Never use `exit` in activation scripts; if sourced by stage-2 init
+    # it can terminate PID 1 and kernel-panic the boot.
+    if false; then
     # BTC script for hyprlock
     cp --remove-destination ${./scripts/hyprlock-btc.sh} ${homeDir}/.config/hypr/hyprlock-btc.sh
     chmod +x ${homeDir}/.config/hypr/hyprlock-btc.sh
@@ -1757,14 +1882,25 @@ in
     application/ogg=clip-player.desktop
     EOF
     chown ${userName}:${userGroup} ${homeDir}/.config/mimeapps.list
+    fi
   '';
 
   # Programs
   programs = {
-    adb.enable = true;
     virt-manager.enable = true;
     dconf.enable = true;
     gamemode.enable = true;
+    firefox = {
+      enable = true;
+      package = pkgs.firefox;
+      preferences = {
+        "gfx.webrender.all" = true;
+        "media.ffmpeg.vaapi.enabled" = true;
+        "widget.wayland-dmabuf-vaapi.enabled" = true;
+        "media.rdd-ffmpeg.enabled" = true;
+        "media.hardware-video-decoding.enabled" = true;
+      };
+    };
     thunar = {
       enable = true;
       plugins = with pkgs.xfce; [
@@ -1774,6 +1910,28 @@ in
     };
     steam = {
       enable = true;
+      # Steam Link + SteamVR tips for Hyprland/Wayland:
+      # - Force PipeWire capture (`-pipewire`) to avoid "Desktop capture unavailable".
+      # - Prefer X11 Qt backend for SteamVR helpers (avoids missing Qt "wayland" plugin issues).
+      # - Ensure some host tools/libs exist inside the Steam runtime container (pressure-vessel).
+      package = pkgs.steam.override {
+        extraArgs = "-pipewire";
+        extraEnv = {
+          QT_QPA_PLATFORM = "xcb";
+        };
+        # Binaries needed inside the Steam runtime container
+        extraPkgs = pkgs': with pkgs'; [
+          psmisc # provides `killall`
+        ];
+        # Shared libs needed inside the Steam runtime container
+        extraLibraries = pkgs': with pkgs'; [
+          gamemode # provides libgamemode.so (fixes gamemodeauto dlopen failed)
+        ];
+        # Help SteamVR's vrwebhelper locate its own shipped libs (libcef.so, etc.)
+        extraProfile = ''
+          export LD_LIBRARY_PATH="''${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$HOME/.local/share/Steam/steamapps/common/SteamVR/bin/vrwebhelper/linux64:$HOME/.local/share/Steam/steamapps/common/SteamVR/bin/linux64"
+        '';
+      };
       gamescopeSession.enable = true;
       remotePlay.openFirewall = true;
       dedicatedServer.openFirewall = true;
@@ -1816,6 +1974,12 @@ in
   # Environment
   environment = {
     sessionVariables = {
+      NIXOS_OZONE_WL = "1";
+      MOZ_ENABLE_WAYLAND = "1";
+      ELECTRON_OZONE_PLATFORM_HINT = "auto";
+      OZONE_PLATFORM = "wayland";
+      LIBVA_DRIVER_NAME = "radeonsi";
+      MOZ_DISABLE_RDD_SANDBOX = "1";
       # Cursor theme for consistency across apps
       XCURSOR_THEME = "Bibata-Modern-Ice";
       # Audio plugin discovery paths for REAPER and other hosts
@@ -1843,47 +2007,18 @@ in
     };
   };
 
-  # Ensure dunst is configured for this user: auto-dismiss after 60s and suppress
-  # noisy Bluetooth connect/disconnect notifications from Blueman.
-  system.activationScripts.configureDunst = ''
-    homeDir="${homeDir}"
-    mkdir -p "$homeDir/.config/dunst"
-    cat > "$homeDir/.config/dunst/dunstrc" << 'EOF'
-    [global]
-    follow = mouse
-    history_length = 20
-    indicate_hidden = yes
-    separator_height = 2
-    sort = yes
-    idle_threshold = 0
-    # Fallback timeout (seconds); urgency-specific values override this.
-    timeout = 60
-    
-    [urgency_low]
-    timeout = 60
-    
-    [urgency_normal]
-    timeout = 60
-    
-    [urgency_critical]
-    timeout = 60
-    
-    # Suppress noisy Bluetooth device connect/disconnect popups from Blueman
-    [bluetooth_blueman_connected]
-    appname = "Blueman"
-    summary = ".*(Connected|Disconnected).*"
-    skip_display = true
-    skip_history = true
-    
-    # Some environments label as "Bluetooth"
-    [bluetooth_generic_connected]
-    appname = "Bluetooth"
-    summary = ".*(Connected|Disconnected).*"
-    skip_display = true
-    skip_history = true
-    EOF
-    chown -R ${userName}:${userGroup} "$homeDir/.config/dunst"
-  '';
+  # Kernel/VM tuning and CPU governor override for mobile AMD APU
+  powerManagement.cpuFreqGovernor = pkgs.lib.mkForce "schedutil";
+  boot.kernel.sysctl = {
+    "vm.swappiness" = 10;
+    "vm.dirty_background_ratio" = 5;
+    "vm.dirty_ratio" = 10;
+    # Never auto-reboot on kernel panic so we can capture the panic screen.
+    "kernel.panic" = 0;
+  };
+
+  # Dunst config is written by `systemd.user.services.hyprvibe-setup-dunst` (see above),
+  # not during early-boot activation.
 
   # Prefer Hyprland XDG portal
   xdg.portal = {
