@@ -1,4 +1,10 @@
-{ config, lib, pkgs, hyprland, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  hyprland,
+  ...
+}:
 
 let
   # Package groups - preserving your existing packages
@@ -12,7 +18,7 @@ let
     gitui
     patchelf
     binutils
-    nixfmt-rfc-style
+    nixfmt
     zed-editor
     code-cursor
     cargo
@@ -94,7 +100,11 @@ let
       comment = "Launch REAPER using X11/XWayland for Wayland compositors";
       exec = "reaper-x11 %F";
       terminal = false;
-      categories = [ "AudioVideo" "Audio" "Midi" ];
+      categories = [
+        "AudioVideo"
+        "Audio"
+        "Midi"
+      ];
       icon = "reaper";
       type = "Application";
     })
@@ -266,7 +276,7 @@ let
     pipecontrol
     wireplumber
     kdePackages.plasma-browser-integration
-    nixfmt-rfc-style
+    nixfmt
     qownnotes
   ];
 
@@ -381,7 +391,7 @@ let
     v4l2-relayd
     libv4l
     sunshine
-    nixfmt-rfc-style
+    nixfmt
     qownnotes
     roc-toolkit
     libarchive
@@ -488,8 +498,8 @@ let
     kdePackages.kio-extras-kf5
     shared-mime-info
     desktop-file-utils
-    xfce.thunar
-    xfce.tumbler
+    thunar
+    tumbler
     gvfs
     tokyonight-gtk-theme
     papirus-icon-theme
@@ -547,12 +557,27 @@ in
   hyprvibe.waybar.stylePath = ./waybar.css;
   hyprvibe.waybar.scriptsDir = ./scripts;
   hyprvibe.waybar.extraConfigs = [
-    { source = ./waybar-simple.json; destName = "waybar-simple.json"; }
-    { source = ./waybar-simple-dp1.json; destName = "waybar-simple-dp1.json"; }
-    { source = ./waybar-simple-dp2.json; destName = "waybar-simple-dp2.json"; }
-    { source = ./waybar-simple-hdmi.json; destName = "waybar-simple-hdmi.json"; }
+    {
+      source = ./waybar-simple.json;
+      destName = "waybar-simple.json";
+    }
+    {
+      source = ./waybar-simple-dp1.json;
+      destName = "waybar-simple-dp1.json";
+    }
+    {
+      source = ./waybar-simple-dp2.json;
+      destName = "waybar-simple-dp2.json";
+    }
+    {
+      source = ./waybar-simple-hdmi.json;
+      destName = "waybar-simple-hdmi.json";
+    }
   ];
-  hyprvibe.shell = { enable = true; kittyAsDefault = true; };
+  hyprvibe.shell = {
+    enable = true;
+    kittyAsDefault = true;
+  };
   hyprvibe.services = {
     enable = true;
     openssh.enable = true;
@@ -567,7 +592,8 @@ in
     dev.enable = true;
     gaming.enable = true;
     # Add NIXSTATION-specific packages as extra packages
-    extraPackages = devTools ++ multimedia ++ utilities ++ systemTools ++ applications ++ gaming ++ gtkApps;
+    extraPackages =
+      devTools ++ multimedia ++ utilities ++ systemTools ++ applications ++ gaming ++ gtkApps;
   };
 
   # Boot configuration - BIOS/legacy boot (not EFI)
@@ -577,29 +603,35 @@ in
     loader.grub.device = "/dev/nvme0n1";
     # Note: This is a BIOS/legacy boot system (MBR partition table, not GPT/EFI)
     # No EFI settings needed - GRUB installs to the MBR
-    
+
     # Kernel provided by shared module
   };
 
   # Performance settings moved to shared module
 
   # Improve disk performance - PRESERVING YOUR EXISTING CONFIG
-  fileSystems."/".options = [ "noatime" "nodiratime" "discard" ];
+  fileSystems."/".options = [
+    "noatime"
+    "nodiratime"
+    "discard"
+  ];
 
   # Increase file descriptors limit - PRESERVING YOUR EXISTING CONFIG
-  security.pam.loginLimits = [{
-    domain = "*";
-    type = "soft";
-    item = "nofile";
-    value = "65535";
-  }];
+  security.pam.loginLimits = [
+    {
+      domain = "*";
+      type = "soft";
+      item = "nofile";
+      value = "65535";
+    }
+  ];
 
   # zram provided by shared module
   # Batch 1: Configure ZRAM size (50% of RAM for 6-core system)
   zramSwap = {
     enable = true;
     algorithm = "zstd";
-    memoryPercent = 50;  # Use 50% of RAM for ZRAM
+    memoryPercent = 50; # Use 50% of RAM for ZRAM
   };
 
   # Enable OOM - PRESERVING YOUR EXISTING CONFIG
@@ -713,10 +745,10 @@ in
 
   # Services - PRESERVING YOUR EXISTING CONFIG
   services = {
-    
+
     # Enable CUPS to print documents
     printing.enable = true;
-    
+
     # Enable sound with pipewire - PRESERVING YOUR EXISTING CONFIG
     pipewire = {
       enable = true;
@@ -725,18 +757,17 @@ in
       pulse.enable = true;
       jack.enable = true;
     };
-    
+
     # Enable touchpad support
     libinput.enable = true;
-    
+
     # Enable Flatpak - PRESERVING YOUR EXISTING CONFIG
     flatpak.enable = true;
-    
-    
+
     # Enable Tor - PRESERVING YOUR EXISTING CONFIG
     tor.client.enable = true;
     tor.enable = true;
-    
+
     # Enable Sunshine Streaming Server - PRESERVING YOUR EXISTING CONFIG
     xserver.config = ''
       Section "Device"
@@ -745,11 +776,7 @@ in
         Option "SWCursor" "true"
       EndSection
     '';
-    
 
-    
-
-    
     # Enable Tailscale Service - PRESERVING YOUR EXISTING CONFIG
     # useRoutingFeatures = "client" allows nixstation to accept and use subnet routes
     # advertised by other devices, without acting as a subnet router itself
@@ -758,18 +785,18 @@ in
       enable = true;
       useRoutingFeatures = lib.mkForce "client";
     };
-    
+
     # Enable the OpenSSH daemon - PRESERVING YOUR EXISTING CONFIG
     openssh.enable = true;
-    
+
     # Enable locate - PRESERVING YOUR EXISTING CONFIG
     locate.enable = true;
-    
+
     # GDM moved to shared module
-    
+
     # Additional services from GitHub config
-    udev.packages = [ 
-      pkgs.brightnessctl 
+    udev.packages = [
+      pkgs.brightnessctl
       pkgs.logitech-udev-rules
       # Additional udev rules for better HID support
       pkgs.bluez5-experimental
@@ -790,7 +817,7 @@ in
       SUBSYSTEM=="scsi_disk", GROUP="disk", MODE="0664"
       # Disable power management for network interface to prevent link drops
       SUBSYSTEM=="net", KERNEL=="eno1", ATTR{power/control}="on"
-      
+
       # Batch 1: I/O scheduler and queue depth optimizations
       # Set I/O scheduler for SATA drives (rotational)
       ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="mq-deadline"
@@ -857,8 +884,8 @@ in
   };
 
   # Boot kernel modules - Intel CPU (i7-5820K) specific
-  boot.kernelModules = [ 
-    "kvm-intel"  # Intel CPU virtualization (kvm-amd removed - this is an Intel system)
+  boot.kernelModules = [
+    "kvm-intel" # Intel CPU virtualization (kvm-amd removed - this is an Intel system)
     # Additional modules for better Bluetooth HID support
     "hid_logitech"
     "hid_logitech_dj"
@@ -884,7 +911,7 @@ in
     ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprpaper.conf} > /home/chrisf/.config/hypr/hyprpaper.conf
     ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${wallpaperPath}#g" ${./hyprlock.conf} > /home/chrisf/.config/hypr/hyprlock.conf
     cp ${./hypridle.conf} /home/chrisf/.config/hypr/hypridle.conf
-    
+
     # Install NIXSTATION-specific Hyprland scripts
     mkdir -p /home/chrisf/.config/hypr/scripts
     cp ${./scripts/launch-communication.sh} /home/chrisf/.config/hypr/scripts/launch-communication.sh
@@ -892,7 +919,7 @@ in
     cp ${./scripts/logitech-bluetooth.sh} /home/chrisf/.config/hypr/scripts/logitech-bluetooth.sh
     chmod +x /home/chrisf/.config/hypr/scripts/*.sh
     chown -R chrisf:users /home/chrisf/.config/hypr
-    
+
     # (left intentionally empty)
     cat > /home/chrisf/.config/fish/conf.d/kitty-integration.fish << 'EOF'
     # Kitty terminal integration
@@ -904,7 +931,7 @@ in
       set -gx KITTY_SHELL_INTEGRATION enabled
     end
     EOF
-    
+
     # GitHub token export for fish
     mkdir -p /home/chrisf/.config/secrets
     chown -R chrisf:users /home/chrisf/.config/secrets
@@ -915,16 +942,16 @@ in
     end
     EOF
     chown -R chrisf:users /home/chrisf/.config/fish
-    
+
     # Install crypto-price for Waybar module
     mkdir -p /home/chrisf/.local/bin
     chown -R chrisf:users /home/chrisf/.local
     runuser -l chrisf -c 'GOBIN=$HOME/.local/bin ${pkgs.go}/bin/go install github.com/u3mur4/crypto-price/cmd/crypto-price@latest' || true
-    
+
     # Copy monitor setup helper script
     cp ${../../scripts/setup-monitors.sh} /home/chrisf/.local/bin/setup-monitors
     chmod +x /home/chrisf/.local/bin/setup-monitors
-    
+
     # Set Kitty as default terminal in desktop environment
     mkdir -p /home/chrisf/.local/share/applications
     cat > /home/chrisf/.local/share/applications/kitty.desktop << 'EOF'
@@ -940,14 +967,14 @@ in
     Categories=System;TerminalEmulator;
     EOF
     chown chrisf:users /home/chrisf/.local/share/applications/kitty.desktop
-    
+
     # Update desktop database to register Kitty
     runuser -l chrisf -c 'update-desktop-database ~/.local/share/applications' || true
-    
+
     # Copy waybar switch script
     cp ${../../scripts/waybar-switch.sh} /home/chrisf/.local/bin/waybar-switch
     chmod +x /home/chrisf/.local/bin/waybar-switch
-    
+
     # Copy per-monitor waybar script
     cp ${../../scripts/waybar-per-monitor.sh} /home/chrisf/.local/bin/waybar-per-monitor
     chmod +x /home/chrisf/.local/bin/waybar-per-monitor
@@ -1006,23 +1033,23 @@ in
     # ignore_platform_theme=false
     # EOF
     # chown -R chrisf:users /home/chrisf/.config/qt6ct
-    
+
     # Install rofi brightness menu
     install -m 0755 ${./scripts/rofi-brightness.sh} /home/chrisf/.local/bin/rofi-brightness
     chown chrisf:users /home/chrisf/.local/bin/rofi-brightness
-    
+
     # Configure Kitty terminal
     mkdir -p /home/chrisf/.config/kitty
     cat > /home/chrisf/.config/kitty/kitty.conf << 'EOF'
     # Kitty Terminal Configuration
-    
+
     # Font configuration
     font_family FiraCode Nerd Font
     font_size 12
     bold_font auto
     italic_font auto
     bold_italic_font auto
-    
+
     # Colors - Tokyo Night inspired
     background #1a1b26
     foreground #c0caf5
@@ -1031,70 +1058,70 @@ in
     url_color #7aa2f7
     cursor #c0caf5
     cursor_text_color #1a1b26
-    
+
     # Tabs
     active_tab_background #7aa2f7
     active_tab_foreground #1a1b26
     inactive_tab_background #1a1b26
     inactive_tab_foreground #c0caf5
     tab_bar_background #16161e
-    
+
     # Window settings
     window_padding_width 10
     window_margin_width 0
     window_border_width 0
     background_opacity 0.95
-    
+
     # Shell integration
     shell_integration enabled
-    
+
     # Copy on select
     copy_on_select yes
-    
+
     # URL detection and hyperlinks
     detect_urls yes
     show_hyperlink_targets yes
     underline_hyperlinks always
-    
+
     # Mouse settings
     mouse_hide_while_typing yes
     focus_follows_mouse yes
-    
+
     # Performance
     sync_to_monitor yes
     repaint_delay 10
     input_delay 3
-    
+
     # Key bindings
     map ctrl+shift+equal change_font_size all +1.0
     map ctrl+shift+minus change_font_size all -1.0
     map ctrl+shift+0 change_font_size all 0
-    
+
     # Fish shell integration
     shell fish
-    
+
     # Terminal bell
     enable_audio_bell no
     visual_bell_duration 0.5
     visual_bell_color #f7768e
-    
+
     # Cursor
     cursor_shape beam
     cursor_beam_thickness 2
-    
+
     # Scrollback
     scrollback_lines 10000
     scrollback_pager less --chop-long-lines --RAW-CONTROL-CHARS +INPUT_LINE_NUMBER
-    
+
     # Clipboard
     clipboard_control write-clipboard write-primary read-clipboard read-primary
-    
+
     # Allow remote control
     allow_remote_control yes
     listen_on unix:/tmp/kitty
     EOF
     chown -R chrisf:users /home/chrisf/.config/kitty
-    
+
     # Configure Oh My Posh
     mkdir -p /home/chrisf/.config/oh-my-posh
     cat > /home/chrisf/.config/oh-my-posh/config.json << 'EOF'
@@ -1241,7 +1268,7 @@ in
     gamemode.enable = true;
     thunar = {
       enable = true;
-      plugins = with pkgs.xfce; [
+      plugins = with pkgs; [
         thunar-archive-plugin
         thunar-volman
       ];
@@ -1283,10 +1310,22 @@ in
   fonts.fontconfig = {
     enable = true;
     defaultFonts = {
-      monospace = [ "Fira Code" "Noto Color Emoji" ];
-      sansSerif = [ "Ubuntu" "Noto Color Emoji" ];
-      serif = [ "Noto Serif" "Noto Color Emoji" ];
-      emoji = [ "Noto Color Emoji" "Twemoji" ];
+      monospace = [
+        "Fira Code"
+        "Noto Color Emoji"
+      ];
+      sansSerif = [
+        "Ubuntu"
+        "Noto Color Emoji"
+      ];
+      serif = [
+        "Noto Serif"
+        "Noto Color Emoji"
+      ];
+      emoji = [
+        "Noto Color Emoji"
+        "Twemoji"
+      ];
     };
     localConf = builtins.readFile ./fonts.conf;
   };
@@ -1325,7 +1364,10 @@ in
     extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
     config = {
       common = {
-        default = [ "hyprland" "gtk" ];
+        default = [
+          "hyprland"
+          "gtk"
+        ];
         "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
       };
     };
@@ -1343,7 +1385,7 @@ in
   nixpkgs.config.permittedInsecurePackages = [
     "libsoup-2.74.3"
   ];
-  
+
   # Override maestral to skip tests (test failure is environment-related, not code issue)
   # TODO: Remove this overlay when maestral test_help test is fixed upstream
   # To check if fixed: Try building without this override and check for test failures
@@ -1385,7 +1427,7 @@ in
       WAYLAND_DISPLAY = "wayland-0";
       XDG_RUNTIME_DIR = "/home/chrisf/tmp";
       XDG_SESSION_TYPE = "wayland";
-      WLR_BACKENDS= "headless";
+      WLR_BACKENDS = "headless";
       PULSE_SERVER = "/run/user/1000/pulse/native";
     };
   };

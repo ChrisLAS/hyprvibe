@@ -1,4 +1,9 @@
-{ config, pkgs, hyprland, ... }:
+{
+  config,
+  pkgs,
+  hyprland,
+  ...
+}:
 
 let
   # Hyprvibe user options (from modules/shared/user.nix)
@@ -17,7 +22,7 @@ let
     gitui
     patchelf
     binutils
-    nixfmt-rfc-style
+    nixfmt
     zed-editor
     # Additional development tools from Omarchy
     cargo
@@ -69,7 +74,11 @@ let
       comment = "Launch REAPER using X11/XWayland for Wayland compositors";
       exec = "reaper-x11 %F";
       terminal = false;
-      categories = [ "AudioVideo" "Audio" "Midi" ];
+      categories = [
+        "AudioVideo"
+        "Audio"
+        "Midi"
+      ];
       icon = "reaper";
       type = "Application";
     })
@@ -250,7 +259,7 @@ let
     # zoxide  # deduped; present in utilities
     rclone-browser
     code-cursor
-    
+
   ];
 
   gaming = with pkgs; [
@@ -280,8 +289,8 @@ let
     kdePackages.ark
     kdePackages.konsole
     # Also include Thunar alongside Dolphin
-    xfce.thunar
-    xfce.tumbler
+    thunar
+    tumbler
     gvfs
     # Theming packages
     tokyonight-gtk-theme
@@ -347,8 +356,6 @@ in
   hyprvibe.hyprland.monitorsFile = ../../configs/hyprland-monitors-rvbee-120hz.conf;
   hyprvibe.hyprland.mainConfig = ./hyprland.conf;
   hyprvibe.hyprland.wallpaper = wallpaperPath;
-  hyprvibe.hyprland.wallpaperOutputs = [ "DP-1" ];
-  hyprvibe.hyprland.wallpaperBackend = "swaybg";
   hyprvibe.hyprland.hyprpaperTemplate = ./hyprpaper.conf;
   hyprvibe.hyprland.hyprlockTemplate = ./hyprlock.conf;
   hyprvibe.hyprland.hypridleConfig = ./hypridle.conf;
@@ -377,10 +384,10 @@ in
   };
 
   # Define custom groups referenced by udev rules
-  users.groups.plugdev = {};
+  users.groups.plugdev = { };
   hyprvibe.services = {
     enable = true;
-    
+
     virt.enable = true;
     docker.enable = true;
   };
@@ -425,7 +432,10 @@ in
     initrd.verbose = true;
     # v4l2loopback for virtual webcam support (OBS, conferencing apps)
     # sg is required to create /dev/sg* nodes (SCSI generic), used by MakeMKV and some disc tools.
-    kernelModules = [ "v4l2loopback" "sg" ];
+    kernelModules = [
+      "v4l2loopback"
+      "sg"
+    ];
     extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
     extraModprobeConfig = ''
       # Dedicated virtual camera for OBS capture, fixed at /dev/video10
@@ -471,7 +481,7 @@ in
       };
     };
     # Keep Netdata unit installed but do not enable it at boot
-    services.netdata.wantedBy = pkgs.lib.mkForce [];
+    services.netdata.wantedBy = pkgs.lib.mkForce [ ];
     services.netdata.restartIfChanged = false;
     user.services.kwalletd = {
       description = "KWallet user daemon";
@@ -587,7 +597,7 @@ in
     resolved.enable = true;
     # Desktop support services moved to shared module (udisks2, gvfs, tumbler, blueman, avahi, davfs2, gnome-keyring, gdm)
     printing.enable = true;
-    
+
     openssh.enable = true;
     tailscale.enable = true;
     netdata = {
@@ -612,7 +622,7 @@ in
         };
       };
     };
-    
+
     # Atuin shell history service
     atuin = {
       enable = true;
@@ -700,7 +710,10 @@ in
   ];
 
   # Open firewall for Companion
-  networking.firewall.allowedTCPPorts = (config.networking.firewall.allowedTCPPorts or []) ++ [ 8000 51234 ];
+  networking.firewall.allowedTCPPorts = (config.networking.firewall.allowedTCPPorts or [ ]) ++ [
+    8000
+    51234
+  ];
 
   # Disable CoW on specific directories for better performance
   systemd.services.disable-cow = {
@@ -713,7 +726,9 @@ in
       RemainAfterExit = true;
     };
   };
-  networking.firewall.allowedUDPPorts = (config.networking.firewall.allowedUDPPorts or []) ++ [ 51234 ];
+  networking.firewall.allowedUDPPorts = (config.networking.firewall.allowedUDPPorts or [ ]) ++ [
+    51234
+  ];
 
   # Copy Hyprland configuration to user's home
   # Disabled: migrated to hyprvibe.hyprland options
@@ -727,7 +742,7 @@ in
     # BTC script for hyprlock
     cp --remove-destination ${./scripts/hyprlock-btc.sh} ${homeDir}/.config/hypr/hyprlock-btc.sh
     chmod +x ${homeDir}/.config/hypr/hyprlock-btc.sh
-    
+
     mkdir -p ${homeDir}/.config/waybar
     cp --remove-destination ${./waybar.json} ${homeDir}/.config/waybar/config
     # Theme and scripts for Waybar (cyberpunk aesthetic + custom modules)
@@ -746,19 +761,19 @@ in
     chmod +x ${homeDir}/.config/waybar/scripts/*.sh
     chmod +x ${homeDir}/.config/waybar/scripts/*.py || true
     chown -R ${userName}:${userGroup} ${homeDir}/.config/waybar
-    
+
     # Configure Kitty terminal
     mkdir -p ${homeDir}/.config/kitty
     cat > ${homeDir}/.config/kitty/kitty.conf << 'EOF'
     # Kitty Terminal Configuration
-    
+
     # Font configuration
     font_family FiraCode Nerd Font
     font_size 12
     bold_font auto
     italic_font auto
     bold_italic_font auto
-    
+
     # Colors - Tokyo Night inspired
     background #1a1b26
     foreground #c0caf5
@@ -767,70 +782,70 @@ in
     url_color #7aa2f7
     cursor #c0caf5
     cursor_text_color #1a1b26
-    
+
     # Tabs
     active_tab_background #7aa2f7
     active_tab_foreground #1a1b26
     inactive_tab_background #1a1b26
     inactive_tab_foreground #c0caf5
     tab_bar_background #16161e
-    
+
     # Window settings
     window_padding_width 10
     window_margin_width 0
     window_border_width 0
     background_opacity 0.95
-    
+
     # Shell integration
     shell_integration enabled
-    
+
     # Copy on select
     copy_on_select yes
-    
+
     # URL detection and hyperlinks
     detect_urls yes
     show_hyperlink_targets yes
     underline_hyperlinks always
-    
+
     # Mouse settings
     mouse_hide_while_typing yes
     focus_follows_mouse yes
-    
+
     # Performance
     sync_to_monitor yes
     repaint_delay 10
     input_delay 3
-    
+
     # Key bindings
     map ctrl+shift+equal change_font_size all +1.0
     map ctrl+shift+minus change_font_size all -1.0
     map ctrl+shift+0 change_font_size all 0
-    
+
     # Fish shell integration
     shell fish
-    
+
     # Terminal bell
     enable_audio_bell no
     visual_bell_duration 0.5
     visual_bell_color #f7768e
-    
+
     # Cursor
     cursor_shape beam
     cursor_beam_thickness 2
-    
+
     # Scrollback
     scrollback_lines 10000
     scrollback_pager less --chop-long-lines --RAW-CONTROL-CHARS +INPUT_LINE_NUMBER
-    
+
     # Clipboard
     clipboard_control write-clipboard write-primary read-clipboard read-primary
-    
+
     # Allow remote control
     allow_remote_control yes
     listen_on unix:/tmp/kitty
     EOF
     chown -R ${userName}:${userGroup} ${homeDir}/.config/kitty
-    
+
     # Configure Oh My Posh default (preserve user-selected theme if present)
     mkdir -p ${homeDir}/.config/oh-my-posh
     cat > ${homeDir}/.config/oh-my-posh/config-default.json << 'EOF'
@@ -967,7 +982,7 @@ in
     }
     EOF
     [ -f ${homeDir}/.config/oh-my-posh/config.json ] || cp ${homeDir}/.config/oh-my-posh/config-default.json ${homeDir}/.config/oh-my-posh/config.json
-    
+
     # Create additional Oh My Posh theme configurations
     cat > ${homeDir}/.config/oh-my-posh/config-enhanced.json << 'EOF'
     {
@@ -1145,7 +1160,7 @@ in
       ]
     }
     EOF
-    
+
     cat > ${homeDir}/.config/oh-my-posh/config-minimal.json << 'EOF'
     {
       "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
@@ -1209,7 +1224,7 @@ in
       ]
     }
     EOF
-    
+
     cat > ${homeDir}/.config/oh-my-posh/config-professional.json << 'EOF'
     {
       "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
@@ -1384,9 +1399,9 @@ in
       ]
     }
     EOF
-    
+
     chown -R ${userName}:${userGroup} ${homeDir}/.config/oh-my-posh
-    
+
     # Create Atuin Fish configuration
     mkdir -p ${homeDir}/.config/fish/conf.d
     cat > ${homeDir}/.config/fish/conf.d/atuin.fish << 'EOF'
@@ -1396,7 +1411,7 @@ in
       atuin init fish | source
     end
     EOF
-    
+
     # Create Oh My Posh Fish configuration
     cat > ${homeDir}/.config/fish/conf.d/oh-my-posh.fish << 'EOF'
     # Oh My Posh prompt configuration
@@ -1405,7 +1420,7 @@ in
       oh-my-posh init fish --config ~/.config/oh-my-posh/config.json | source
     end
     EOF
-    
+
     # Additional Fish configuration for better integration
     cat > ${homeDir}/.config/fish/conf.d/kitty-integration.fish << 'EOF'
     # Kitty terminal integration
@@ -1417,7 +1432,7 @@ in
       set -gx KITTY_SHELL_INTEGRATION enabled
     end
     EOF
-    
+
     chown -R ${userName}:${userGroup} ${homeDir}/.config/fish
 
     # Hard-override fish prompt to bootstrap Oh My Posh on first prompt draw
@@ -1466,7 +1481,7 @@ in
     mkdir -p ${homeDir}/.local/bin
     chown -R ${userName}:${userGroup} ${homeDir}/.local
     runuser -s ${pkgs.bash}/bin/bash -l ${userName} -c 'GOBIN=$HOME/.local/bin ${pkgs.go}/bin/go install github.com/u3mur4/crypto-price/cmd/crypto-price@latest' || true
-    
+
     # Copy monitor setup helper script
     cp ${../../scripts/setup-monitors.sh} ${homeDir}/.local/bin/setup-monitors
     chmod +x ${homeDir}/.local/bin/setup-monitors
@@ -1724,7 +1739,7 @@ in
     # Install rofi brightness menu
     install -m 0755 ${./scripts/rofi-brightness.sh} ${homeDir}/.local/bin/rofi-brightness
     chown ${userName}:${userGroup} ${homeDir}/.local/bin/rofi-brightness
-    
+
     # Install Oh My Posh theme switcher
     cat > ${homeDir}/.local/bin/switch-oh-my-posh-theme << 'EOF'
     #!/run/current-system/sw/bin/bash
@@ -1823,7 +1838,7 @@ in
     EOF
     chmod +x ${homeDir}/.local/bin/switch-oh-my-posh-theme
     chown ${userName}:${userGroup} ${homeDir}/.local/bin/switch-oh-my-posh-theme
-    
+
     # Set Kitty as default terminal in desktop environment
     mkdir -p ${homeDir}/.local/share/applications
     cat > ${homeDir}/.local/share/applications/kitty.desktop << 'EOF'
@@ -1839,10 +1854,10 @@ in
     Categories=System;TerminalEmulator;
     EOF
     chown ${userName}:${userGroup} ${homeDir}/.local/share/applications/kitty.desktop
-    
+
     # Update desktop database to register Kitty and ClipPlayer
     runuser -s ${pkgs.bash}/bin/bash -l chrisf -c '${pkgs.desktop-file-utils}/bin/update-desktop-database ~/.local/share/applications' || true
-    
+
     # ClipPlayer desktop entry for file associations
     cat > ${homeDir}/.local/share/applications/clip-player.desktop << 'EOF'
     [Desktop Entry]
@@ -1858,7 +1873,7 @@ in
     MimeType=video/mp4;video/x-matroska;video/webm;video/x-msvideo;video/quicktime;video/ogg;audio/mpeg;audio/mp3;audio/ogg;audio/flac;audio/x-flac;audio/wav;audio/x-wav;application/ogg;
     EOF
     chown ${userName}:${userGroup} ${homeDir}/.local/share/applications/clip-player.desktop
-    
+
     # Set ClipPlayer as default for common media MIME types
     mkdir -p ${homeDir}/.config
     cat > ${homeDir}/.config/mimeapps.list << 'EOF'
@@ -1903,7 +1918,7 @@ in
     };
     thunar = {
       enable = true;
-      plugins = with pkgs.xfce; [
+      plugins = with pkgs; [
         thunar-archive-plugin
         thunar-volman
       ];
@@ -1920,13 +1935,15 @@ in
           QT_QPA_PLATFORM = "xcb";
         };
         # Binaries needed inside the Steam runtime container
-        extraPkgs = pkgs': with pkgs'; [
-          psmisc # provides `killall`
-        ];
+        extraPkgs =
+          pkgs': with pkgs'; [
+            psmisc # provides `killall`
+          ];
         # Shared libs needed inside the Steam runtime container
-        extraLibraries = pkgs': with pkgs'; [
-          gamemode # provides libgamemode.so (fixes gamemodeauto dlopen failed)
-        ];
+        extraLibraries =
+          pkgs': with pkgs'; [
+            gamemode # provides libgamemode.so (fixes gamemodeauto dlopen failed)
+          ];
         # Help SteamVR's vrwebhelper locate its own shipped libs (libcef.so, etc.)
         extraProfile = ''
           export LD_LIBRARY_PATH="''${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$HOME/.local/share/Steam/steamapps/common/SteamVR/bin/vrwebhelper/linux64:$HOME/.local/share/Steam/steamapps/common/SteamVR/bin/linux64"
@@ -1951,8 +1968,6 @@ in
       ];
     };
   };
-
-
 
   # Fonts
   fonts.packages = with pkgs; [
@@ -1990,14 +2005,8 @@ in
       CLAP_PATH = "/run/current-system/sw/lib/clap";
     };
     systemPackages =
-      devTools
-      ++ multimedia
-      ++ utilities
-      ++ systemTools
-      ++ applications
-      ++ gaming
-      ++ gtkApps;
-      
+      devTools ++ multimedia ++ utilities ++ systemTools ++ applications ++ gaming ++ gtkApps;
+
     # Disable Orca in GDM greeter to silence missing TryExec logs
     etc = {
       "xdg/autostart/orca-autostart.desktop".text = ''
@@ -2028,7 +2037,10 @@ in
     extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
     config = {
       common = {
-        default = [ "hyprland" "gtk" ];
+        default = [
+          "hyprland"
+          "gtk"
+        ];
         "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
       };
     };
@@ -2042,7 +2054,10 @@ in
   };
 
   # Nix settings
-  nix.settings.experimental-features = ["nix-command" "flakes"];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.permittedInsecurePackages = [
     "libsoup-2.74.3"
@@ -2053,12 +2068,16 @@ in
     (final: prev: {
       python3Packages = prev.python3Packages.override {
         overrides = self: super: {
-          mat2 = super.mat2.overridePythonAttrs (old: { doCheck = false; });
+          mat2 = super.mat2.overridePythonAttrs (old: {
+            doCheck = false;
+          });
         };
       };
       python313Packages = prev.python313Packages.override {
         overrides = self: super: {
-          mat2 = super.mat2.overridePythonAttrs (old: { doCheck = false; });
+          mat2 = super.mat2.overridePythonAttrs (old: {
+            doCheck = false;
+          });
         };
       };
     })
@@ -2066,4 +2085,4 @@ in
 
   # System version
   system.stateVersion = "23.11";
-} 
+}
