@@ -38,7 +38,7 @@ window#waybar {
   font-size: 14pt;
 }
 
-#clock, #memory, #cpu, #tray, #network, #pulseaudio, #custom-public_ip, #custom-amd_gpu, #custom-dunst, #window {
+#clock, #memory, #cpu, #tray, #network, #pulseaudio, #custom-public_ip, #custom-amd_gpu, #custom-dunst, #window, #battery {
   padding: 0 10px;
 }
 
@@ -97,4 +97,22 @@ tooltip {
 #memory { min-width: 8em; }
 #network { min-width: 14em; }
 #pulseaudio { min-width: 8em; }
+#battery { min-width: 5em; }
+
+/* Battery state colors */
+#battery.warning {
+  color: #ffaa00;
+}
+
+#battery.critical {
+  color: #ff0055;
+  animation: blink 1s linear infinite;
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 1; }
+  51% { opacity: 0.3; }
+  100% { opacity: 0.3; }
+}
 

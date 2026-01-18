@@ -33,6 +33,11 @@ let
         default = [];
         description = "Additional groups to add on top of hyprvibe base groups.";
       };
+      icon = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+        description = "Path to user profile picture/icon file (will be copied to ~/.face for GDM).";
+      };
     };
   };
 in {
@@ -51,6 +56,7 @@ in {
           description = value.description or "Hyprvibe User";
           linger = value.linger or true;
           extraGroups = value.extraGroups or [];
+          icon = value.icon or null;
         };
   };
 
@@ -60,6 +66,8 @@ in {
       "networkmanager" "wheel" "docker" "adbusers" "libvirtd" "video" "render" "audio" "i2c"
     ];
     finalGroups = lib.unique (baseGroups ++ (cfg.extraGroups or []));
+    userHome = cfg.home;
+    userIcon = cfg.icon;
   in {
     users.users."${cfg.name}" = {
       isNormalUser = true;
@@ -68,8 +76,23 @@ in {
       linger = cfg.linger or true;
       extraGroups = finalGroups;
       group = cfg.group;
-      home = cfg.home;
+      home = userHome;
     };
+
+    # Set user profile picture for GDM if icon is specified
+    system.activationScripts.setUserIcon = lib.mkIf (userIcon != null) ''
+      echo "[hyprvibe][user] setting profile picture for ${cfg.name}..."
+      if [ -f "${userIcon}" ]; then
+        # Ensure the user's home directory exists
+        mkdir -p "${userHome}"
+        # Copy the icon to ~/.face (standard location for user profile pictures)
+        cp -f "${userIcon}" "${userHome}/.face" || true
+        chown ${cfg.name}:${cfg.group} "${userHome}/.face" || true
+        echo "[hyprvibe][user] profile picture set to ${userHome}/.face"
+      else
+        echo "[hyprvibe][user] WARNING: Icon file ${userIcon} not found, skipping..."
+      fi
+    '';
   };
 }
 

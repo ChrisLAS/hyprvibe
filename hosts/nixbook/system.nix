@@ -362,6 +362,7 @@ in
     name = "chrisf";
     group = "users";
     home = "/home/chrisf";
+    description = "Chris Fisher";
     extraGroups = [ "plugdev" ];
   };
 
@@ -834,6 +835,7 @@ in
     cp --remove-destination ${./scripts/waybar-btc-coingecko.sh} ${homeDir}/.config/waybar/scripts/waybar-btc-coingecko.sh
     cp --remove-destination ${./scripts/waybar-reboot.sh} ${homeDir}/.config/waybar/scripts/waybar-reboot.sh
     cp --remove-destination ${./scripts/waybar-mpris.sh} ${homeDir}/.config/waybar/scripts/waybar-mpris.sh
+    cp --remove-destination ${./scripts/waybar-battery.sh} ${homeDir}/.config/waybar/scripts/waybar-battery.sh
     chmod +x ${homeDir}/.config/waybar/scripts/*.sh
     chmod +x ${homeDir}/.config/waybar/scripts/*.py || true
     chown -R ${userName}:${userGroup} ${homeDir}/.config/waybar
