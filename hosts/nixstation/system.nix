@@ -27,6 +27,7 @@ let
     kitty
     oh-my-posh
     lazydocker
+    android-tools
     # Additional dev tools from your current config
     yarn
     nodejs_20
@@ -173,6 +174,7 @@ let
     qt6.qtbase
     qt6.qtwayland
     wofi
+    hyprlauncher
     dunst
     cliphist
     brightnessctl
@@ -751,6 +753,7 @@ in
     # Enable Tailscale Service - PRESERVING YOUR EXISTING CONFIG
     # useRoutingFeatures = "client" allows nixstation to accept and use subnet routes
     # advertised by other devices, without acting as a subnet router itself
+    # This should automatically set --accept-routes=true when the service starts
     tailscale = {
       enable = true;
       useRoutingFeatures = lib.mkForce "client";
@@ -1233,7 +1236,6 @@ in
   # Programs - PRESERVING YOUR EXISTING CONFIG
   programs = {
     fish.enable = true;
-    adb.enable = true;
     virt-manager.enable = true;
     dconf.enable = true;
     gamemode.enable = true;
