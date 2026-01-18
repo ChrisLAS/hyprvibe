@@ -21,7 +21,7 @@ let
     gitui
     patchelf
     binutils
-    nixfmt-rfc-style
+    nixfmt
     zed-editor
     opencode
     # Additional development tools from Omarchy
@@ -273,8 +273,8 @@ let
     kdePackages.ark
     kdePackages.konsole
     # Also include Thunar alongside Dolphin
-    xfce.thunar
-    xfce.tumbler
+    thunar
+    tumbler
     gvfs
     # Theming packages
     tokyonight-gtk-theme
@@ -2040,7 +2040,7 @@ in
     nix-ld.enable = true;
     thunar = {
       enable = true;
-      plugins = with pkgs.xfce; [
+      plugins = with pkgs; [
         thunar-archive-plugin
         thunar-volman
       ];
