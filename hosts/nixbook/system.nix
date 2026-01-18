@@ -1,4 +1,9 @@
-{ config, pkgs, hyprland, ... }:
+{
+  config,
+  pkgs,
+  hyprland,
+  ...
+}:
 
 let
   # Hyprvibe user options (from modules/shared/user.nix)
@@ -18,6 +23,7 @@ let
     binutils
     nixfmt-rfc-style
     zed-editor
+    opencode
     # Additional development tools from Omarchy
     cargo
     clang
@@ -55,7 +61,11 @@ let
       comment = "Launch REAPER using X11/XWayland for Wayland compositors";
       exec = "reaper-x11 %F";
       terminal = false;
-      categories = [ "AudioVideo" "Audio" "Midi" ];
+      categories = [
+        "AudioVideo"
+        "Audio"
+        "Midi"
+      ];
       icon = "reaper";
       type = "Application";
     })
@@ -180,6 +190,7 @@ let
     openssh
     glib-networking
     rclone
+    android-tools
   ];
 
   systemTools = with pkgs; [
@@ -232,7 +243,7 @@ let
     rclone-browser
     code-cursor
     cursor-cli
-    
+
   ];
 
   gaming = with pkgs; [
@@ -367,11 +378,11 @@ in
   };
 
   # Define custom groups referenced by udev rules
-  users.groups.plugdev = {};
+  users.groups.plugdev = { };
   # Services configuration
   hyprvibe.services = {
-    enable = true;  # Enable baseline services (pipewire, flatpak, polkit, etc.)
-    tailscale.enable = true;  # Enable Tailscale via shared module (configures useRoutingFeatures = "both")
+    enable = true; # Enable baseline services (pipewire, flatpak, polkit, etc.)
+    tailscale.enable = true; # Enable Tailscale via shared module (configures useRoutingFeatures = "both")
     virt.enable = true;
     docker.enable = true;
   };
@@ -389,10 +400,10 @@ in
     if ! ${pkgs.flatpak}/bin/flatpak remote-list --system 2>/dev/null | grep -q "^flathub"; then
       ${pkgs.flatpak}/bin/flatpak remote-add --if-not-exists --system flathub https://dl.flathub.org/repo/flathub.flatpakrepo
     fi
-    
+
     # Update Flathub remote to ensure we have latest package information
     ${pkgs.flatpak}/bin/flatpak update --appstream --system flathub 2>/dev/null || true
-    
+
     # List of flatpak applications to install
     FLATPAKS=(
       "flathub:com.usebottles.bottles"
@@ -414,7 +425,7 @@ in
       "flathub:io.gitlab.adhami3310.Converter"
       "flathub:io.github.xyproto.zsnes"
     )
-    
+
     # Install each flatpak if not already installed
     for pkg in "''${FLATPAKS[@]}"; do
       # Extract the app ID from the package string (e.g., "flathub:com.usebottles.bottles" -> "com.usebottles.bottles")
@@ -428,14 +439,27 @@ in
     done
   '';
 
-  # Android ADB udev support now covered by systemd uaccess rules; keep brightnessctl
+  # Android ADB udev support now handled automatically by systemd 258+ uaccess rules
   services.udev.packages = [ pkgs.brightnessctl ];
   services.udev.extraRules = ''
-    # Google (Pixel/Nexus) generic USB (MTP/ADB)
+    # Note: Android ADB rules now handled automatically by systemd 258+
+    # Google (Pixel/Nexus) generic USB (MTP/ADB) - keeping for backwards compatibility
     SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", MODE="0666", GROUP="adbusers"
     # Elgato Stream Deck (USB + hidraw)
     SUBSYSTEM=="usb", ATTR{idVendor}=="0fd9", MODE="0660", GROUP="plugdev"
     KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0fd9", MODE="0660", GROUP="plugdev"
+
+    # Prevent wakeup from USB devices (mice, keyboards, etc.) - critical for preventing unexpected wakeups
+    # Disable wakeup for USB HID devices (keyboards, mice)
+    ACTION=="add", SUBSYSTEM=="usb", DRIVERS=="usb", ATTR{power/wakeup}="disabled"
+    ACTION=="add", SUBSYSTEM=="input", KERNEL=="event*", ATTR{power/wakeup}="disabled"
+
+    # Disable wakeup for network interfaces (prevent Wake-on-LAN from waking laptop)
+    ACTION=="add", SUBSYSTEM=="net", KERNEL=="wlan*", ATTR{power/wakeup}="disabled"
+    ACTION=="add", SUBSYSTEM=="net", KERNEL=="eth*", RUN+="${pkgs.bash}/bin/bash -c 'echo disabled > /sys$devpath/power/wakeup'"
+
+    # Note: Lid switch wakeup is intentionally left enabled (we need it to detect lid open/close)
+    # But other input devices are disabled to prevent accidental wakeups
   '';
   hyprvibe.packages = {
     enable = true;
@@ -474,61 +498,69 @@ in
     # Priority 7: Memory (transparent hugepages)
     kernelParams = [
       # Stability fixes (Priority 1-3)
-      "intel_idle.max_cstate=1"   # Reduce C-state depth (prevents deep sleep panics)
-      "processor.max_cstate=1"    # Limit processor C-states system-wide
-      "i915.enable_guc=0"         # Disable Intel GPU GuC firmware loading (stability)
-      "i915.enable_huc=0"         # Disable Intel GPU HuC firmware loading (stability)
-      "acpi_osi=Linux"            # Tell ACPI we're Linux (better compatibility)
-      
+      "intel_idle.max_cstate=1" # Reduce C-state depth (prevents deep sleep panics)
+      "processor.max_cstate=1" # Limit processor C-states system-wide
+      "i915.enable_guc=0" # Disable Intel GPU GuC firmware loading (stability)
+      "i915.enable_huc=0" # Disable Intel GPU HuC firmware loading (stability)
+      "acpi_osi=Linux" # Tell ACPI we're Linux (better compatibility)
+
       # Performance optimizations (Priority 4-7)
       # CPU: RCU and NOHZ tuning for 6-core/12-thread CPU (i7-10810U)
-      "rcu_nocbs=0-11"            # Offload RCU callbacks from all 12 threads
-      "nohz_full=0-11"            # Enable full dynticks (reduce timer interrupts)
+      "rcu_nocbs=0-11" # Offload RCU callbacks from all 12 threads
+      "nohz_full=0-11" # Enable full dynticks (reduce timer interrupts)
       # Intel GPU: Performance features (safe to enable)
-      "i915.enable_fbc=1"         # Enable frame buffer compression (saves power, improves performance)
-      "i915.enable_psr=1"         # Enable panel self-refresh (saves power)
-      "i915.enable_dc=1"          # Enable display C-states (power saving)
-      "i915.modeset=1"            # Force modesetting (explicit, already default)
+      "i915.enable_fbc=1" # Enable frame buffer compression (saves power, improves performance)
+      "i915.enable_psr=1" # Enable panel self-refresh (saves power)
+      "i915.enable_dc=1" # Enable display C-states (power saving)
+      "i915.modeset=1" # Force modesetting (explicit, already default)
       # I/O: NVMe optimization (assuming NVMe drive)
-      "elevator=none"              # No-op scheduler for NVMe (best performance)
+      "elevator=none" # No-op scheduler for NVMe (best performance)
       # Memory: Transparent hugepages for better memory performance
       "transparent_hugepage=always" # Always use hugepages when possible
     ];
-    
+
     # Kernel sysctl tuning for performance
     kernel.sysctl = {
       # Memory management optimizations
-      "vm.swappiness" = 10;                    # Reduce swapping aggressiveness (default: 60)
-      "vm.vfs_cache_pressure" = 50;            # Balance between inode and dentry caches
-      "vm.dirty_background_ratio" = 5;         # Flush dirty pages more aggressively (default: 10)
-      "vm.dirty_ratio" = 10;                   # Hard limit for dirty pages (default: 20)
-      "vm.dirty_expire_centisecs" = 3000;     # How long dirty pages can stay (30s, default: 3000)
-      "vm.dirty_writeback_centisecs" = 500;   # How often writeback happens (5s, default: 500)
-      "vm.overcommit_memory" = 1;              # Allow overcommit (better for desktop, default: 0)
-      "vm.overcommit_ratio" = 50;              # Allow 50% overcommit (default: 50)
-      "vm.min_free_kbytes" = 65536;            # Ensure minimum free memory (default varies)
-      "vm.zone_reclaim_mode" = 0;              # Disable zone reclaim (better for UMA systems)
-      
+      "vm.swappiness" = 10; # Reduce swapping aggressiveness (default: 60)
+      "vm.vfs_cache_pressure" = 50; # Balance between inode and dentry caches
+      "vm.dirty_background_ratio" = 5; # Flush dirty pages more aggressively (default: 10)
+      "vm.dirty_ratio" = 10; # Hard limit for dirty pages (default: 20)
+      "vm.dirty_expire_centisecs" = 3000; # How long dirty pages can stay (30s, default: 3000)
+      "vm.dirty_writeback_centisecs" = 500; # How often writeback happens (5s, default: 500)
+      "vm.overcommit_memory" = 1; # Allow overcommit (better for desktop, default: 0)
+      "vm.overcommit_ratio" = 50; # Allow 50% overcommit (default: 50)
+      "vm.min_free_kbytes" = 65536; # Ensure minimum free memory (default varies)
+      "vm.zone_reclaim_mode" = 0; # Disable zone reclaim (better for UMA systems)
+
       # Network TCP tuning for better throughput
-      "net.core.rmem_max" = 67108864;          # 64MB max receive buffer
-      "net.core.wmem_max" = 67108864;          # 64MB max send buffer
-      "net.core.rmem_default" = 87380;         # Default receive buffer
-      "net.core.wmem_default" = 65536;         # Default send buffer
-      "net.ipv4.tcp_rmem" = "4096 87380 67108864";  # TCP receive buffer (min default max)
-      "net.ipv4.tcp_wmem" = "4096 65536 67108864";  # TCP send buffer (min default max)
-      "net.ipv4.tcp_fastopen" = 3;             # Enable TCP Fast Open (client + server)
-      "net.core.netdev_max_backlog" = 5000;    # Increase network device backlog
+      "net.core.rmem_max" = 67108864; # 64MB max receive buffer
+      "net.core.wmem_max" = 67108864; # 64MB max send buffer
+      "net.core.rmem_default" = 87380; # Default receive buffer
+      "net.core.wmem_default" = 65536; # Default send buffer
+      "net.ipv4.tcp_rmem" = "4096 87380 67108864"; # TCP receive buffer (min default max)
+      "net.ipv4.tcp_wmem" = "4096 65536 67108864"; # TCP send buffer (min default max)
+      "net.ipv4.tcp_fastopen" = 3; # Enable TCP Fast Open (client + server)
+      "net.core.netdev_max_backlog" = 5000; # Increase network device backlog
       "net.ipv4.tcp_slow_start_after_idle" = 0; # Disable slow start after idle (better for persistent connections)
-      
+
       # Kernel memory management
-      "kernel.panic_on_oom" = 0;               # Don't panic on OOM (let systemd-oomd handle it)
-      "vm.oom_dump_tasks" = 1;                 # Dump tasks on OOM for debugging
+      "kernel.panic_on_oom" = 0; # Don't panic on OOM (let systemd-oomd handle it)
+      "vm.oom_dump_tasks" = 1; # Dump tasks on OOM for debugging
     };
   };
 
   # Filesystem performance optimizations
-  fileSystems."/".options = [ "noatime" "nodiratime" "discard" ];
-  fileSystems."/home".options = [ "noatime" "nodiratime" "discard" ];
+  fileSystems."/".options = [
+    "noatime"
+    "nodiratime"
+    "discard"
+  ];
+  fileSystems."/home".options = [
+    "noatime"
+    "nodiratime"
+    "discard"
+  ];
 
   # Systemd performance optimizations
   systemd.settings.Manager = {
@@ -553,7 +585,7 @@ in
   zramSwap = {
     enable = true;
     algorithm = "zstd";
-    memoryPercent = 50;  # Use 50% of RAM for ZRAM (good for 16GB+ systems)
+    memoryPercent = 50; # Use 50% of RAM for ZRAM (good for 16GB+ systems)
   };
 
   # Automatic system updates (use flake to avoid channel-based reverts)
@@ -570,10 +602,32 @@ in
   # Note: Dynamic power management is handled by hyprvibe.power module
   powerManagement = {
     enable = true;
-    cpuFreqGovernor = "performance";  # Default to performance (hyprvibe.power can override)
-    powertop.enable = true;           # Enable powertop for power tuning
+    cpuFreqGovernor = "performance"; # Default to performance (hyprvibe.power can override)
+    powertop.enable = true; # Enable powertop for power tuning
   };
-  
+
+  # logind configuration for laptop lid handling and sleep management
+  # Prevents unexpected wakeups that drain battery
+  services.logind = {
+    # Additional sleep configuration - ensure proper sleep behavior
+    settings = {
+      Login = {
+        # Suspend when lid is closed (both on battery and AC power)
+        HandleLidSwitch = "suspend";
+        HandleLidSwitchExternalPower = "suspend"; # Also suspend when plugged in
+        HandleLidSwitchDocked = "ignore"; # Don't suspend if docked/external displays
+
+        # Power button behavior
+        HandlePowerKey = "suspend";
+        HandlePowerKeyLongPress = "poweroff";
+
+        # Ensure system enters sleep state properly
+        HandleSuspendKey = "suspend";
+        HandleHibernateKey = "suspend";
+      };
+    };
+  };
+
   # CPU microcode updates (critical for Intel CPUs)
   hardware.cpu.intel.updateMicrocode = true;
 
@@ -590,7 +644,7 @@ in
       };
     };
     # Keep Netdata unit installed but do not enable it at boot
-    services.netdata.wantedBy = pkgs.lib.mkForce [];
+    services.netdata.wantedBy = pkgs.lib.mkForce [ ];
     services.netdata.restartIfChanged = false;
     # Load v4l2loopback module after system is ready (not during early boot)
     # This avoids kernel panic during early boot if module has compatibility issues
@@ -662,10 +716,10 @@ in
       enable32Bit = true;
       # Intel GPU optimizations for Comet Lake UHD Graphics
       extraPackages = with pkgs; [
-        intel-media-driver      # VAAPI video acceleration for Intel GPUs (modern)
-        intel-vaapi-driver      # Legacy VAAPI driver (fallback, renamed from vaapiIntel)
-        libva-vdpau-driver      # VDPAU wrapper for VAAPI (renamed from vaapiVdpau)
-        libvdpau-va-gl          # VDPAU driver with VAAPI backend
+        intel-media-driver # VAAPI video acceleration for Intel GPUs (modern)
+        intel-vaapi-driver # Legacy VAAPI driver (fallback, renamed from vaapiIntel)
+        libva-vdpau-driver # VDPAU wrapper for VAAPI (renamed from vaapiVdpau)
+        libvdpau-va-gl # VDPAU driver with VAAPI backend
       ];
     };
     i2c.enable = true;
@@ -677,7 +731,7 @@ in
     resolved.enable = true;
     # Desktop support services moved to shared module (udisks2, gvfs, tumbler, blueman, avahi, davfs2, gnome-keyring, gdm)
     printing.enable = true;
-    
+
     openssh.enable = true;
     # Tailscale is configured via hyprvibe.services.tailscale.enable (see above)
     # The shared module sets useRoutingFeatures = "both" by default
@@ -705,7 +759,7 @@ in
         };
       };
     };
-    
+
     # Atuin shell history service
     atuin = {
       enable = true;
@@ -800,8 +854,13 @@ in
   ];
 
   # Open firewall for Companion
-  networking.firewall.allowedTCPPorts = (config.networking.firewall.allowedTCPPorts or []) ++ [ 8000 51234 ];
-  networking.firewall.allowedUDPPorts = (config.networking.firewall.allowedUDPPorts or []) ++ [ 51234 ];
+  networking.firewall.allowedTCPPorts = (config.networking.firewall.allowedTCPPorts or [ ]) ++ [
+    8000
+    51234
+  ];
+  networking.firewall.allowedUDPPorts = (config.networking.firewall.allowedUDPPorts or [ ]) ++ [
+    51234
+  ];
 
   # Copy Hyprland configuration to user's home
   # Disabled: migrated to hyprvibe.hyprland options
@@ -819,7 +878,7 @@ in
     # BTC script for hyprlock
     cp --remove-destination ${./scripts/hyprlock-btc.sh} ${homeDir}/.config/hypr/hyprlock-btc.sh
     chmod +x ${homeDir}/.config/hypr/hyprlock-btc.sh
-    
+
     mkdir -p ${homeDir}/.config/waybar
     cp --remove-destination ${./waybar.json} ${homeDir}/.config/waybar/config
     # Theme and scripts for Waybar (cyberpunk aesthetic + custom modules)
@@ -839,19 +898,19 @@ in
     chmod +x ${homeDir}/.config/waybar/scripts/*.sh
     chmod +x ${homeDir}/.config/waybar/scripts/*.py || true
     chown -R ${userName}:${userGroup} ${homeDir}/.config/waybar
-    
+
     # Configure Kitty terminal
     mkdir -p ${homeDir}/.config/kitty
     cat > ${homeDir}/.config/kitty/kitty.conf << 'EOF'
     # Kitty Terminal Configuration
-    
+
     # Font configuration
     font_family FiraCode Nerd Font
     font_size 12
     bold_font auto
     italic_font auto
     bold_italic_font auto
-    
+
     # Colors - Tokyo Night inspired
     background #1a1b26
     foreground #c0caf5
@@ -860,70 +919,70 @@ in
     url_color #7aa2f7
     cursor #c0caf5
     cursor_text_color #1a1b26
-    
+
     # Tabs
     active_tab_background #7aa2f7
     active_tab_foreground #1a1b26
     inactive_tab_background #1a1b26
     inactive_tab_foreground #c0caf5
     tab_bar_background #16161e
-    
+
     # Window settings
     window_padding_width 10
     window_margin_width 0
     window_border_width 0
     background_opacity 0.95
-    
+
     # Shell integration
     shell_integration enabled
-    
+
     # Copy on select
     copy_on_select yes
-    
+
     # URL detection and hyperlinks
     detect_urls yes
     show_hyperlink_targets yes
     underline_hyperlinks always
-    
+
     # Mouse settings
     mouse_hide_while_typing yes
     focus_follows_mouse yes
-    
+
     # Performance
     sync_to_monitor yes
     repaint_delay 10
     input_delay 3
-    
+
     # Key bindings
     map ctrl+shift+equal change_font_size all +1.0
     map ctrl+shift+minus change_font_size all -1.0
     map ctrl+shift+0 change_font_size all 0
-    
+
     # Fish shell integration
     shell fish
-    
+
     # Terminal bell
     enable_audio_bell no
     visual_bell_duration 0.5
     visual_bell_color #f7768e
-    
+
     # Cursor
     cursor_shape beam
     cursor_beam_thickness 2
-    
+
     # Scrollback
     scrollback_lines 10000
     scrollback_pager less --chop-long-lines --RAW-CONTROL-CHARS +INPUT_LINE_NUMBER
-    
+
     # Clipboard
     clipboard_control write-clipboard write-primary read-clipboard read-primary
-    
+
     # Allow remote control
     allow_remote_control yes
     listen_on unix:/tmp/kitty
     EOF
     chown -R ${userName}:${userGroup} ${homeDir}/.config/kitty
-    
+
     # Configure Oh My Posh default (preserve user-selected theme if present)
     mkdir -p ${homeDir}/.config/oh-my-posh
     cat > ${homeDir}/.config/oh-my-posh/config-default.json << 'EOF'
@@ -1060,7 +1119,7 @@ in
     }
     EOF
     [ -f ${homeDir}/.config/oh-my-posh/config.json ] || cp ${homeDir}/.config/oh-my-posh/config-default.json ${homeDir}/.config/oh-my-posh/config.json
-    
+
     # Create additional Oh My Posh theme configurations
     cat > ${homeDir}/.config/oh-my-posh/config-enhanced.json << 'EOF'
     {
@@ -1238,7 +1297,7 @@ in
       ]
     }
     EOF
-    
+
     cat > ${homeDir}/.config/oh-my-posh/config-minimal.json << 'EOF'
     {
       "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
@@ -1302,7 +1361,7 @@ in
       ]
     }
     EOF
-    
+
     cat > ${homeDir}/.config/oh-my-posh/config-professional.json << 'EOF'
     {
       "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
@@ -1477,9 +1536,9 @@ in
       ]
     }
     EOF
-    
+
     chown -R ${userName}:${userGroup} ${homeDir}/.config/oh-my-posh
-    
+
     # Create Atuin Fish configuration
     mkdir -p ${homeDir}/.config/fish/conf.d
     cat > ${homeDir}/.config/fish/conf.d/atuin.fish << 'EOF'
@@ -1489,7 +1548,7 @@ in
       atuin init fish | source
     end
     EOF
-    
+
     # Create Oh My Posh Fish configuration
     cat > ${homeDir}/.config/fish/conf.d/oh-my-posh.fish << 'EOF'
     # Oh My Posh prompt configuration
@@ -1498,7 +1557,7 @@ in
       oh-my-posh init fish --config ~/.config/oh-my-posh/config.json | source
     end
     EOF
-    
+
     # Additional Fish configuration for better integration
     cat > ${homeDir}/.config/fish/conf.d/kitty-integration.fish << 'EOF'
     # Kitty terminal integration
@@ -1510,7 +1569,7 @@ in
       set -gx KITTY_SHELL_INTEGRATION enabled
     end
     EOF
-    
+
     chown -R ${userName}:${userGroup} ${homeDir}/.config/fish
 
     # Note: fish_prompt function is handled by oh-my-posh init fish in conf.d/oh-my-posh.fish
@@ -1550,7 +1609,7 @@ in
     mkdir -p ${homeDir}/.local/bin
     chown -R ${userName}:${userGroup} ${homeDir}/.local
     runuser -s ${pkgs.bash}/bin/bash -l ${userName} -c 'GOBIN=$HOME/.local/bin ${pkgs.go}/bin/go install github.com/u3mur4/crypto-price/cmd/crypto-price@latest' || true
-    
+
     # Copy monitor setup helper script
     cp ${../../scripts/setup-monitors.sh} ${homeDir}/.local/bin/setup-monitors
     chmod +x ${homeDir}/.local/bin/setup-monitors
@@ -1808,11 +1867,11 @@ in
     # Install rofi brightness menu
     install -m 0755 ${./scripts/rofi-brightness.sh} ${homeDir}/.local/bin/rofi-brightness
     chown ${userName}:${userGroup} ${homeDir}/.local/bin/rofi-brightness
-    
+
     # Install rofi power profile menu
     install -m 0755 ${./scripts/rofi-power-profile.sh} ${homeDir}/.local/bin/rofi-power-profile
     chown ${userName}:${userGroup} ${homeDir}/.local/bin/rofi-power-profile
-    
+
     # Install Oh My Posh theme switcher
     cat > ${homeDir}/.local/bin/switch-oh-my-posh-theme << 'EOF'
     #!/run/current-system/sw/bin/bash
@@ -1911,7 +1970,7 @@ in
     EOF
     chmod +x ${homeDir}/.local/bin/switch-oh-my-posh-theme
     chown ${userName}:${userGroup} ${homeDir}/.local/bin/switch-oh-my-posh-theme
-    
+
     # Set Kitty as default terminal in desktop environment
     mkdir -p ${homeDir}/.local/share/applications
     cat > ${homeDir}/.local/share/applications/kitty.desktop << 'EOF'
@@ -1927,10 +1986,10 @@ in
     Categories=System;TerminalEmulator;
     EOF
     chown ${userName}:${userGroup} ${homeDir}/.local/share/applications/kitty.desktop
-    
+
     # Update desktop database to register Kitty and ClipPlayer
     runuser -s ${pkgs.bash}/bin/bash -l chrisf -c '${pkgs.desktop-file-utils}/bin/update-desktop-database ~/.local/share/applications' || true
-    
+
     # ClipPlayer desktop entry for file associations
     cat > ${homeDir}/.local/share/applications/clip-player.desktop << 'EOF'
     [Desktop Entry]
@@ -1946,7 +2005,7 @@ in
     MimeType=video/mp4;video/x-matroska;video/webm;video/x-msvideo;video/quicktime;video/ogg;audio/mpeg;audio/mp3;audio/ogg;audio/flac;audio/x-flac;audio/wav;audio/x-wav;application/ogg;
     EOF
     chown ${userName}:${userGroup} ${homeDir}/.local/share/applications/clip-player.desktop
-    
+
     # Set ClipPlayer as default for common media MIME types
     mkdir -p ${homeDir}/.config
     cat > ${homeDir}/.config/mimeapps.list << 'EOF'
@@ -1974,7 +2033,6 @@ in
 
   # Programs
   programs = {
-    adb.enable = true;
     virt-manager.enable = true;
     dconf.enable = true;
     gamemode.enable = true;
@@ -2009,8 +2067,6 @@ in
     };
   };
 
-
-
   # Fonts
   fonts.packages = with pkgs; [
     noto-fonts
@@ -2041,14 +2097,8 @@ in
       CLAP_PATH = "/run/current-system/sw/lib/clap";
     };
     systemPackages =
-      devTools
-      ++ multimedia
-      ++ utilities
-      ++ systemTools
-      ++ applications
-      ++ gaming
-      ++ gtkApps;
-      
+      devTools ++ multimedia ++ utilities ++ systemTools ++ applications ++ gaming ++ gtkApps;
+
     # Disable Orca in GDM greeter to silence missing TryExec logs
     etc = {
       "xdg/autostart/orca-autostart.desktop".text = ''
@@ -2073,23 +2123,23 @@ in
     idle_threshold = 0
     # Fallback timeout (seconds); urgency-specific values override this.
     timeout = 60
-    
+
     [urgency_low]
     timeout = 60
-    
+
     [urgency_normal]
     timeout = 60
-    
+
     [urgency_critical]
     timeout = 60
-    
+
     # Suppress noisy Bluetooth device connect/disconnect popups from Blueman
     [bluetooth_blueman_connected]
     appname = "Blueman"
     summary = ".*(Connected|Disconnected).*"
     skip_display = true
     skip_history = true
-    
+
     # Some environments label as "Bluetooth"
     [bluetooth_generic_connected]
     appname = "Bluetooth"
@@ -2108,7 +2158,10 @@ in
     extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
     config = {
       common = {
-        default = [ "hyprland" "gtk" ];
+        default = [
+          "hyprland"
+          "gtk"
+        ];
         "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
       };
     };
@@ -2122,7 +2175,10 @@ in
   };
 
   # Nix settings
-  nix.settings.experimental-features = ["nix-command" "flakes"];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.permittedInsecurePackages = [
     "libsoup-2.74.3"
@@ -2133,12 +2189,16 @@ in
     (final: prev: {
       python3Packages = prev.python3Packages.override {
         overrides = self: super: {
-          mat2 = super.mat2.overridePythonAttrs (old: { doCheck = false; });
+          mat2 = super.mat2.overridePythonAttrs (old: {
+            doCheck = false;
+          });
         };
       };
       python313Packages = prev.python313Packages.override {
         overrides = self: super: {
-          mat2 = super.mat2.overridePythonAttrs (old: { doCheck = false; });
+          mat2 = super.mat2.overridePythonAttrs (old: {
+            doCheck = false;
+          });
         };
       };
     })
@@ -2146,4 +2206,4 @@ in
 
   # System version
   system.stateVersion = "25.11";
-} 
+}
