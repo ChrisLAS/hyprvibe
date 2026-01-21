@@ -7,6 +7,11 @@
 }:
 
 let
+  # Hyprvibe user options (from modules/shared/user.nix)
+  userName = config.hyprvibe.user.name;
+  userGroup = config.hyprvibe.user.group;
+  homeDir = config.hyprvibe.user.home;
+
   # Package groups - preserving your existing packages
   devTools = with pkgs; [
     git
@@ -184,8 +189,6 @@ let
     polkit_gnome
     qt6.qtbase
     qt6.qtwayland
-    wofi
-    hyprlauncher
     dunst
     cliphist
     brightnessctl
@@ -227,6 +230,10 @@ let
     openssh
     glib-networking
     rclone
+    rclone-ui
+    librclone
+    syncrclone
+    git-annex-remote-rclone
     # Additional utilities from your current config
     usbmuxd
     magic-wormhole
@@ -237,6 +244,8 @@ let
     usbutils
     parted
     gparted
+    libisoburn # Provides xorriso
+    dvdplusrwtools # Provides growisofs
     wayland-protocols
     wayland-scanner
     wayland
@@ -541,6 +550,129 @@ let
     }
     EOF
     chown ${userName}:${userGroup} ${homeDir}/.config/opencode/opencode.json
+  '';
+
+  # Script to setup R2 credentials template
+  setupR2CredentialsScript = pkgs.writeShellScript "setup-r2-credentials" ''
+        set -euo pipefail
+        
+        SECRETS_DIR="${homeDir}/.config/secrets"
+        TEMPLATE_FILE="$SECRETS_DIR/r2-credentials.template"
+        
+        # Ensure secrets directory exists with proper permissions
+        mkdir -p "$SECRETS_DIR"
+        chmod 700 "$SECRETS_DIR"
+        chown ${userName}:${userGroup} "$SECRETS_DIR"
+        
+        # Create template file
+        cat > "$TEMPLATE_FILE" << 'EOF'
+    # R2 Credentials for Cloudflare R2 Storage
+    # Copy this file to 'r2-credentials' (without .template) and fill in your actual values
+    # This file is gitignored and will NOT be committed to GitHub
+
+    # From Cloudflare R2 Dashboard → Manage R2 API Tokens
+    R2_ACCESS_KEY_ID="your-access-key-id-here"
+    R2_SECRET_ACCESS_KEY="your-secret-access-key-here"
+    R2_ENDPOINT="https://your-account-id.r2.cloudflarestorage.com"
+    R2_BUCKET="feeds"
+    R2_SUBPATH="video"
+
+    # Public URL format (for reference):
+    # https://feeds.jupiterbroadcasting.com/video/<filename>
+    EOF
+        
+        chmod 600 "$TEMPLATE_FILE"
+        chown ${userName}:${userGroup} "$TEMPLATE_FILE"
+  '';
+
+  # Script to generate rclone config from R2 credentials
+  generateRcloneConfigScript = pkgs.writeShellScript "generate-rclone-config" ''
+        set -euo pipefail
+        
+        SECRETS_FILE="${homeDir}/.config/secrets/r2-credentials"
+        RCLONE_DIR="${homeDir}/.config/rclone"
+        RCLONE_CONF="$RCLONE_DIR/rclone.conf"
+        
+        # Skip if credentials file doesn't exist
+        if [ ! -f "$SECRETS_FILE" ]; then
+          echo "R2 credentials not found at $SECRETS_FILE - skipping rclone config generation"
+          exit 0
+        fi
+        
+        # Source credentials
+        source "$SECRETS_FILE"
+        
+        # Validate required variables
+        if [ -z "''${R2_ACCESS_KEY_ID:-}" ] || [ -z "''${R2_SECRET_ACCESS_KEY:-}" ] || [ -z "''${R2_ENDPOINT:-}" ]; then
+          echo "ERROR: Missing required R2 credentials in $SECRETS_FILE"
+          exit 1
+        fi
+        
+        # Create rclone config directory
+        mkdir -p "$RCLONE_DIR"
+        chmod 700 "$RCLONE_DIR"
+        
+        # Generate rclone configuration
+        cat > "$RCLONE_CONF" << EOF
+    [r2-feeds]
+    type = s3
+    provider = Cloudflare
+    access_key_id = $R2_ACCESS_KEY_ID
+    secret_access_key = $R2_SECRET_ACCESS_KEY
+    endpoint = $R2_ENDPOINT
+    region = auto
+    acl = public-read
+    bucket_acl = public-read
+    no_check_bucket = true
+    EOF
+        
+        chmod 600 "$RCLONE_CONF"
+        chown ${userName}:${userGroup} "$RCLONE_CONF"
+        
+        echo "Rclone configuration generated successfully"
+  '';
+
+  # Script to mount R2 storage
+  mountR2Script = pkgs.writeShellScript "r2-mount" ''
+    set -e
+
+    MOUNT_POINT="${homeDir}/r2-feeds"
+    LOG_FILE="${homeDir}/.local/share/rclone/r2-feeds.log"
+
+    # Create directories
+    mkdir -p "$MOUNT_POINT" "${homeDir}/.cache/rclone" "${homeDir}/.local/share/rclone"
+
+    # Check if already mounted
+    if ${pkgs.util-linux}/bin/mountpoint -q "$MOUNT_POINT"; then
+        echo "R2 already mounted at $MOUNT_POINT"
+        exit 0
+    fi
+
+    # Mount R2
+    ${pkgs.rclone}/bin/rclone mount r2-feeds:feeds/video "$MOUNT_POINT" \
+        --daemon \
+        --vfs-cache-mode=writes \
+        --vfs-write-back=30s \
+        --vfs-cache-max-size=10G \
+        --vfs-cache-max-age=1h \
+        --cache-dir="${homeDir}/.cache/rclone" \
+        --buffer-size=256M \
+        --dir-cache-time=5m \
+        --poll-interval=0 \
+        --daemon-timeout=10m \
+        --log-level=INFO \
+        --log-file="$LOG_FILE" \
+        --use-mmap \
+        --transfers=4 \
+        --checkers=8
+
+    # Check if mount succeeded
+    if [ $? -eq 0 ] && ${pkgs.util-linux}/bin/mountpoint -q "$MOUNT_POINT"; then
+        echo "R2 successfully mounted at $MOUNT_POINT"
+    else
+        echo "Failed to mount R2. Check log: $LOG_FILE"
+        exit 1
+    fi
   '';
 in
 {
@@ -998,6 +1130,10 @@ in
     cp ${./scripts/logitech-bluetooth.sh} /home/chrisf/.local/bin/logitech-bluetooth
     chmod +x /home/chrisf/.local/bin/logitech-bluetooth
 
+    # Install R2 mount script
+    cp ${mountR2Script} /home/chrisf/.local/bin/r2-mount
+    chmod +x /home/chrisf/.local/bin/r2-mount
+    chown chrisf:users /home/chrisf/.local/bin/r2-mount
 
     # Apply GTK theming
     mkdir -p /home/chrisf/.config/gtk-3.0
@@ -1494,6 +1630,118 @@ in
       Restart = "on-failure";
       RestartSec = 1;
       TimeoutStopSec = 10;
+    };
+  };
+
+  # R2 Storage: Setup credentials template
+  systemd.user.services.setup-r2-credentials-template = {
+    description = "Setup R2 credentials template";
+    after = [ "default.target" ];
+    wantedBy = [ "default.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${setupR2CredentialsScript}";
+    };
+  };
+
+  # R2 Storage: Generate rclone config from secrets
+  systemd.user.services.setup-rclone-r2-config = {
+    description = "Generate rclone R2 configuration from secrets";
+    after = [ "setup-r2-credentials-template.service" ];
+    wantedBy = [ "default.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${generateRcloneConfigScript}";
+    };
+  };
+
+  # R2 Storage: Mount Cloudflare R2 feeds/video bucket
+  # NOTE: Disabled due to systemd FUSE restrictions
+  # Using Hyprland exec-once with r2-mount script instead
+  systemd.user.services.rclone-r2-feeds-mount = {
+    description = "Mount Cloudflare R2 feeds/video to ~/r2-feeds (DISABLED)";
+    after = [
+      "setup-rclone-r2-config.service"
+      "network-online.target"
+    ];
+    requires = [ "setup-rclone-r2-config.service" ];
+    # Disabled: wantedBy = [ "default.target" ];
+
+    serviceConfig = {
+      Type = "forking";
+      ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p ${homeDir}/r2-feeds ${homeDir}/.cache/rclone ${homeDir}/.local/share/rclone";
+      ExecStart = "${pkgs.writeShellScript "r2-mount" ''
+        ${pkgs.rclone}/bin/rclone mount r2-feeds:feeds/video ${homeDir}/r2-feeds \
+          --daemon \
+          --vfs-cache-mode=writes \
+          --vfs-write-back=30s \
+          --vfs-cache-max-size=10G \
+          --vfs-cache-max-age=1h \
+          --cache-dir=${homeDir}/.cache/rclone \
+          --buffer-size=256M \
+          --dir-cache-time=5m \
+          --poll-interval=0 \
+          --daemon-timeout=10m \
+          --log-level=INFO \
+          --log-file=${homeDir}/.local/share/rclone/r2-feeds.log \
+          --use-mmap \
+          --transfers=4 \
+          --checkers=8
+      ''}";
+      ExecStop = "${pkgs.fuse}/bin/fusermount -uz ${homeDir}/r2-feeds";
+      Restart = "on-failure";
+      RestartSec = "10s";
+      # Disable systemd restrictions that prevent FUSE mounts
+      ProtectSystem = "off";
+      ProtectHome = "no";
+      PrivateDevices = false;
+      PrivateMounts = false;
+      DevicePolicy = "auto";
+    };
+  };
+
+  # R2 Storage: Log rotation service
+  systemd.user.services.rclone-r2-log-rotate = {
+    description = "Rotate rclone R2 logs";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.writeShellScript "rclone-log-rotate" ''
+        set -euo pipefail
+
+        LOG_DIR="${homeDir}/.local/share/rclone"
+        LOG_FILE="$LOG_DIR/r2-feeds.log"
+
+        # Create log directory if it doesn't exist
+        mkdir -p "$LOG_DIR"
+
+        # Rotate if log exists and is older than 7 days or larger than 100MB
+        if [ -f "$LOG_FILE" ]; then
+          SIZE=$(stat -c %s "$LOG_FILE" 2>/dev/null || echo 0)
+          AGE=$(find "$LOG_FILE" -mtime +7 2>/dev/null | wc -l)
+          
+          if [ "$SIZE" -gt 104857600 ] || [ "$AGE" -gt 0 ]; then
+            mv "$LOG_FILE" "$LOG_FILE.$(date +%Y%m%d-%H%M%S)"
+            touch "$LOG_FILE"
+            chmod 600 "$LOG_FILE"
+            chown ${userName}:${userGroup} "$LOG_FILE"
+          fi
+          
+          # Delete logs older than 14 days
+          find "$LOG_DIR" -name "r2-feeds.log.*" -mtime +14 -delete
+        fi
+      ''}";
+    };
+  };
+
+  # R2 Storage: Log rotation timer
+  systemd.user.timers.rclone-r2-log-rotate = {
+    description = "Timer for rclone R2 log rotation";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;
     };
   };
 

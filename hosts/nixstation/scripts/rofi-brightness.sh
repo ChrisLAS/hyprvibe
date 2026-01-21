@@ -60,12 +60,12 @@ act() {
 }
 
 current="$(get_percent || echo "?")"
-if ! command -v wofi >/dev/null 2>&1; then
-  command -v notify-send >/dev/null 2>&1 && notify-send "Brightness" "wofi not found"
+if ! command -v rofi >/dev/null 2>&1; then
+  command -v notify-send >/dev/null 2>&1 && notify-send "Brightness" "rofi not found"
   exit 1
 fi
 
-choice=$(printf "%s\n" "+5%" "-5%" "25%" "50%" "75%" "100%" | wofi --dmenu --prompt "Brightness (${current}% )" --insensitive)
+choice=$(printf "%s\n" "+5%" "-5%" "25%" "50%" "75%" "100%" | rofi -dmenu -p "Brightness (${current}% )" -i)
 if [ -n "${choice:-}" ]; then
   if act "$choice"; then
     newp=$(get_percent || echo "?")
