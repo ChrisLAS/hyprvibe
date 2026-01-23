@@ -160,6 +160,8 @@ let
     zip
     unzip
     gnupg
+    # ADB command (systemd 258+ handles uaccess rules; `programs.adb` is deprecated)
+    android-tools
     restic
     autorestic
     restique
@@ -281,7 +283,7 @@ let
     winetricks
     wineasio
     bottles-unwrapped
-    rustdesk-flutter
+    # rustdesk-flutter  # disabled: build failure
     pwvucontrol
     pipecontrol
     wireplumber
@@ -421,7 +423,7 @@ let
     kdePackages.filelight
     kdePackages.isoimagewriter
     kdePackages.partitionmanager
-    rustdesk-flutter
+    # rustdesk-flutter  # disabled: build failure
     pkgs.cifs-utils
     pkgs.samba
     distrobox
@@ -731,6 +733,10 @@ in
     tailscale.enable = true;
     virt.enable = true;
     docker.enable = true;
+    nebula = {
+      enable = true;
+      nebulaIp = "192.168.100.11/24";
+    };
   };
   hyprvibe.packages = {
     enable = true;

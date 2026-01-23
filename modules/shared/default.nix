@@ -1,7 +1,8 @@
 { lib, config, ... }:
 let
   cfg = config.hyprvibe;
-in {
+in
+{
   options.hyprvibe.enable = lib.mkEnableOption "Enable the base Hyprvibe desktop experience";
 
   imports = [
@@ -14,6 +15,7 @@ in {
     ./system.nix
     ./user.nix
     ./power.nix
+    ./nebula.nix
   ];
 
   config = lib.mkIf cfg.enable {
@@ -38,5 +40,3 @@ in {
     };
   };
 }
-
-
