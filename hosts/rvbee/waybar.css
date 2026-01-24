@@ -38,7 +38,7 @@ window#waybar {
   font-size: 14pt;
 }
 
-#clock, #memory, #cpu, #tray, #network, #pulseaudio, #custom-public_ip, #custom-amd_gpu, #custom-weather, #custom-dunst, #window {
+#clock, #memory, #cpu, #tray, #network, #pulseaudio, #custom-public_ip, #custom-amd_gpu, #custom-openrouter, #custom-dunst, #window {
   padding: 0 10px;
 }
 
@@ -58,8 +58,8 @@ window#waybar {
   color: #ff8bd1; /* neon pink */
 }
 
-#custom-weather {
-  color: #7ad1ff; /* sky */
+#custom-openrouter {
+  color: #7ad1ff; /* cyan */
 }
 
 #custom-btc {

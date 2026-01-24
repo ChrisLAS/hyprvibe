@@ -38,7 +38,7 @@ window#waybar {
   font-size: 14pt;
 }
 
-#clock, #memory, #cpu, #tray, #network, #pulseaudio, #custom-public_ip, #custom-amd_gpu, #custom-dunst, #window, #battery {
+#clock, #memory, #cpu, #tray, #network, #pulseaudio, #custom-public_ip, #custom-amd_gpu, #custom-openrouter, #custom-dunst, #window, #battery {
   padding: 0 10px;
 }
 
@@ -60,6 +60,10 @@ window#waybar {
 
 #custom-btc {
   color: #F7931A; /* BTC orange */
+}
+
+#custom-openrouter {
+  color: #7ad1ff; /* cyan */
 }
 
 #window {

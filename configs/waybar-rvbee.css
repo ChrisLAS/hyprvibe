@@ -6,12 +6,12 @@ window#waybar { background: rgba(10, 10, 16, 0.75); color: #e6e6e6; border-botto
 #workspaces button.active { color: #0a0a10; background: linear-gradient(135deg, #00ffd2, #ff00aa); border-color: #00ffd2; }
 #workspaces button.urgent { background: #ff0055; color: #fff; }
 #workspaces button label { font-weight: 700; font-size: 14pt; }
-#clock, #memory, #cpu, #tray, #network, #pulseaudio, #custom-public_ip, #custom-amd_gpu, #custom-weather, #custom-dunst, #window { padding: 0 10px; }
+#clock, #memory, #cpu, #tray, #network, #pulseaudio, #custom-public_ip, #custom-amd_gpu, #custom-openrouter, #custom-dunst, #window { padding: 0 10px; }
 #clock { color: #ffe86b; }
 #network { color: #7af7a7; }
 #pulseaudio.muted { color: #888; }
 #custom-amd_gpu { color: #ff8bd1; }
-#custom-weather { color: #7ad1ff; }
+#custom-openrouter { color: #7ad1ff; }
 #custom-btc { color: #F7931A; }
 #window { color: #e6e6e6; }
 tooltip { background: #0f0f17; color: #f2f2f2; border: 1px solid #00ffd2; }

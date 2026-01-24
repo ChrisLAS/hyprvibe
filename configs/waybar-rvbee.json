@@ -18,7 +18,7 @@
     "memory",
     "custom/amd_gpu",
     "gamemode",
-    "custom/weather",
+    "custom/openrouter",
     "tray",
     "bluetooth",
     "custom/dunst",
@@ -120,10 +120,10 @@
       "deactivated": "🌙"
     }
   },
-  "custom/weather": {
+  "custom/openrouter": {
     "return-type": "json",
-    "exec": "~/.config/waybar/scripts/waybar-weather.sh",
-    "interval": 600,
+    "exec": "~/.config/waybar/scripts/waybar-openrouter.sh",
+    "interval": 300,
     "tooltip": true,
     "format": "{}"
   },

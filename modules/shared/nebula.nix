@@ -39,6 +39,12 @@ in
         punchy = {
           punch = true;
           respond = true;
+          delay = "1s";
+        };
+        relay = {
+          am_relay = false;
+          use_relays = true;
+          relays = [ "192.168.100.1" ];
         };
       };
 
@@ -61,8 +67,9 @@ in
     };
 
     # Ensure secrets directory exists with proper permissions
+    # Group must be nebula-nebula so the service (which runs as nebula-nebula user) can traverse the directory
     systemd.tmpfiles.rules = [
-      "d /etc/nebula 0700 root root -"
+      "d /etc/nebula 0750 root nebula-nebula -"
     ];
   };
 }

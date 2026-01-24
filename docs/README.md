@@ -97,11 +97,11 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
 - **Waybar visuals**: Blur + slight transparency enabled (Hyprland `layerrule = blur, waybar` and `ignorealpha 0.1`; CSS background rgba(…, 0.75)).
 - **Module chips**: Each module wrapped with padded, rounded boxes to reduce jitter when values change. Fixed minimum widths for key modules.
 - **Left window title**: `hyprland/window` moved to the left next to workspaces.
-- **Added modules**: MPRIS (media), idle inhibitor (icons: ☀️ active / 🌙 inactive), Gamemode indicator, reboot button (⏻ with rofi confirm), brightness menu icon (🖥️).
+- **Added modules**: MPRIS (media), idle inhibitor (icons: ☀️ active / 🌙 inactive), Gamemode indicator, reboot button (⏻ with confirm dialog), brightness menu icon (🖥️).
 
-### Brightness control (rofi)
+### Brightness control (launcher menu)
 
-- **Keybind**: SUPER+B opens a rofi menu with common steps/presets.
+- **Keybind**: SUPER+B opens a menu with common steps/presets.
 - **Waybar**: monitor icon launches the same menu.
 - **Script location**: installed to `~/.local/bin/rofi-brightness` (tilde path used in configs for portability).
 - **Backends**: Uses `brightnessctl` for kernel backlight or `ddcutil` for external monitors. For DDC:
@@ -123,28 +123,28 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
 
 ### Portability checklist
 
-- `~/.local/bin/rofi-brightness` must be installed (activation script handles this) and `rofi` available.
+- `~/.local/bin/rofi-brightness` must be installed (activation script handles this); it currently uses vicinae in dmenu mode for selection.
 - User should be in groups used by this setup: `wheel`, `networkmanager`, `i2c`, `docker`, etc.
 - External monitor brightness: verify `ddcutil detect` sees your display; otherwise only kernel backlight works.
 - Waybar CSS: GTK CSS is strict; avoid unsupported units/properties. This config uses conservative `em` widths and supported rules.
-- Reboot button uses `rofi` for confirmation; adjust to your preferred prompt if you don't use rofi.
+- Reboot button uses a small dmenu-style prompt (via vicinae) for confirmation.
 
 ## Keybindings
 
 | Category | Keys | Action | Command/Notes |
 |---|---|---|---|
 | Launchers | SUPER+RETURN | Launch terminal | `$terminal` (alacritty) |
-| Launchers | SUPER+SPACE | App launcher | `$menu` (rofi run/drun) |
+| Launchers | SUPER+SPACE | App launcher | `$menu` (vicinae) |
 | Launchers | SUPER+F | Launch browser | `$browser` (junction) |
 | Launchers | SUPER+E | File manager | `dolphin` |
 | Launchers | SUPER+O | Obsidian | `flatpak run md.obsidian.Obsidian` |
 | Launchers | SUPER+S | Slack & Telegram | Launch communication apps (monitor-specific) |
-| Brightness | SUPER+B | Brightness menu | `~/.local/bin/rofi-brightness` (rofi menu) |
+| Brightness | SUPER+B | Brightness menu | `~/.local/bin/rofi-brightness` (launcher-backed menu) |
 | Session | SUPER+M | Exit Hyprland | `exit` |
 | Session | SUPER+L | Lock | `hyprlock` |
-| Rofi | SUPER+SHIFT+SPACE | Rofi drun | `rofi -show drun -modi drun,run,filebrowser` |
-| Rofi | SUPER+ALT+SPACE | Rofi file browser | `rofi -show filebrowser -modi drun,run,filebrowser` |
-| Rofi | SUPER+CTRL+SPACE | Rofi keys | `rofi -show keys -modi drun,run,filebrowser,keys` |
+| Rofi | SUPER+SHIFT+SPACE | (unused) | previously rofi drun |
+| Rofi | SUPER+ALT+SPACE | (unused) | previously rofi file browser |
+| Rofi | SUPER+CTRL+SPACE | (unused) | previously rofi keys |
 | Windows | SUPER+V | Toggle floating | `togglefloating` |
 | Windows | SUPER+left/right/up/down | Move focus | `movefocus l/r/u/d` |
 | Layout (dwindle) | SUPER+P | Pseudotile | `pseudo` |
