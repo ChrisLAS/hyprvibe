@@ -1,16 +1,26 @@
 { lib, pkgs, config, ... }:
 let
   cfg = config.hyprvibe.packages;
+  janWrappedLower = pkgs.writeShellScriptBin "jan" ''
+    export LD_LIBRARY_PATH=${pkgs.openssl}/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+    exec ${pkgs.jan}/bin/Jan "$@"
+  '';
+  janWrappedUpper = pkgs.writeShellScriptBin "Jan" ''
+    export LD_LIBRARY_PATH=${pkgs.openssl}/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+    exec ${pkgs.jan}/bin/Jan "$@"
+  '';
   # Curated common sets derived from overlaps across hosts
   basePackages = with pkgs; [
     htop btop tree lsof lshw neofetch nmap zip unzip gnupg curl file jq bat fd fzf ripgrep tldr
     whois plocate less eza grc cursor-cli
+    # Jan desktop/CLI (wrapped to ensure compatible OpenSSL libcrypto)
+    janWrappedLower janWrappedUpper
   ];
   desktopPackages = with pkgs; [
     wl-clipboard grim slurp swappy wf-recorder dunst cliphist brightnessctl playerctl pavucontrol
     # qt6ct  # Temporarily disabled - pulls in qgnomeplatform which has build failure in current nixpkgs
     # Core desktop apps
-    kitty rofi bibata-cursors
+    kitty vicinae bibata-cursors
     # Hyprland companions started by base config
     hyprpaper hypridle hyprlock
   ];

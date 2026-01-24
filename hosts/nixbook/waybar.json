@@ -19,6 +19,7 @@
     "memory",
     "custom/battery",
     "gamemode",
+    "custom/openrouter",
     "tray",
     "bluetooth",
     "custom/dunst",
@@ -124,6 +125,13 @@
   },
   "gamemode": {
     "format": "GM {count}"
+  },
+  "custom/openrouter": {
+    "return-type": "json",
+    "exec": "/home/chrisf/.config/waybar/scripts/waybar-openrouter.sh",
+    "interval": 300,
+    "tooltip": true,
+    "format": "{}"
   },
   "clock": {
     "format": "🕒 {:%I:%M %p}",

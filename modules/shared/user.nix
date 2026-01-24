@@ -63,7 +63,9 @@ in {
   # Provide a sensible default user matching both hosts, while allowing per-host adds
   config = let
     baseGroups = [
-      "networkmanager" "wheel" "docker" "adbusers" "libvirtd" "video" "render" "audio" "i2c"
+      "networkmanager" "wheel" "docker" "adbusers" "libvirtd"
+      # Device access groups
+      "video" "render" "audio" "i2c" "cdrom"
     ];
     finalGroups = lib.unique (baseGroups ++ (cfg.extraGroups or []));
     userHome = cfg.home;

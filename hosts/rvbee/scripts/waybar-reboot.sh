@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Simple GUI confirm using rofi (already installed)
-choice=$(printf "No\nYes" | rofi -dmenu -p "Reboot?" -i)
+# Simple GUI confirm using vicinae (dmenu mode)
+choice=$(printf "No\nYes" | vicinae dmenu -p "Reboot?")
 if [[ "${choice:-}" == "Yes" ]]; then
   systemctl reboot
 fi

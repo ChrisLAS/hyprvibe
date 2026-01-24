@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Remote hosts configuration for OpenCode SSH management",
+  "version": "2.0",
+  "lastUpdated": "2026-01-24",
+  "hosts": {
+    "nixbook": {
+      "hostname": "nixbook.coin-noodlefish.ts.net",
+      "user": "chrisf",
+      "type": "nixos",
+      "network": "tailscale",
+      "description": "NixOS laptop - managed by hyprvibe flake",
+      "capabilities": ["shell", "file-edit", "nix-rebuild", "logs"],
+      "sudoStatus": "passwordless",
+      "notes": "Managed via ~/build/config/hosts/nixbook"
+    },
+    "nixstation": {
+      "hostname": "nixstation.coin-noodlefish.ts.net",
+      "user": "chrisf",
+      "type": "nixos",
+      "network": "tailscale",
+      "description": "NixOS workstation - managed by hyprvibe flake",
+      "capabilities": ["shell", "file-edit", "nix-rebuild", "logs"],
+      "sudoStatus": "passwordless",
+      "notes": "Managed via ~/build/config/hosts/nixstation"
+    },
+    "custodian": {
+      "hostname": "custodian.coin-noodlefish.ts.net",
+      "alternateIp": "172.16.0.10",
+      "user": "chrisf",
+      "type": "nixos",
+      "network": "tailscale",
+      "description": "Custodian server - NixOS, independent configuration",
+      "capabilities": ["shell", "file-edit", "nix-rebuild", "logs"],
+      "sudoStatus": "passwordless",
+      "notes": "Primary server, passwordless sudo confirmed"
+    },
+    "nodecan-1": {
+      "hostname": "nodecan-1.coin-noodlefish.ts.net",
+      "user": "chrisf",
+      "type": "nixos",
+      "network": "tailscale",
+      "description": "NixOS node - independent configuration",
+      "capabilities": ["shell", "file-edit", "nix-rebuild", "logs"],
+      "sudoStatus": "needs-configuration",
+      "notes": "CONFIRMED: Needs security.sudo.wheelNeedsPassword = false;"
+    },
+    "doctor": {
+      "hostname": "192.168.100.2",
+      "user": "chrisf",
+      "type": "nixos",
+      "network": "nebula",
+      "description": "Doctor NixOS server - Nebula VPN only",
+      "capabilities": ["shell", "file-edit", "nix-rebuild", "logs"],
+      "sudoStatus": "unknown",
+      "notes": "Not on Tailscale. Connection via Nebula may be slow to establish."
+    },
+    "van": {
+      "hostname": "van.trailertrash.io",
+      "tailscaleIp": "van.coin-noodlefish.ts.net",
+      "user": "chrisf",
+      "type": "ubuntu",
+      "network": "direct",
+      "description": "Van mobile system - Ubuntu LTS",
+      "capabilities": ["shell", "file-edit", "logs"],
+      "sudoStatus": "unknown",
+      "notes": "Ubuntu LTS. Tailscale SSH not working, use domain name. Check sudo config."
+    },
+    "homeassistant": {
+      "hostname": "172.16.0.116",
+      "tailscaleNote": "Tailscale IP connects to wrong container - use local IP",
+      "user": "root",
+      "type": "hassos",
+      "network": "local",
+      "description": "Home Assistant OS - appliance Linux",
+      "capabilities": ["shell", "file-read", "file-edit", "logs"],
+      "configPath": "/config",
+      "authMethod": "password-then-key",
+      "passwordFile": "~/.config/secrets/homeassistant_password",
+      "sudoStatus": "not-applicable",
+      "notes": "Appliance OS. SSH as root. Must use local IP 172.16.0.116 (Tailscale connects to Tailscale container, not HASSOS)."
+    }
+  },
+  "networks": {
+    "tailscale": {
+      "domain": "coin-noodlefish.ts.net",
+      "description": "Tailscale mesh network - primary access method"
+    },
+    "nebula": {
+      "subnet": "192.168.100.0/24",
+      "description": "Nebula overlay network - used for doctor"
+    },
+    "local": {
+      "subnet": "172.16.0.0/24",
+      "description": "Local network - some hosts have static IPs here"
+    }
+  },
+  "rvbee": {
+    "hostname": "rvbee.coin-noodlefish.ts.net",
+    "localIp": "172.16.0.86",
+    "ipType": "dhcp",
+    "nebulaIp": "192.168.100.10",
+    "description": "Primary workstation running OpenCode",
+    "notes": "This host. IP assigned via DHCP, may change."
+  }
+}

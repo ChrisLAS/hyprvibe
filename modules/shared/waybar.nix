@@ -55,6 +55,33 @@ in {
       chown -R ${userName}:${userGroup} ${userHome}/.config/waybar
       echo "[hyprvibe][waybar] activation complete"
     '';
+    # Move setup to systemd --user oneshot
+    systemd.user.services.hyprvibe-setup-waybar = {
+      description = "Hyprvibe: setup Waybar configs in user home";
+      wantedBy = [ "default.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = pkgs.writeShellScript "hyprvibe-setup-waybar" ''
+          set -euo pipefail
+          echo "[hyprvibe][waybar] starting user setup"
+          mkdir -p ${userHome}/.config/waybar/scripts ${userHome}/.local/bin
+          rm -f ${userHome}/.config/waybar/config
+          rm -f ${userHome}/.config/waybar/style.css
+          ${if cfg.configPath != null then ''ln -sf ${cfg.configPath} ${userHome}/.config/waybar/config'' else ''ln -sf ${../../configs/waybar-rvbee.json} ${userHome}/.config/waybar/config''}
+          ${if cfg.stylePath != null then ''ln -sf ${cfg.stylePath} ${userHome}/.config/waybar/style.css'' else ''ln -sf ${../../configs/waybar-rvbee.css} ${userHome}/.config/waybar/style.css''}
+          ${lib.optionalString (cfg.scriptsDir != null) ''cp -f ${cfg.scriptsDir}/* ${userHome}/.config/waybar/scripts/ 2>/dev/null || true''}
+          ${lib.optionalString (cfg.scriptsDir == null) ''
+            cp -f ${../../configs/waybar-scripts}/* ${userHome}/.config/waybar/scripts/ 2>/dev/null || true
+            install -Dm0755 ${../../configs/waybar-scripts/rofi-brightness.sh} ${userHome}/.local/bin/rofi-brightness
+          ''}
+          ${lib.concatStringsSep "\n" (map (c: ''
+            ln -sf ${c.source} ${userHome}/.config/waybar/${c.destName}
+          '') cfg.extraConfigs)}
+          echo "[hyprvibe][waybar] user setup complete"
+        '';
+      };
+    };
   };
 }
 
