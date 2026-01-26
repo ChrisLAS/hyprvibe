@@ -76,7 +76,7 @@ let
     patchelf
     python3
     go
-    nodejs_20
+    nodejs_22
     yarn
     imagemagick
     beads
