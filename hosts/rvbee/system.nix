@@ -2,6 +2,7 @@
   config,
   pkgs,
   hyprland,
+  openclaw,
   ...
 }:
 
@@ -13,13 +14,9 @@ let
 
   # Package groups
   devTools = with pkgs; [
-    git
     gcc
     cmake
-    python3
     go
-    gh
-    gitui
     patchelf
     binutils
     nixfmt
@@ -32,11 +29,7 @@ let
     imagemagick
     mariadb
     postgresql
-    github-cli
-    lazygit
     kitty
-    lazydocker
-    opencode
   ];
 
   multimedia = with pkgs; [
@@ -705,6 +698,7 @@ in
     ./hardware-configuration.nix
     # Shared scaffolding (non-host-specific)
     ../../modules/shared
+    ./lore.nix
   ];
 
   # Enable shared module toggles
