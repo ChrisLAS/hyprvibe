@@ -1,7 +1,6 @@
 {
   config,
   pkgs,
-  hyprland,
   openclaw,
   ...
 }:
@@ -82,7 +81,7 @@ let
     qpwgraph
     # sonobus
     # krita
-    x32edit
+    # x32edit  # Temporarily removed due to hash mismatch
     # pwvucontrol
     easyeffects
     wayfarer
@@ -127,7 +126,6 @@ let
     # rustdesk-flutter
     tor-browser
     # lmstudio
-    vdhcoapp
     ulauncher
     #    python312Packages.todoist-api-python
     wmctrl
@@ -692,8 +690,6 @@ let
 in
 {
   imports = [
-    # Import the Hyprland flake module
-    hyprland.nixosModules.default
     # Import your hardware configuration
     ./hardware-configuration.nix
     # Shared scaffolding (non-host-specific)
@@ -1066,7 +1062,7 @@ in
 
   # User configuration handled by hyprvibe.user
 
-  # Podman + declarative Companion container
+  # Podman + declarative containers
   virtualisation.podman.enable = true;
   virtualisation.oci-containers.backend = "podman";
   virtualisation.oci-containers.containers.companion = {
@@ -1085,6 +1081,31 @@ in
     extraOptions = [
       "--privileged"
       "--user=0:0"
+    ];
+    labels = {
+      "io.containers.autoupdate" = "registry";
+    };
+  };
+
+  # Crabwalk Monitor (Next.js Application)
+  virtualisation.oci-containers.containers.crabwalk = {
+    image = "ghcr.io/luccast/crabwalk:latest";
+    autoStart = true;
+    ports = [
+      "3000:3000"
+    ];
+    environment = {
+      # Pass internal Gateway token for dashboard auth
+      OPENCLAW_API_TOKEN = "***REMOVED***";
+      # Explicitly point to the gateway on the host's loopback from the container's perspective
+      OPENCLAW_GATEWAY_URL = "ws://100.120.88.96:18789";
+    };
+    extraOptions = [
+      "--network=host"
+    ];
+    volumes = [
+      # Consolidated OpenClaw workspace path
+      "/home/chrisf/.openclaw/workspace-main:/root/.openclaw/workspace"
     ];
     labels = {
       "io.containers.autoupdate" = "registry";

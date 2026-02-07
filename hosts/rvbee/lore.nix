@@ -5,24 +5,6 @@ let
 
   # Package provided by the top-level flake input
   openclaw-pkg = openclaw.packages.${pkgs.system}.default;
-
-  crabwalk-pkg = pkgs.stdenv.mkDerivation rec {
-    pname = "crabwalk";
-    version = "1.0.9";
-    src = pkgs.fetchurl {
-      url = "https://github.com/luccast/crabwalk/releases/download/v${version}/crabwalk-v${version}.tar.gz";
-      sha256 = "0yhkpgn8bn8wgcgzsrn2qnymwbkp0kbxrga43lj225g6a5xn7wx5";
-    };
-    nativeBuildInputs = [ pkgs.makeWrapper ];
-    setSourceRoot = "sourceRoot=.";
-    installPhase = ''
-      mkdir -p $out/bin
-      cp -r . $out/opt
-      ln -s $out/opt/bin/crabwalk $out/bin/crabwalk
-      wrapProgram $out/bin/crabwalk \
-        --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.nodejs_20 pkgs.qrencode pkgs.gnugrep pkgs.coreutils ]}
-    '';
-  };
 in
 {
   # ==============================================================================
@@ -34,9 +16,10 @@ in
     # --- Intelligence & Orchestration ---
     openclaw-pkg       # Native OpenClaw fleet core
     opencode           # Native ACP coordination core
+    gemini-cli         # Gemini API interaction
+    codex              # Code analysis and refactoring
     python3            # Foundation for background sentries & logic shims
     babashka           # Low-latency Clojure scripting for agentic tasks
-    crabwalk-pkg       # Real-time companion monitor
     
     # --- Transcription & Media ---
     whisper-cpp        # High-fidelity speech-to-text processing
@@ -68,10 +51,6 @@ in
     if [ ! -L $HOME/.clawdbot ]; then
       ln -s $HOME/.openclaw $HOME/.clawdbot
     fi
-
-    # Fix Crabwalk .output symlink if needed after migration
-    mkdir -p $HOME/.crabwalk
-    ln -sf ${crabwalk-pkg}/opt/.output $HOME/.crabwalk/.output
   '';
 
   # Shared agentic environment variables
@@ -86,33 +65,73 @@ in
   # OpenClaw Services: Real-time Communication & Intelligence
   # ==============================================================================
 
-  # Lore Real-time Listener (OpenClaw)
-  systemd.services.openclaw-listener-lore = {
-    description = "Lore Real-time OpenClaw Mattermost Listener";
-    wantedBy = [ "multi-user.target" ];
+  # Main OpenClaw Gateway (Core Intelligence) - User Service
+  systemd.user.services.openclaw-gateway = {
+    description = "OpenClaw Gateway - Main Intelligence Core (Lore)";
+    wantedBy = [ "default.target" ];
     after = [ "network-online.target" ];
-    path = [ pkgs.nodejs pkgs.bash pkgs.curl pkgs.jq pkgs.python3 pkgs.coreutils pkgs.gnugrep ];
+    wants = [ "network-online.target" ];
+    path = [ "/run/wrappers" openclaw-pkg pkgs.nodejs pkgs.bash pkgs.chromium ];
+    
     serviceConfig = {
       Type = "simple";
-      User = "${userName}";
-      ExecStart = "${pkgs.nodejs}/bin/node /home/chrisf/.openclaw/scripts/mattermost-websocket-listener.js";
+      WorkingDirectory = "/home/${userName}";
+      ExecStart = "${openclaw-pkg}/bin/openclaw gateway --port 18789";
       Restart = "always";
       RestartSec = "10s";
+      
+      # Process management
+      KillMode = "mixed";
+      KillSignal = "SIGTERM";
+      TimeoutStopSec = "30s";
+      
+      # Security
+      PrivateTmp = true;
+      NoNewPrivileges = false;
+      
+      # Logging
+      StandardOutput = "journal";
+      StandardError = "journal";
+      SyslogIdentifier = "openclaw-gateway";
+      
+      # Environment
       Environment = [
-        "MM_BOT_NAME=Lore"
-        "MM_BOT_ID=dtdasoec43dd5d3kgdccd8skua"
-        "MM_BOT_TOKEN=y4yuqsyrepbuteq4ae74p78djy"
-        "NODE_PATH=${pkgs.nodejs}/lib/node_modules"
+        "NODE_ENV=production"
+        "HOME=/home/${userName}"
+        "OPENCLAW_NIX_MODE=1"
       ];
     };
   };
 
-  # Data Real-time Listener (OpenClaw)
-  systemd.services.openclaw-listener-data = {
-    description = "Data Real-time OpenClaw Mattermost Listener";
+  # Dax Bridge: Bridges legacy daxia_bot to OpenClaw Gateway
+  systemd.services.openclaw-bridge-dax = {
+    description = "OpenClaw Bridge - Dax Telegram Station";
     wantedBy = [ "multi-user.target" ];
-    after = [ "network-online.target" ];
-    path = [ pkgs.nodejs pkgs.bash pkgs.curl pkgs.jq pkgs.python3 pkgs.coreutils pkgs.gnugrep ];
+    after = [ "network-online.target" "openclaw-gateway.service" ];
+    path = [ openclaw-pkg pkgs.python3 pkgs.curl pkgs.coreutils pkgs.nodejs ];
+    
+    serviceConfig = {
+      Type = "simple";
+      User = "${userName}";
+      WorkingDirectory = "/home/chrisf/.openclaw/scripts";
+      ExecStart = "${pkgs.python3}/bin/python3 /home/chrisf/.openclaw/scripts/dax_listener.py";
+      Restart = "always";
+      RestartSec = "15s";
+      
+      # Environment inherited for CLI pathing
+      Environment = [
+        "HOME=/home/${userName}"
+        "PYTHONUNBUFFERED=1"
+      ];
+    };
+  };
+
+  # Data Bridge: Mattermost Listener
+  systemd.services.openclaw-bridge-data = {
+    description = "OpenClaw Bridge - Data Mattermost Listener";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "network-online.target" "openclaw-gateway.service" ];
+    path = [ pkgs.nodejs pkgs.bash pkgs.curl pkgs.jq pkgs.python3 pkgs.coreutils pkgs.gnugrep openclaw-pkg ];
     serviceConfig = {
       Type = "simple";
       User = "${userName}";
@@ -124,16 +143,17 @@ in
         "MM_BOT_ID=19suo8rne3bet8hf7kwocxn1rw"
         "MM_BOT_TOKEN=***REMOVED***"
         "NODE_PATH=${pkgs.nodejs}/lib/node_modules"
+        "HOME=/home/${userName}"
       ];
     };
   };
 
-  # Uhura Real-time Listener (OpenClaw)
-  systemd.services.openclaw-listener-uhura = {
-    description = "Uhura Real-time OpenClaw Mattermost Listener";
+  # Uhura Bridge: Mattermost Listener
+  systemd.services.openclaw-bridge-uhura = {
+    description = "OpenClaw Bridge - Uhura Mattermost Listener";
     wantedBy = [ "multi-user.target" ];
-    after = [ "network-online.target" ];
-    path = [ pkgs.nodejs pkgs.bash pkgs.curl pkgs.jq pkgs.python3 pkgs.coreutils pkgs.gnugrep ];
+    after = [ "network-online.target" "openclaw-gateway.service" ];
+    path = [ pkgs.nodejs pkgs.bash pkgs.curl pkgs.jq pkgs.python3 pkgs.coreutils pkgs.gnugrep openclaw-pkg ];
     serviceConfig = {
       Type = "simple";
       User = "${userName}";
@@ -145,61 +165,7 @@ in
         "MM_BOT_ID=ckta36zrkjb4ig1ykf664s6e3h"
         "MM_BOT_TOKEN=***REMOVED***"
         "NODE_PATH=${pkgs.nodejs}/lib/node_modules"
-      ];
-    };
-  };
-
-  # Dax Real-time Listener (OpenClaw Mattermost)
-  systemd.services.openclaw-listener-dax = {
-    description = "Dax Real-time OpenClaw Mattermost Listener";
-    wantedBy = [ "multi-user.target" ];
-    after = [ "network-online.target" ];
-    path = [ pkgs.nodejs pkgs.bash pkgs.curl pkgs.jq pkgs.python3 pkgs.coreutils pkgs.gnugrep ];
-    serviceConfig = {
-      Type = "simple";
-      User = "${userName}";
-      ExecStart = "${pkgs.nodejs}/bin/node /home/chrisf/.openclaw/scripts/mattermost-websocket-listener.js";
-      Restart = "always";
-      RestartSec = "10s";
-      Environment = [
-        "MM_BOT_NAME=Dax"
-        "MM_BOT_ID=ypxxcpkhgpntdc4ehujftptu4e"
-        "MM_BOT_TOKEN=bmr1hxp7wbb8xksdujib8ix16o"
-        "NODE_PATH=${pkgs.nodejs}/lib/node_modules"
-      ];
-    };
-  };
-
-  # Dax Real-time Listener (OpenClaw Telegram)
-  systemd.services.openclaw-station-dax = {
-    description = "Dax Real-time OpenClaw Telegram Station";
-    wantedBy = [ "multi-user.target" ];
-    after = [ "network-online.target" ];
-    path = [ pkgs.python3 pkgs.curl pkgs.coreutils pkgs.gnugrep ];
-    serviceConfig = {
-      Type = "simple";
-      User = "${userName}";
-      ExecStart = "${pkgs.python3}/bin/python3 /home/chrisf/.openclaw/scripts/dax_listener.py";
-      Restart = "always";
-      RestartSec = "10s";
-      WorkingDirectory = "/home/chrisf/.openclaw/scripts";
-    };
-  };
-
-  # Crabwalk OpenClaw Monitoring Dashboard
-  systemd.user.services.crabwalk = {
-    description = "Crabwalk OpenClaw Monitoring Dashboard";
-    wantedBy = [ "multi-user.target" ];
-    after = [ "network-online.target" ];
-    serviceConfig = {
-      Type = "simple";
-      User = "${userName}";
-      # Using standard OpenClaw local port 3000
-      ExecStart = "${crabwalk-pkg}/bin/crabwalk start -p 3000 -H 0.0.0.0 -g ws://127.0.0.1:18789 -t ***REMOVED***";
-      Restart = "always";
-      RestartSec = "10s";
-      Environment = [
-        "NODE_PATH=${pkgs.nodejs_20}/lib/node_modules"
+        "HOME=/home/${userName}"
       ];
     };
   };
