@@ -2,6 +2,7 @@
   config,
   pkgs,
   openclaw,
+  self,
   ...
 }:
 
@@ -337,6 +338,12 @@ let
         "context7": {
           "type": "remote",
           "url": "https://mcp.context7.com/mcp",
+          "enabled": true
+        },
+        "obsidian": {
+          "type": "local",
+          "command": ["npx", "-y", "@steipete/mcp-obsidian"],
+          "args": ["/home/chrisf/Documents/FishNet"],
           "enabled": true
         }
       }
@@ -2236,6 +2243,8 @@ in
       '';
     };
   };
+
+  system.configurationRevision = self.rev or "dirty";
 
   # Kernel/VM tuning and CPU governor override for mobile AMD APU
   powerManagement.cpuFreqGovernor = pkgs.lib.mkForce "schedutil";

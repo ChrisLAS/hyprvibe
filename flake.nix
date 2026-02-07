@@ -39,7 +39,7 @@
           prettyswitch.nixosModules.default
         ];
         specialArgs = {
-          inherit hyprland openclaw;
+          inherit self hyprland openclaw;
         };
             };
       nixstation = nixpkgs.lib.nixosSystem {
