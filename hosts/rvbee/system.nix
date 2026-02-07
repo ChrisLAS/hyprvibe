@@ -342,8 +342,7 @@ let
         },
         "obsidian": {
           "type": "local",
-          "command": ["npx", "-y", "@steipete/mcp-obsidian"],
-          "args": ["/home/chrisf/Documents/FishNet"],
+          "command": ["nix", "run", "github:steipete/mcp-obsidian", "--", "/home/chrisf/Documents/FishNet"],
           "enabled": true
         }
       }
