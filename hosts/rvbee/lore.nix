@@ -99,6 +99,8 @@ in
         "NODE_ENV=production"
         "HOME=/home/${userName}"
         "OPENCLAW_NIX_MODE=1"
+        "OPENCLAW_BIND=0.0.0.0"
+        "OPENCLAW_ALLOW_INSECURE_WEBSOCKETS=1"
       ];
     };
   };
@@ -122,50 +124,6 @@ in
       Environment = [
         "HOME=/home/${userName}"
         "PYTHONUNBUFFERED=1"
-      ];
-    };
-  };
-
-  # Data Bridge: Mattermost Listener
-  systemd.services.openclaw-bridge-data = {
-    description = "OpenClaw Bridge - Data Mattermost Listener";
-    wantedBy = [ "multi-user.target" ];
-    after = [ "network-online.target" "openclaw-gateway.service" ];
-    path = [ pkgs.nodejs pkgs.bash pkgs.curl pkgs.jq pkgs.python3 pkgs.coreutils pkgs.gnugrep openclaw-pkg ];
-    serviceConfig = {
-      Type = "simple";
-      User = "${userName}";
-      ExecStart = "${pkgs.nodejs}/bin/node /home/chrisf/.openclaw/scripts/mattermost-websocket-listener.js";
-      Restart = "always";
-      RestartSec = "10s";
-      Environment = [
-        "MM_BOT_NAME=Data"
-        "MM_BOT_ID=19suo8rne3bet8hf7kwocxn1rw"
-        "MM_BOT_TOKEN=***REMOVED***"
-        "NODE_PATH=${pkgs.nodejs}/lib/node_modules"
-        "HOME=/home/${userName}"
-      ];
-    };
-  };
-
-  # Uhura Bridge: Mattermost Listener
-  systemd.services.openclaw-bridge-uhura = {
-    description = "OpenClaw Bridge - Uhura Mattermost Listener";
-    wantedBy = [ "multi-user.target" ];
-    after = [ "network-online.target" "openclaw-gateway.service" ];
-    path = [ pkgs.nodejs pkgs.bash pkgs.curl pkgs.jq pkgs.python3 pkgs.coreutils pkgs.gnugrep openclaw-pkg ];
-    serviceConfig = {
-      Type = "simple";
-      User = "${userName}";
-      ExecStart = "${pkgs.nodejs}/bin/node /home/chrisf/.openclaw/scripts/mattermost-websocket-listener.js";
-      Restart = "always";
-      RestartSec = "10s";
-      Environment = [
-        "MM_BOT_NAME=Uhura"
-        "MM_BOT_ID=ckta36zrkjb4ig1ykf664s6e3h"
-        "MM_BOT_TOKEN=***REMOVED***"
-        "NODE_PATH=${pkgs.nodejs}/lib/node_modules"
-        "HOME=/home/${userName}"
       ];
     };
   };

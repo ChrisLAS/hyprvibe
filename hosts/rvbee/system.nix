@@ -1094,9 +1094,10 @@ in
     ports = [
       "3000:3000"
     ];
+    environmentFiles = [
+      "/home/chrisf/.config/secrets/openclaw-crabwalk.env"
+    ];
     environment = {
-      # Pass internal Gateway token for dashboard auth
-      OPENCLAW_API_TOKEN = "***REMOVED***";
       # Explicitly point to the gateway on the host's loopback from the container's perspective
       OPENCLAW_GATEWAY_URL = "ws://100.120.88.96:18789";
     };
