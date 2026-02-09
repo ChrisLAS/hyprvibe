@@ -762,14 +762,14 @@ in
     "opencode/mcp.d/nixos.json".text = builtins.toJSON {
       nixos = {
         type = "local";
-        command = ["nix"; "run"; "github:utensils/mcp-nixos"; "--"];
+        command = ["nix" "run" "github:utensils/mcp-nixos" "--"];
         enabled = true;
       };
     };
     "opencode/mcp.d/obsidian.json".text = builtins.toJSON {
       obsidian = {
         type = "local";
-        command = ["uvx"; "mcp-obsidian"];
+        command = ["uvx" "mcp-obsidian"];
         env = {
            OBSIDIAN_API_KEY = "$(cat /home/chrisf/.config/secrets/obsidian_mcp_key)"; # Note: Shell expansion handled by assembly script
            OBSIDIAN_PORT = "27124";
