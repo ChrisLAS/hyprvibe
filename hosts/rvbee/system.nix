@@ -319,36 +319,40 @@ let
       systemctl --user set-environment GITHUB_TOKEN="$value"
     fi
   '';
-  # Script to setup OpenCode configuration with MCP servers
+  # Script to setup OpenCode configuration with modular MCP snippets
   setupOpencodeConfigScript = pkgs.writeShellScript "setup-opencode-config" ''
     set -euo pipefail
+    
+    # 1. Ensure directories exist
     mkdir -p ${homeDir}/.config/opencode
-    cat > ${homeDir}/.config/opencode/opencode.json << 'EOF'
-    {
+    
+    # 2. Base Configuration Template
+    BASE_CONFIG='{
       "$schema": "https://opencode.ai/config.json",
       "model": "anthropic/claude-sonnet-4.5",
       "autoupdate": true,
       "theme": "opencode",
-      "mcp": {
-        "nixos": {
-          "type": "local",
-          "command": ["nix", "run", "github:utensils/mcp-nixos", "--"],
-          "enabled": true
-        },
-        "context7": {
-          "type": "remote",
-          "url": "https://mcp.context7.com/mcp",
-          "enabled": true
-        },
-        "obsidian": {
-          "type": "local",
-          "command": ["nix", "run", "github:steipete/mcp-obsidian", "--", "/home/chrisf/Documents/FishNet"],
-          "enabled": true
-        }
-      }
-    }
-    EOF
-    chown ${userName}:${userGroup} ${homeDir}/.config/opencode/opencode.json
+      "mcp": {}
+    }'
+
+    # 3. Safe Merge using jq
+    # Iterates over snippets in /etc/opencode/mcp.d and merges them into the base
+    if [ -d "/etc/opencode/mcp.d" ] && [ "$(ls -A /etc/opencode/mcp.d/*.json 2>/dev/null)" ]; then
+      MERGED_MCP=$(jq -s 'reduce .[] as $item ({}; . * $item)' /etc/opencode/mcp.d/*.json)
+      FINAL_JSON=$(echo "$BASE_CONFIG" | jq --argjson mcp "$MERGED_MCP" '.mcp = $mcp')
+    else
+      FINAL_JSON="$BASE_CONFIG"
+    fi
+
+    # 4. Atomic Deployment
+    echo "$FINAL_JSON" > ${homeDir}/.config/opencode/opencode.json.tmp
+    if jq . ${homeDir}/.config/opencode/opencode.json.tmp > /dev/null 2>&1; then
+      mv ${homeDir}/.config/opencode/opencode.json.tmp ${homeDir}/.config/opencode/opencode.json
+      chown ${userName}:${userGroup} ${homeDir}/.config/opencode/opencode.json
+    else
+      echo "ERROR: Generated JSON is invalid. Aborting update to prevent breakage."
+      exit 1
+    fi
   '';
 
   # Script to setup SSH config for remote host management
@@ -750,6 +754,36 @@ in
     nebula = {
       enable = true;
       nebulaIp = "192.168.100.10/24";
+    };
+  };
+
+  # Define modular MCP snippets for opencode
+  environment.etc = {
+    "opencode/mcp.d/nixos.json".text = builtins.toJSON {
+      nixos = {
+        type = "local";
+        command = ["nix"; "run"; "github:utensils/mcp-nixos"; "--"];
+        enabled = true;
+      };
+    };
+    "opencode/mcp.d/obsidian.json".text = builtins.toJSON {
+      obsidian = {
+        type = "local";
+        command = ["uvx"; "mcp-obsidian"];
+        env = {
+           OBSIDIAN_API_KEY = "$(cat /home/chrisf/.config/secrets/obsidian_mcp_key)"; # Note: Shell expansion handled by assembly script
+           OBSIDIAN_PORT = "27124";
+           OBSIDIAN_HOST = "127.0.0.1";
+        };
+        enabled = true;
+      };
+    };
+    "opencode/mcp.d/context7.json".text = builtins.toJSON {
+      context7 = {
+        type = "remote";
+        url = "https://mcp.context7.com/mcp";
+        enabled = true;
+      };
     };
   };
 
