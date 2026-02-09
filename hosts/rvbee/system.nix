@@ -785,6 +785,21 @@ in
         enabled = true;
       };
     };
+    "opencode/mcp.d/proxmox.json".text = builtins.toJSON {
+      proxmox = {
+        type = "local";
+        command = ["nix" "run" "github:RekklesNA/ProxmoxMCP-Plus" "--"];
+        env = {
+           PROXMOX_HOST = "100.120.212.39";
+           PROXMOX_USER = "root@pam";
+           PROXMOX_TOKEN_NAME = "lore-mcp";
+           PROXMOX_TOKEN_VALUE = "$(cat /home/chrisf/.config/secrets/proxmox_mcp_key)"; 
+           PROXMOX_PORT = "8006";
+           PROXMOX_VERIFY_SSL = "false";
+        };
+        enabled = true;
+      };
+    };
   };
 
   # Android ADB udev support now covered by systemd uaccess rules; keep brightnessctl
