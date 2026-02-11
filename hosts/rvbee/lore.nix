@@ -1,4 +1,10 @@
-{ config, pkgs, lib, openclaw, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  openclaw,
+  ...
+}:
 
 let
   userName = config.hyprvibe.user.name;
@@ -12,41 +18,13 @@ in
   # Encapsulates core intelligence, orchestration, and automation dependencies.
   # ==============================================================================
 
-  environment.systemPackages = with pkgs; [
-    # --- Intelligence & Orchestration ---
-    openclaw-pkg       # Native OpenClaw fleet core
-    opencode           # Native ACP coordination core
-    gemini-cli         # Gemini API interaction
-    codex              # Code analysis and refactoring
-    python3            # Foundation for background sentries & logic shims
-    babashka           # Low-latency Clojure scripting for agentic tasks
-    
-    # --- Transcription & Media ---
-    whisper-cpp        # High-fidelity speech-to-text processing
-    ffmpegthumbnailer  # Visual context processing support
-    
-    # --- Version Control & Digital Limbs ---
-    git                # Primary sync mechanism
-    github-cli         # Bridge to the Collective (GitHub)
-    gitui              # Supplemental TUI for git operations
-    lazygit            # High-bandwidth git TUI
-    lazydocker         # Container monitoring for remote hosts
-    
-    # --- Shell Context & Intelligence ---
-    atuin              # Shared history memory
-    oh-my-posh         # Contextual prompt orchestration
-    jq                 # JSON logic processing
-    ripgrep            # Massive filesystem scan capability
-    fd                 # High-speed file discovery
-  ];
-
   # Assist with bootstrapping on new hosts
   system.activationScripts.lore-bootstrap = lib.stringAfter [ "users" ] ''
     # Ensure local script directory exists (OpenClaw standard)
     export HOME=/home/${userName}
     mkdir -p $HOME/.openclaw/scripts
     chown -R ${userName} $HOME/.openclaw
-    
+
     # Maintain legacy symlink for backward compatibility during migration
     if [ ! -L $HOME/.clawdbot ]; then
       ln -s $HOME/.openclaw $HOME/.clawdbot
@@ -70,14 +48,14 @@ in
     enable = true;
     settings = {
       storage = {
-        storage_type = "mmap";  # Memory-mapped for efficiency on Ryzen 5700U
+        storage_type = "mmap"; # Memory-mapped for efficiency on Ryzen 5700U
       };
       service = {
         http_port = 6333;
         grpc_port = 6334;
-        host = "127.0.0.1";  # localhost only for security
+        host = "127.0.0.1"; # localhost only for security
       };
-      telemetry_disabled = true;  # Privacy: disable telemetry
+      telemetry_disabled = true; # Privacy: disable telemetry
       log_level = "INFO";
     };
   };
@@ -90,7 +68,7 @@ in
     createHome = true;
     description = "Embedding service for vector memory";
   };
-  users.groups.embedding-service = {};
+  users.groups.embedding-service = { };
 
   # Embedding service directories
   systemd.tmpfiles.rules = [
@@ -105,44 +83,47 @@ in
     description = "Embedding Service - all-MiniLM-L6-v2 via sentence-transformers";
     wantedBy = [ "multi-user.target" ];
     after = [ "network-online.target" ];
-    
+
     serviceConfig = {
       Type = "simple";
       User = "embedding-service";
       Group = "embedding-service";
       WorkingDirectory = "/var/lib/embedding-service";
-      
+
       # Start script that downloads model and runs FastAPI
       ExecStart = pkgs.writeShellScript "embedding-service-start" ''
         export HF_HOME=/var/cache/embedding-service/huggingface
         export TRANSFORMERS_CACHE=/var/cache/embedding-service/transformers
         export SENTENCE_TRANSFORMERS_HOME=/var/cache/embedding-service/sentence-transformers
         export HF_TOKEN_FILE=/etc/secrets/huggingface_token
-        
+
         # Run embedding server
         ${pkgs.python3}/bin/python3 ${./embedding-service/app.py}
       '';
-      
+
       Restart = "always";
       RestartSec = "10s";
-      
+
       # Resource limits appropriate for Ryzen 5700U
       MemoryMax = "512M";
-      CPUQuota = "200%";  # 2 cores max
-      
+      CPUQuota = "200%"; # 2 cores max
+
       # Security hardening
       PrivateTmp = true;
       NoNewPrivileges = true;
       ProtectSystem = "strict";
       ProtectHome = true;
-      ReadWritePaths = [ "/var/cache/embedding-service" "/var/lib/embedding-service" ];
-      
+      ReadWritePaths = [
+        "/var/cache/embedding-service"
+        "/var/lib/embedding-service"
+      ];
+
       # Logging
       StandardOutput = "journal";
       StandardError = "journal";
       SyslogIdentifier = "embedding-service";
     };
-    
+
     environment = {
       PYTHONUNBUFFERED = "1";
       EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2";
@@ -154,42 +135,43 @@ in
   # System packages for vector memory
   environment.systemPackages = with pkgs; [
     # --- Intelligence & Orchestration ---
-    openclaw-pkg       # Native OpenClaw fleet core
-    opencode           # Native ACP coordination core
-    gemini-cli         # Gemini API interaction
-    codex              # Code analysis and refactoring
-    python3            # Foundation for background sentries & logic shims
-    babashka           # Low-latency Clojure scripting for agentic tasks
-    
+    openclaw-pkg # Native OpenClaw fleet core
+    opencode # Native ACP coordination core
+    gemini-cli # Gemini API interaction
+    codex # Code analysis and refactoring
+    python3 # Foundation for background sentries & logic shims
+    babashka # Low-latency Clojure scripting for agentic tasks
+
     # --- Vector Memory Stack ---
-    qdrant             # Vector database
-    (python3.withPackages (ps: with ps; [
-      sentence-transformers  # Embedding models
-      fastapi                # API server
-      uvicorn                # ASGI server
-      httpx                  # HTTP client
-      pydantic               # Data validation
-    ]))
-    curl               # Health checks
-    jq                 # JSON processing for API tests
-    
+    qdrant # Vector database
+    (python3.withPackages (
+      ps: with ps; [
+        sentence-transformers # Embedding models
+        fastapi # API server
+        uvicorn # ASGI server
+        httpx # HTTP client
+        pydantic # Data validation
+      ]
+    ))
+    curl # Health checks
+
     # --- Transcription & Media ---
-    whisper-cpp        # High-fidelity speech-to-text processing
-    ffmpegthumbnailer  # Visual context processing support
-    
+    whisper-cpp # High-fidelity speech-to-text processing
+    ffmpegthumbnailer # Visual context processing support
+
     # --- Version Control & Digital Limbs ---
-    git                # Primary sync mechanism
-    github-cli         # Bridge to the Collective (GitHub)
-    gitui              # Supplemental TUI for git operations
-    lazygit            # High-bandwidth git TUI
-    lazydocker         # Container monitoring for remote hosts
-    
+    git # Primary sync mechanism
+    github-cli # Bridge to the Collective (GitHub)
+    gitui # Supplemental TUI for git operations
+    lazygit # High-bandwidth git TUI
+    lazydocker # Container monitoring for remote hosts
+
     # --- Shell Context & Intelligence ---
-    atuin              # Shared history memory
-    oh-my-posh         # Contextual prompt orchestration
-    jq                 # JSON logic processing
-    ripgrep            # Massive filesystem scan capability
-    fd                 # High-speed file discovery
+    atuin # Shared history memory
+    oh-my-posh # Contextual prompt orchestration
+    jq # JSON logic processing
+    ripgrep # Massive filesystem scan capability
+    fd # High-speed file discovery
   ];
 
   # ==============================================================================
@@ -202,29 +184,35 @@ in
     wantedBy = [ "default.target" ];
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
-    path = [ "/run/wrappers" openclaw-pkg pkgs.nodejs pkgs.bash pkgs.chromium ];
-    
+    path = [
+      "/run/wrappers"
+      openclaw-pkg
+      pkgs.nodejs
+      pkgs.bash
+      pkgs.chromium
+    ];
+
     serviceConfig = {
       Type = "simple";
       WorkingDirectory = "/home/${userName}";
       ExecStart = "${openclaw-pkg}/bin/openclaw gateway --port 18789";
       Restart = "always";
       RestartSec = "10s";
-      
+
       # Process management
       KillMode = "mixed";
       KillSignal = "SIGTERM";
       TimeoutStopSec = "30s";
-      
+
       # Security
       PrivateTmp = true;
       NoNewPrivileges = false;
-      
+
       # Logging
       StandardOutput = "journal";
       StandardError = "journal";
       SyslogIdentifier = "openclaw-gateway";
-      
+
       # Environment
       Environment = [
         "NODE_ENV=production"
@@ -240,9 +228,18 @@ in
   systemd.services.openclaw-bridge-dax = {
     description = "OpenClaw Bridge - Dax Telegram Station";
     wantedBy = [ "multi-user.target" ];
-    after = [ "network-online.target" "openclaw-gateway.service" ];
-    path = [ openclaw-pkg pkgs.python3 pkgs.curl pkgs.coreutils pkgs.nodejs ];
-    
+    after = [
+      "network-online.target"
+      "openclaw-gateway.service"
+    ];
+    path = [
+      openclaw-pkg
+      pkgs.python3
+      pkgs.curl
+      pkgs.coreutils
+      pkgs.nodejs
+    ];
+
     serviceConfig = {
       Type = "simple";
       User = "${userName}";
@@ -250,7 +247,7 @@ in
       ExecStart = "${pkgs.python3}/bin/python3 /home/chrisf/.openclaw/scripts/dax_listener.py";
       Restart = "always";
       RestartSec = "15s";
-      
+
       # Environment inherited for CLI pathing
       Environment = [
         "HOME=/home/${userName}"
@@ -262,7 +259,12 @@ in
   # Daily Morning Digest Service (OpenClaw Intelligence)
   systemd.services.openclaw-morning-digest = {
     description = "OpenClaw Integrated Morning Briefing";
-    path = [ pkgs.python3 pkgs.curl pkgs.jq pkgs.coreutils ];
+    path = [
+      pkgs.python3
+      pkgs.curl
+      pkgs.jq
+      pkgs.coreutils
+    ];
     serviceConfig = {
       Type = "oneshot";
       User = "${userName}";
