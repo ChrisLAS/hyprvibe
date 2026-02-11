@@ -11,6 +11,17 @@ let
 
   # Package provided by the top-level flake input
   openclaw-pkg = openclaw.packages.${pkgs.system}.default;
+
+  # Python environment for embedding service
+  embeddingPython = pkgs.python3.withPackages (ps: with ps; [
+    fastapi
+    uvicorn
+    sentence-transformers
+    pydantic
+    httpx
+    torch
+    numpy
+  ]);
 in
 {
   # ==============================================================================
@@ -98,7 +109,7 @@ in
         export HF_TOKEN_FILE=/etc/secrets/huggingface_token
 
         # Run embedding server
-        ${pkgs.python3}/bin/python3 ${./embedding-service/app.py}
+        ${embeddingPython}/bin/python ${./embedding-service/app.py}
       '';
 
       Restart = "always";
@@ -127,7 +138,7 @@ in
     environment = {
       PYTHONUNBUFFERED = "1";
       EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2";
-      EMBEDDING_PORT = "8000";
+      EMBEDDING_PORT = "18000";
       EMBEDDING_HOST = "127.0.0.1";
     };
   };
