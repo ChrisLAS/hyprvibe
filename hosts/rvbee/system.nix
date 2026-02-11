@@ -322,10 +322,10 @@ let
   # Script to setup OpenCode configuration with modular MCP snippets
   setupOpencodeConfigScript = pkgs.writeShellScript "setup-opencode-config" ''
     set -euo pipefail
-    
+
     # 1. Ensure directories exist
     mkdir -p ${homeDir}/.config/opencode
-    
+
     # 2. Base Configuration Template
     BASE_CONFIG='{
       "$schema": "https://opencode.ai/config.json",
@@ -762,18 +762,26 @@ in
     "opencode/mcp.d/nixos.json".text = builtins.toJSON {
       nixos = {
         type = "local";
-        command = ["nix" "run" "github:utensils/mcp-nixos" "--"];
+        command = [
+          "nix"
+          "run"
+          "github:utensils/mcp-nixos"
+          "--"
+        ];
         enabled = true;
       };
     };
     "opencode/mcp.d/obsidian.json".text = builtins.toJSON {
       obsidian = {
         type = "local";
-        command = ["uvx" "mcp-obsidian"];
+        command = [
+          "uvx"
+          "mcp-obsidian"
+        ];
         env = {
-           OBSIDIAN_API_KEY = "$(cat /home/chrisf/.config/secrets/obsidian_mcp_key)"; # Note: Shell expansion handled by assembly script
-           OBSIDIAN_PORT = "27124";
-           OBSIDIAN_HOST = "127.0.0.1";
+          OBSIDIAN_API_KEY = "$(cat /home/chrisf/.config/secrets/obsidian_mcp_key)"; # Note: Shell expansion handled by assembly script
+          OBSIDIAN_PORT = "27124";
+          OBSIDIAN_HOST = "127.0.0.1";
         };
         enabled = true;
       };
@@ -788,14 +796,29 @@ in
     "opencode/mcp.d/proxmox.json".text = builtins.toJSON {
       proxmox = {
         type = "local";
-        command = ["nix" "run" "github:RekklesNA/ProxmoxMCP-Plus" "--"];
+        command = [
+          "nix"
+          "run"
+          "github:RekklesNA/ProxmoxMCP-Plus"
+          "--"
+        ];
         env = {
-           PROXMOX_HOST = "100.120.212.39";
-           PROXMOX_USER = "root@pam";
-           PROXMOX_TOKEN_NAME = "lore-mcp";
-           PROXMOX_TOKEN_VALUE = "$(cat /home/chrisf/.config/secrets/proxmox_mcp_key)"; 
-           PROXMOX_PORT = "8006";
-           PROXMOX_VERIFY_SSL = "false";
+          PROXMOX_HOST = "100.120.212.39";
+          PROXMOX_USER = "root@pam";
+          PROXMOX_TOKEN_NAME = "lore-mcp";
+          PROXMOX_TOKEN_VALUE = "$(cat /home/chrisf/.config/secrets/proxmox_mcp_key)";
+          PROXMOX_PORT = "8006";
+          PROXMOX_VERIFY_SSL = "false";
+        };
+        enabled = true;
+      };
+    };
+    "opencode/mcp.d/todoist.json".text = builtins.toJSON {
+      todoist = {
+        type = "local";
+        command = ["npx" "-y" "@byungkyu/todoist-api"];
+        env = {
+           TODOIST_API_TOKEN = "$(cat /home/chrisf/.config/secrets/todoist_token)";
         };
         enabled = true;
       };
@@ -1044,7 +1067,11 @@ in
     # Desktop support services moved to shared module (udisks2, gvfs, tumbler, blueman, avahi, davfs2, gnome-keyring, gdm)
     printing.enable = true;
 
-    openssh.enable = true;
+    openssh = {
+      enable = true;
+      # Disable SSH proxy to fix permission issues
+      settings.AcceptEnv = [ "LANG" "LC_*" ];
+    };
     tailscale.enable = true;
     netdata = {
       enable = true;
@@ -1079,6 +1106,17 @@ in
       #   port = 8888;
       # };
     };
+
+    # FreshRSS MCP Server
+    freshrss-mcp-server = {
+      enable = true;
+      freshRssUrl = "https://freshrss.trailertrash.io";
+      username = "chrisf";
+      passwordFile = "/home/chrisf/.config/secrets/freshrss-mcp";
+      port = 3005;
+      host = "0.0.0.0";
+      openFirewall = false; # Firewall already disabled
+    };
   };
 
   # Auto Tune
@@ -1103,7 +1141,11 @@ in
 
   # Virtualization
   virtualisation = {
-    libvirtd.enable = true;
+    libvirtd = {
+      enable = true;
+      # Disable SSH proxy to fix permission issues with libvirt SSH config
+      sshProxy = false;
+    };
     docker = {
       enable = true;
       autoPrune = {
@@ -1142,6 +1184,24 @@ in
     };
   };
 
+  # CamoFox Browser Automation
+  virtualisation.oci-containers.containers.camofox = {
+    image = "ghcr.io/jo-inc/camofox-browser:latest";
+    autoStart = true;
+    ports = [
+      "9377:9377"
+    ];
+    volumes = [
+      "/var/lib/camofox:/app/data"
+    ];
+    environment = {
+      CAMOFOX_PORT = "9377";
+    };
+    labels = {
+      "io.containers.autoupdate" = "registry";
+    };
+  };
+
   # Crabwalk Monitor (Next.js Application)
   virtualisation.oci-containers.containers.crabwalk = {
     image = "ghcr.io/luccast/crabwalk:latest";
@@ -1171,6 +1231,7 @@ in
   # Ensure persistent data directory exists
   systemd.tmpfiles.rules = [
     "d /var/lib/companion 0777 root root -"
+    "d /var/lib/camofox 0755 root root -"
     # Disable CoW on directories that benefit from it (databases, VMs, downloads)
     "d /var/lib/docker 0755 root root -"
     "d /var/lib/libvirt 0755 root root -"
@@ -1185,6 +1246,7 @@ in
   networking.firewall.allowedTCPPorts = (config.networking.firewall.allowedTCPPorts or [ ]) ++ [
     8000
     51234
+    9377
   ];
 
   # Disable CoW on specific directories for better performance
