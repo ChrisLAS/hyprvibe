@@ -69,7 +69,7 @@
   "custom/mpris": {
     "return-type": "json",
     "exec": "/home/chrisf/.config/waybar/scripts/waybar-mpris.sh",
-    "interval": 1,
+    "interval": 10,
     "tooltip": true,
     "format": "{}",
     "on-click": "playerctl -p playerctld play-pause",

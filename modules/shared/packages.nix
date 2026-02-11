@@ -18,6 +18,7 @@ let
   basePackages = with pkgs; [
     htop
     btop
+    bottom
     tree
     lsof
     lshw
