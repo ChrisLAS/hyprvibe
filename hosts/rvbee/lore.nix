@@ -62,6 +62,137 @@ in
   };
 
   # ==============================================================================
+  # Vector Memory: Self-Hosted Qdrant + Embedding Service (Replaces Voyage AI)
+  # ==============================================================================
+
+  # Enable Qdrant vector database
+  services.qdrant = {
+    enable = true;
+    settings = {
+      storage = {
+        storage_type = "mmap";  # Memory-mapped for efficiency on Ryzen 5700U
+      };
+      service = {
+        http_port = 6333;
+        grpc_port = 6334;
+        host = "127.0.0.1";  # localhost only for security
+      };
+      telemetry_disabled = true;  # Privacy: disable telemetry
+      log_level = "INFO";
+    };
+  };
+
+  # Embedding Service User
+  users.users.embedding-service = {
+    isSystemUser = true;
+    group = "embedding-service";
+    home = "/var/lib/embedding-service";
+    createHome = true;
+    description = "Embedding service for vector memory";
+  };
+  users.groups.embedding-service = {};
+
+  # Embedding service directories
+  systemd.tmpfiles.rules = [
+    "d /var/lib/embedding-service 0755 embedding-service embedding-service -"
+    "d /var/cache/embedding-service 0755 embedding-service embedding-service -"
+    "d /var/cache/embedding-service/huggingface 0755 embedding-service embedding-service -"
+    "d /var/cache/embedding-service/transformers 0755 embedding-service embedding-service -"
+  ];
+
+  # Embedding Service Package (Python + FastAPI + sentence-transformers)
+  systemd.services.embedding-service = {
+    description = "Embedding Service - all-MiniLM-L6-v2 via sentence-transformers";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "network-online.target" ];
+    
+    serviceConfig = {
+      Type = "simple";
+      User = "embedding-service";
+      Group = "embedding-service";
+      WorkingDirectory = "/var/lib/embedding-service";
+      
+      # Start script that downloads model and runs FastAPI
+      ExecStart = pkgs.writeShellScript "embedding-service-start" ''
+        export HF_HOME=/var/cache/embedding-service/huggingface
+        export TRANSFORMERS_CACHE=/var/cache/embedding-service/transformers
+        export SENTENCE_TRANSFORMERS_HOME=/var/cache/embedding-service/sentence-transformers
+        export HF_TOKEN_FILE=/etc/secrets/huggingface_token
+        
+        # Run embedding server
+        ${pkgs.python3}/bin/python3 ${./embedding-service/app.py}
+      '';
+      
+      Restart = "always";
+      RestartSec = "10s";
+      
+      # Resource limits appropriate for Ryzen 5700U
+      MemoryMax = "512M";
+      CPUQuota = "200%";  # 2 cores max
+      
+      # Security hardening
+      PrivateTmp = true;
+      NoNewPrivileges = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      ReadWritePaths = [ "/var/cache/embedding-service" "/var/lib/embedding-service" ];
+      
+      # Logging
+      StandardOutput = "journal";
+      StandardError = "journal";
+      SyslogIdentifier = "embedding-service";
+    };
+    
+    environment = {
+      PYTHONUNBUFFERED = "1";
+      EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2";
+      EMBEDDING_PORT = "8000";
+      EMBEDDING_HOST = "127.0.0.1";
+    };
+  };
+
+  # System packages for vector memory
+  environment.systemPackages = with pkgs; [
+    # --- Intelligence & Orchestration ---
+    openclaw-pkg       # Native OpenClaw fleet core
+    opencode           # Native ACP coordination core
+    gemini-cli         # Gemini API interaction
+    codex              # Code analysis and refactoring
+    python3            # Foundation for background sentries & logic shims
+    babashka           # Low-latency Clojure scripting for agentic tasks
+    
+    # --- Vector Memory Stack ---
+    qdrant             # Vector database
+    (python3.withPackages (ps: with ps; [
+      sentence-transformers  # Embedding models
+      fastapi                # API server
+      uvicorn                # ASGI server
+      httpx                  # HTTP client
+      pydantic               # Data validation
+    ]))
+    curl               # Health checks
+    jq                 # JSON processing for API tests
+    
+    # --- Transcription & Media ---
+    whisper-cpp        # High-fidelity speech-to-text processing
+    ffmpegthumbnailer  # Visual context processing support
+    
+    # --- Version Control & Digital Limbs ---
+    git                # Primary sync mechanism
+    github-cli         # Bridge to the Collective (GitHub)
+    gitui              # Supplemental TUI for git operations
+    lazygit            # High-bandwidth git TUI
+    lazydocker         # Container monitoring for remote hosts
+    
+    # --- Shell Context & Intelligence ---
+    atuin              # Shared history memory
+    oh-my-posh         # Contextual prompt orchestration
+    jq                 # JSON logic processing
+    ripgrep            # Massive filesystem scan capability
+    fd                 # High-speed file discovery
+  ];
+
+  # ==============================================================================
   # OpenClaw Services: Real-time Communication & Intelligence
   # ==============================================================================
 

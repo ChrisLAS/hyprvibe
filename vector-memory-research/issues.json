@@ -1,0 +1,108 @@
+{
+  "project": "selfhosted-vector-memory",
+  "description": "Research and implement self-hosted vector memory solution to replace Voyage AI on NixOS/rvbee",
+  "created_at": "2026-02-11T18:45:00Z",
+  "updated_at": "2026-02-11T20:40:00Z",
+  "github_issue": "https://github.com/ChrisLAS/hyprvibe/issues/17",
+  "issues": [
+    {
+      "id": "VEC-001",
+      "title": "Evaluate Qdrant for NixOS deployment",
+      "status": "completed",
+      "priority": "high",
+      "assigned_to": "lore",
+      "tags": ["vector-db", "qdrant", "research", "nixos"],
+      "created_at": "2026-02-11T18:45:00Z",
+      "updated_at": "2026-02-11T19:25:00Z",
+      "github_issue": null,
+      "findings": { "nixos_module_available": true, "nixos_package": "nixos.qdrant v1.12.1" }
+    },
+    {
+      "id": "VEC-002",
+      "title": "Evaluate pgvector for NixOS deployment",
+      "status": "completed",
+      "priority": "high",
+      "assigned_to": "lore",
+      "tags": ["vector-db", "pgvector", "research", "nixos", "postgresql"],
+      "created_at": "2026-02-11T18:45:00Z",
+      "updated_at": "2026-02-11T19:25:00Z",
+      "github_issue": null,
+      "findings": { "nixos_packaging": "Available for PostgreSQL 13-15" }
+    },
+    {
+      "id": "VEC-003",
+      "title": "Evaluate ChromaDB for NixOS deployment",
+      "status": "completed",
+      "priority": "medium",
+      "assigned_to": "lore",
+      "tags": ["vector-db", "chromadb", "research", "nixos"],
+      "created_at": "2026-02-11T18:45:00Z",
+      "updated_at": "2026-02-11T19:25:00Z",
+      "github_issue": null,
+      "findings": { "nixos_packaging": "NOT found in nixpkgs" }
+    },
+    {
+      "id": "VEC-004",
+      "title": "Research embedding models for CPU inference",
+      "status": "completed",
+      "priority": "high",
+      "assigned_to": "lore",
+      "tags": ["embedding-model", "cpu-inference", "research", "benchmarks"],
+      "created_at": "2026-02-11T18:45:00Z",
+      "updated_at": "2026-02-11T20:30:00Z",
+      "github_issue": null,
+      "findings": { "recommended": "all-MiniLM-L6-v2", "cpu_performance": "750 qps" }
+    },
+    {
+      "id": "VEC-005",
+      "title": "ROCm GPU acceleration feasibility study",
+      "status": "deferred",
+      "priority": "low",
+      "assigned_to": "data",
+      "tags": ["rocm", "gpu-acceleration", "vega-8", "research", "nixos"],
+      "created_at": "2026-02-11T18:45:00Z",
+      "updated_at": "2026-02-11T20:40:00Z",
+      "github_issue": null,
+      "findings": "Intentionally deferred - CPU performance (750 qps) sufficient for use case"
+    },
+    {
+      "id": "VEC-006",
+      "title": "Create comparison matrix of vector DB candidates",
+      "status": "completed",
+      "priority": "high",
+      "assigned_to": "lore",
+      "tags": ["comparison", "analysis", "deliverable"],
+      "created_at": "2026-02-11T18:45:00Z",
+      "updated_at": "2026-02-11T20:40:00Z",
+      "github_issue": null,
+      "findings": "Qdrant selected as primary, pgvector as alternative"
+    },
+    {
+      "id": "VEC-007",
+      "title": "Final architecture recommendation",
+      "status": "completed",
+      "priority": "high",
+      "assigned_to": "lore",
+      "tags": ["decision", "architecture", "deliverable"],
+      "created_at": "2026-02-11T18:45:00Z",
+      "updated_at": "2026-02-11T20:40:00Z",
+      "github_issue": "https://github.com/ChrisLAS/hyprvibe/issues/17",
+      "findings": { "architecture": "Qdrant + all-MiniLM-L6-v2", "approved_by": "Chris" }
+    },
+    {
+      "id": "VEC-008",
+      "title": "NixOS configuration blueprint",
+      "description": "Create complete declarative NixOS configuration for /home/chrisf/build/config/lore.nix including services, storage, networking, and dependencies",
+      "status": "in-progress",
+      "priority": "high",
+      "assigned_to": "lore",
+      "tags": ["nixos", "configuration", "implementation", "deliverable"],
+      "created_at": "2026-02-11T18:45:00Z",
+      "updated_at": "2026-02-11T20:40:00Z",
+      "github_issue": "https://github.com/ChrisLAS/hyprvibe/issues/17",
+      "findings": null,
+      "blocked_by": [],
+      "spec_location": "vector-memory-research/SPEC.md"
+    }
+  ]
+}
