@@ -2,8 +2,9 @@
   "project": "selfhosted-vector-memory",
   "description": "Research and implement self-hosted vector memory solution to replace Voyage AI on NixOS/rvbee",
   "created_at": "2026-02-11T18:45:00Z",
-  "updated_at": "2026-02-11T20:40:00Z",
+  "updated_at": "2026-02-11T20:50:00Z",
   "github_issue": "https://github.com/ChrisLAS/hyprvibe/issues/17",
+  "commit": "31282ba",
   "issues": [
     {
       "id": "VEC-001",
@@ -13,9 +14,8 @@
       "assigned_to": "lore",
       "tags": ["vector-db", "qdrant", "research", "nixos"],
       "created_at": "2026-02-11T18:45:00Z",
-      "updated_at": "2026-02-11T19:25:00Z",
-      "github_issue": null,
-      "findings": { "nixos_module_available": true, "nixos_package": "nixos.qdrant v1.12.1" }
+      "updated_at": "2026-02-11T20:50:00Z",
+      "github_issue": null
     },
     {
       "id": "VEC-002",
@@ -25,9 +25,8 @@
       "assigned_to": "lore",
       "tags": ["vector-db", "pgvector", "research", "nixos", "postgresql"],
       "created_at": "2026-02-11T18:45:00Z",
-      "updated_at": "2026-02-11T19:25:00Z",
-      "github_issue": null,
-      "findings": { "nixos_packaging": "Available for PostgreSQL 13-15" }
+      "updated_at": "2026-02-11T20:50:00Z",
+      "github_issue": null
     },
     {
       "id": "VEC-003",
@@ -37,9 +36,8 @@
       "assigned_to": "lore",
       "tags": ["vector-db", "chromadb", "research", "nixos"],
       "created_at": "2026-02-11T18:45:00Z",
-      "updated_at": "2026-02-11T19:25:00Z",
-      "github_issue": null,
-      "findings": { "nixos_packaging": "NOT found in nixpkgs" }
+      "updated_at": "2026-02-11T20:50:00Z",
+      "github_issue": null
     },
     {
       "id": "VEC-004",
@@ -49,9 +47,8 @@
       "assigned_to": "lore",
       "tags": ["embedding-model", "cpu-inference", "research", "benchmarks"],
       "created_at": "2026-02-11T18:45:00Z",
-      "updated_at": "2026-02-11T20:30:00Z",
-      "github_issue": null,
-      "findings": { "recommended": "all-MiniLM-L6-v2", "cpu_performance": "750 qps" }
+      "updated_at": "2026-02-11T20:50:00Z",
+      "github_issue": null
     },
     {
       "id": "VEC-005",
@@ -61,9 +58,8 @@
       "assigned_to": "data",
       "tags": ["rocm", "gpu-acceleration", "vega-8", "research", "nixos"],
       "created_at": "2026-02-11T18:45:00Z",
-      "updated_at": "2026-02-11T20:40:00Z",
-      "github_issue": null,
-      "findings": "Intentionally deferred - CPU performance (750 qps) sufficient for use case"
+      "updated_at": "2026-02-11T20:50:00Z",
+      "github_issue": null
     },
     {
       "id": "VEC-006",
@@ -73,9 +69,8 @@
       "assigned_to": "lore",
       "tags": ["comparison", "analysis", "deliverable"],
       "created_at": "2026-02-11T18:45:00Z",
-      "updated_at": "2026-02-11T20:40:00Z",
-      "github_issue": null,
-      "findings": "Qdrant selected as primary, pgvector as alternative"
+      "updated_at": "2026-02-11T20:50:00Z",
+      "github_issue": null
     },
     {
       "id": "VEC-007",
@@ -85,24 +80,45 @@
       "assigned_to": "lore",
       "tags": ["decision", "architecture", "deliverable"],
       "created_at": "2026-02-11T18:45:00Z",
-      "updated_at": "2026-02-11T20:40:00Z",
-      "github_issue": "https://github.com/ChrisLAS/hyprvibe/issues/17",
-      "findings": { "architecture": "Qdrant + all-MiniLM-L6-v2", "approved_by": "Chris" }
+      "updated_at": "2026-02-11T20:50:00Z",
+      "github_issue": "https://github.com/ChrisLAS/hyprvibe/issues/17"
     },
     {
       "id": "VEC-008",
       "title": "NixOS configuration blueprint",
       "description": "Create complete declarative NixOS configuration for /home/chrisf/build/config/lore.nix including services, storage, networking, and dependencies",
-      "status": "in-progress",
+      "status": "completed",
       "priority": "high",
       "assigned_to": "lore",
       "tags": ["nixos", "configuration", "implementation", "deliverable"],
       "created_at": "2026-02-11T18:45:00Z",
-      "updated_at": "2026-02-11T20:40:00Z",
+      "updated_at": "2026-02-11T20:50:00Z",
       "github_issue": "https://github.com/ChrisLAS/hyprvibe/issues/17",
-      "findings": null,
-      "blocked_by": [],
-      "spec_location": "vector-memory-research/SPEC.md"
+      "findings": {
+        "spec_location": "vector-memory-research/SPEC.md",
+        "commit": "31282ba",
+        "files_modified": [
+          "hosts/rvbee/lore.nix",
+          "hosts/rvbee/embedding-service/app.py",
+          "vector-memory-research/SPEC.md",
+          "vector-memory-research/issues.json"
+        ]
+      }
     }
-  ]
+  ],
+  "summary": {
+    "status": "implementation_complete",
+    "architecture": "Qdrant + all-MiniLM-L6-v2",
+    "location": "hosts/rvbee/lore.nix",
+    "services": [
+      "services.qdrant (localhost:6333)",
+      "embedding-service (localhost:8000)"
+    ],
+    "next_steps": [
+      "Deploy with: sudo nixos-rebuild switch --flake .#rvbee",
+      "Verify Qdrant: curl http://localhost:6333/healthz",
+      "Verify embedding: curl http://localhost:8000/health",
+      "Update GitHub issue #17 with deployment results"
+    ]
+  }
 }
