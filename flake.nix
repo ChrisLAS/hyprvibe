@@ -11,9 +11,12 @@
     
     hyprland.url = "github:hyprwm/Hyprland";
     hyprland.inputs.nixpkgs.follows = "nixpkgs";
+
+    openclaw.url = "github:openclaw/nix-openclaw";
+    openclaw.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, prettyswitch, hyprland, ... }: {
+  outputs = { self, nixpkgs, prettyswitch, hyprland, openclaw, ... }: {
     # Formatter (optional)
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
 
@@ -36,7 +39,7 @@
           prettyswitch.nixosModules.default
         ];
         specialArgs = {
-          inherit hyprland;
+          inherit self hyprland openclaw;
         };
             };
       nixstation = nixpkgs.lib.nixosSystem {

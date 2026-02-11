@@ -1,7 +1,8 @@
 {
   config,
   pkgs,
-  hyprland,
+  openclaw,
+  self,
   ...
 }:
 
@@ -13,13 +14,9 @@ let
 
   # Package groups
   devTools = with pkgs; [
-    git
     gcc
     cmake
-    python3
     go
-    gh
-    gitui
     patchelf
     binutils
     nixfmt
@@ -32,11 +29,7 @@ let
     imagemagick
     mariadb
     postgresql
-    github-cli
-    lazygit
     kitty
-    lazydocker
-    opencode
   ];
 
   multimedia = with pkgs; [
@@ -89,7 +82,7 @@ let
     qpwgraph
     # sonobus
     # krita
-    x32edit
+    # x32edit  # Temporarily removed due to hash mismatch
     # pwvucontrol
     easyeffects
     wayfarer
@@ -134,7 +127,6 @@ let
     # rustdesk-flutter
     tor-browser
     # lmstudio
-    vdhcoapp
     ulauncher
     #    python312Packages.todoist-api-python
     wmctrl
@@ -327,31 +319,40 @@ let
       systemctl --user set-environment GITHUB_TOKEN="$value"
     fi
   '';
-  # Script to setup OpenCode configuration with MCP servers
+  # Script to setup OpenCode configuration with modular MCP snippets
   setupOpencodeConfigScript = pkgs.writeShellScript "setup-opencode-config" ''
     set -euo pipefail
+
+    # 1. Ensure directories exist
     mkdir -p ${homeDir}/.config/opencode
-    cat > ${homeDir}/.config/opencode/opencode.json << 'EOF'
-    {
+
+    # 2. Base Configuration Template
+    BASE_CONFIG='{
       "$schema": "https://opencode.ai/config.json",
       "model": "anthropic/claude-sonnet-4.5",
       "autoupdate": true,
       "theme": "opencode",
-      "mcp": {
-        "nixos": {
-          "type": "local",
-          "command": ["nix", "run", "github:utensils/mcp-nixos", "--"],
-          "enabled": true
-        },
-        "context7": {
-          "type": "remote",
-          "url": "https://mcp.context7.com/mcp",
-          "enabled": true
-        }
-      }
-    }
-    EOF
-    chown ${userName}:${userGroup} ${homeDir}/.config/opencode/opencode.json
+      "mcp": {}
+    }'
+
+    # 3. Safe Merge using jq
+    # Iterates over snippets in /etc/opencode/mcp.d and merges them into the base
+    if [ -d "/etc/opencode/mcp.d" ] && [ "$(ls -A /etc/opencode/mcp.d/*.json 2>/dev/null)" ]; then
+      MERGED_MCP=$(jq -s 'reduce .[] as $item ({}; . * $item)' /etc/opencode/mcp.d/*.json)
+      FINAL_JSON=$(echo "$BASE_CONFIG" | jq --argjson mcp "$MERGED_MCP" '.mcp = $mcp')
+    else
+      FINAL_JSON="$BASE_CONFIG"
+    fi
+
+    # 4. Atomic Deployment
+    echo "$FINAL_JSON" > ${homeDir}/.config/opencode/opencode.json.tmp
+    if jq . ${homeDir}/.config/opencode/opencode.json.tmp > /dev/null 2>&1; then
+      mv ${homeDir}/.config/opencode/opencode.json.tmp ${homeDir}/.config/opencode/opencode.json
+      chown ${userName}:${userGroup} ${homeDir}/.config/opencode/opencode.json
+    else
+      echo "ERROR: Generated JSON is invalid. Aborting update to prevent breakage."
+      exit 1
+    fi
   '';
 
   # Script to setup SSH config for remote host management
@@ -699,12 +700,11 @@ let
 in
 {
   imports = [
-    # Import the Hyprland flake module
-    hyprland.nixosModules.default
     # Import your hardware configuration
     ./hardware-configuration.nix
     # Shared scaffolding (non-host-specific)
     ../../modules/shared
+    ./lore.nix
   ];
 
   # Enable shared module toggles
@@ -754,6 +754,74 @@ in
     nebula = {
       enable = true;
       nebulaIp = "192.168.100.10/24";
+    };
+  };
+
+  # Define modular MCP snippets for opencode
+  environment.etc = {
+    "opencode/mcp.d/nixos.json".text = builtins.toJSON {
+      nixos = {
+        type = "local";
+        command = [
+          "nix"
+          "run"
+          "github:utensils/mcp-nixos"
+          "--"
+        ];
+        enabled = true;
+      };
+    };
+    "opencode/mcp.d/obsidian.json".text = builtins.toJSON {
+      obsidian = {
+        type = "local";
+        command = [
+          "uvx"
+          "mcp-obsidian"
+        ];
+        env = {
+          OBSIDIAN_API_KEY = "$(cat /home/chrisf/.config/secrets/obsidian_mcp_key)"; # Note: Shell expansion handled by assembly script
+          OBSIDIAN_PORT = "27124";
+          OBSIDIAN_HOST = "127.0.0.1";
+        };
+        enabled = true;
+      };
+    };
+    "opencode/mcp.d/context7.json".text = builtins.toJSON {
+      context7 = {
+        type = "remote";
+        url = "https://mcp.context7.com/mcp";
+        enabled = true;
+      };
+    };
+    "opencode/mcp.d/proxmox.json".text = builtins.toJSON {
+      proxmox = {
+        type = "local";
+        command = [
+          "nix"
+          "run"
+          "github:RekklesNA/ProxmoxMCP-Plus"
+          "--"
+        ];
+        env = {
+          PROXMOX_HOST = "100.120.212.39";
+          PROXMOX_USER = "root@pam";
+          PROXMOX_TOKEN_NAME = "lore-mcp";
+          PROXMOX_TOKEN_VALUE = "$(cat /home/chrisf/.config/secrets/proxmox_mcp_key)";
+          PROXMOX_PORT = "8006";
+          PROXMOX_VERIFY_SSL = "false";
+        };
+        enabled = true;
+      };
+    };
+    "opencode/mcp.d/todoist.json".text = builtins.toJSON {
+      todoist = {
+        type = "local";
+        command = ["npx" "-y" "@byungkyu/todoist-api"];
+        env = {
+           TODOIST_API_TOKEN = "$(cat /home/chrisf/.config/secrets/todoist_token)";
+        };
+        enabled = true;
+      };
     };
   };
 
@@ -999,7 +1067,11 @@ in
     # Desktop support services moved to shared module (udisks2, gvfs, tumbler, blueman, avahi, davfs2, gnome-keyring, gdm)
     printing.enable = true;
 
-    openssh.enable = true;
+    openssh = {
+      enable = true;
+      # Disable SSH proxy to fix permission issues
+      settings.AcceptEnv = [ "LANG" "LC_*" ];
+    };
     tailscale.enable = true;
     netdata = {
       enable = true;
@@ -1034,6 +1106,17 @@ in
       #   port = 8888;
       # };
     };
+
+    # FreshRSS MCP Server
+    freshrss-mcp-server = {
+      enable = true;
+      freshRssUrl = "https://freshrss.trailertrash.io";
+      username = "chrisf";
+      passwordFile = "/home/chrisf/.config/secrets/freshrss-mcp";
+      port = 3005;
+      host = "0.0.0.0";
+      openFirewall = false; # Firewall already disabled
+    };
   };
 
   # Auto Tune
@@ -1058,7 +1141,11 @@ in
 
   # Virtualization
   virtualisation = {
-    libvirtd.enable = true;
+    libvirtd = {
+      enable = true;
+      # Disable SSH proxy to fix permission issues with libvirt SSH config
+      sshProxy = false;
+    };
     docker = {
       enable = true;
       autoPrune = {
@@ -1072,7 +1159,7 @@ in
 
   # User configuration handled by hyprvibe.user
 
-  # Podman + declarative Companion container
+  # Podman + declarative containers
   virtualisation.podman.enable = true;
   virtualisation.oci-containers.backend = "podman";
   virtualisation.oci-containers.containers.companion = {
@@ -1097,9 +1184,54 @@ in
     };
   };
 
+  # CamoFox Browser Automation
+  virtualisation.oci-containers.containers.camofox = {
+    image = "ghcr.io/jo-inc/camofox-browser:latest";
+    autoStart = true;
+    ports = [
+      "9377:9377"
+    ];
+    volumes = [
+      "/var/lib/camofox:/app/data"
+    ];
+    environment = {
+      CAMOFOX_PORT = "9377";
+    };
+    labels = {
+      "io.containers.autoupdate" = "registry";
+    };
+  };
+
+  # Crabwalk Monitor (Next.js Application)
+  virtualisation.oci-containers.containers.crabwalk = {
+    image = "ghcr.io/luccast/crabwalk:latest";
+    autoStart = true;
+    ports = [
+      "3000:3000"
+    ];
+    environmentFiles = [
+      "/home/chrisf/.config/secrets/openclaw-crabwalk.env"
+    ];
+    environment = {
+      # Explicitly point to the gateway on the host's loopback from the container's perspective
+      OPENCLAW_GATEWAY_URL = "ws://100.120.88.96:18789";
+    };
+    extraOptions = [
+      "--network=host"
+    ];
+    volumes = [
+      # Consolidated OpenClaw workspace path
+      "/home/chrisf/.openclaw/workspace-main:/root/.openclaw/workspace"
+    ];
+    labels = {
+      "io.containers.autoupdate" = "registry";
+    };
+  };
+
   # Ensure persistent data directory exists
   systemd.tmpfiles.rules = [
     "d /var/lib/companion 0777 root root -"
+    "d /var/lib/camofox 0755 root root -"
     # Disable CoW on directories that benefit from it (databases, VMs, downloads)
     "d /var/lib/docker 0755 root root -"
     "d /var/lib/libvirt 0755 root root -"
@@ -1114,6 +1246,7 @@ in
   networking.firewall.allowedTCPPorts = (config.networking.firewall.allowedTCPPorts or [ ]) ++ [
     8000
     51234
+    9377
   ];
 
   # Disable CoW on specific directories for better performance
@@ -2220,6 +2353,8 @@ in
       '';
     };
   };
+
+  system.configurationRevision = self.rev or "dirty";
 
   # Kernel/VM tuning and CPU governor override for mobile AMD APU
   powerManagement.cpuFreqGovernor = pkgs.lib.mkForce "schedutil";

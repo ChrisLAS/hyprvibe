@@ -18,6 +18,7 @@ let
   basePackages = with pkgs; [
     htop
     btop
+    bottom
     tree
     lsof
     lshw
@@ -40,6 +41,7 @@ let
     eza
     grc
     cursor-cli
+    tmate
     # Jan desktop/CLI (wrapped to ensure compatible OpenSSL libcrypto)
     janWrappedLower
     janWrappedUpper
