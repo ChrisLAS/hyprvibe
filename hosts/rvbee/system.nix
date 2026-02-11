@@ -816,9 +816,13 @@ in
     "opencode/mcp.d/todoist.json".text = builtins.toJSON {
       todoist = {
         type = "local";
-        command = ["npx" "-y" "@byungkyu/todoist-api"];
+        command = [
+          "npx"
+          "-y"
+          "@byungkyu/todoist-api"
+        ];
         env = {
-           TODOIST_API_TOKEN = "$(cat /home/chrisf/.config/secrets/todoist_token)";
+          TODOIST_API_TOKEN = "$(cat /home/chrisf/.config/secrets/todoist_token)";
         };
         enabled = true;
       };
@@ -1070,7 +1074,10 @@ in
     openssh = {
       enable = true;
       # Disable SSH proxy to fix permission issues
-      settings.AcceptEnv = [ "LANG" "LC_*" ];
+      settings.AcceptEnv = [
+        "LANG"
+        "LC_*"
+      ];
     };
     tailscale.enable = true;
     netdata = {
@@ -1185,8 +1192,10 @@ in
   };
 
   # CamoFox Browser Automation
+  # Uses locally-built image via camofox-image-builder.service
+  # Image is rebuilt from upstream GitHub repo automatically
   virtualisation.oci-containers.containers.camofox = {
-    image = "ghcr.io/jo-inc/camofox-browser:latest";
+    image = "localhost/camofox-browser:latest";
     autoStart = true;
     ports = [
       "9377:9377"
@@ -1199,6 +1208,104 @@ in
     };
     labels = {
       "io.containers.autoupdate" = "registry";
+    };
+  };
+
+  # CamoFox Image Builder Service
+  # Automatically builds camofox-browser image from upstream GitHub repo
+  # This avoids the 403 Forbidden error from the non-public ghcr.io registry
+  systemd.services.camofox-image-builder = {
+    description = "Build CamoFox browser image from source";
+    after = [
+      "network.target"
+      "podman.socket"
+    ];
+    requires = [ "podman.socket" ];
+    serviceConfig = {
+      Type = "oneshot";
+      WorkingDirectory = "/var/lib/camofox-builder";
+      ExecStartPre = [
+        "${pkgs.bash}/bin/bash -c 'mkdir -p /var/lib/camofox-builder'"
+        "${pkgs.bash}/bin/bash -c 'if [ ! -d .git ]; then ${pkgs.git}/bin/git clone https://github.com/jo-inc/camofox-browser.git .; fi'"
+        "${pkgs.bash}/bin/bash -c '${pkgs.git}/bin/git fetch origin && ${pkgs.git}/bin/git reset --hard origin/master'"
+      ];
+      ExecStart = pkgs.writeShellScript "build-camofox" ''
+        set -e
+        cd /var/lib/camofox-builder
+
+        # Get current commit hash for tracking
+        CURRENT_COMMIT=$(${pkgs.git}/bin/git rev-parse HEAD)
+        echo "Building CamoFox from commit: $CURRENT_COMMIT"
+
+        # Check if we need to rebuild (compare with last built commit)
+        if [ -f /var/lib/camofox/.last-build-commit ]; then
+          LAST_COMMIT=$(cat /var/lib/camofox/.last-build-commit)
+          if [ "$CURRENT_COMMIT" = "$LAST_COMMIT" ]; then
+            echo "Already at latest commit ($CURRENT_COMMIT), skipping build"
+            exit 0
+          fi
+        fi
+
+        echo "New commit detected, rebuilding image..."
+
+        # Build the image
+        ${pkgs.podman}/bin/podman build -t camofox-browser:latest .
+
+        # Store the commit hash
+        echo "$CURRENT_COMMIT" > /var/lib/camofox/.last-build-commit
+
+        # Restart the container to use the new image
+        echo "Restarting camofox container..."
+        ${pkgs.systemd}/bin/systemctl restart podman-camofox.service || true
+
+        echo "CamoFox build complete at $(date)"
+      '';
+      RemainAfterExit = false;
+    };
+  };
+
+  # Timer to rebuild CamoFox image daily
+  systemd.timers.camofox-image-builder = {
+    description = "Daily rebuild of CamoFox browser image";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;
+      RandomizedDelaySec = 3600; # Randomize within 1 hour to avoid thundering herd
+    };
+  };
+
+  # Override podman-camofox service to depend on image builder
+  # This ensures the image is built before the container tries to start
+  systemd.services.podman-camofox = {
+    after = [
+      "camofox-image-builder.service"
+      "network.target"
+    ];
+    requires = [ "camofox-image-builder.service" ];
+  };
+
+  # Trigger initial build on boot (only if image doesn't exist)
+  systemd.services.camofox-image-builder-init = {
+    description = "Initial CamoFox image build on boot";
+    wantedBy = [ "multi-user.target" ];
+    after = [
+      "network.target"
+      "podman.socket"
+    ];
+    before = [ "podman-camofox.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = pkgs.writeShellScript "camofox-init" ''
+        # Check if image already exists
+        if ${pkgs.podman}/bin/podman image exists localhost/camofox-browser:latest; then
+          echo "CamoFox image already exists, skipping initial build"
+          exit 0
+        fi
+        echo "CamoFox image not found, triggering initial build..."
+        ${pkgs.systemd}/bin/systemctl start camofox-image-builder.service
+      '';
     };
   };
 
@@ -1228,10 +1335,12 @@ in
     };
   };
 
-  # Ensure persistent data directory exists
+  # Ensure persistent data directories exist
+  # Includes directories for podman containers and build cache
   systemd.tmpfiles.rules = [
     "d /var/lib/companion 0777 root root -"
     "d /var/lib/camofox 0755 root root -"
+    "d /var/lib/camofox-builder 0755 root root -"
     # Disable CoW on directories that benefit from it (databases, VMs, downloads)
     "d /var/lib/docker 0755 root root -"
     "d /var/lib/libvirt 0755 root root -"
