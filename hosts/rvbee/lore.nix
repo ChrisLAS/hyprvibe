@@ -13,15 +13,17 @@ let
   openclaw-pkg = openclaw.packages.${pkgs.system}.default;
 
   # Python environment for embedding service
-  embeddingPython = pkgs.python3.withPackages (ps: with ps; [
-    fastapi
-    uvicorn
-    sentence-transformers
-    pydantic
-    httpx
-    torch
-    numpy
-  ]);
+  embeddingPython = pkgs.python3.withPackages (
+    ps: with ps; [
+      fastapi
+      uvicorn
+      sentence-transformers
+      pydantic
+      httpx
+      torch
+      numpy
+    ]
+  );
 in
 {
   # ==============================================================================
@@ -152,6 +154,7 @@ in
     codex # Code analysis and refactoring
     python3 # Foundation for background sentries & logic shims
     babashka # Low-latency Clojure scripting for agentic tasks
+    bun # JavaScript runtime for QMD
 
     # --- Vector Memory Stack ---
     qdrant # Vector database
