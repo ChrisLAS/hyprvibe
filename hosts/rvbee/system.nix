@@ -1209,6 +1209,8 @@ in
     labels = {
       "io.containers.autoupdate" = "registry";
     };
+    # Use host user namespace to avoid uidmap permission issues
+    extraOptions = [ "--userns=host" ];
   };
 
   # CamoFox Image Builder Service
