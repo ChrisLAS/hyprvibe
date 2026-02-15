@@ -79,7 +79,7 @@ let
     caffeine-ng
     filezilla
     zed-editor
-    lutris
+    # lutris
     adwaita-icon-theme
   ];
 
@@ -278,10 +278,10 @@ let
     ltunify
     solaar
     gtop
-    wine-wayland
-    winetricks
-    wineasio
-    bottles-unwrapped
+    # wine-wayland
+    # winetricks
+    # wineasio
+    # bottles-unwrapped
     # rustdesk-flutter  # disabled: build failure
     pwvucontrol
     pipecontrol
@@ -384,10 +384,10 @@ let
     ltunify
     solaar
     gtop
-    wine-wayland
-    winetricks
-    wineasio
-    bottles-unwrapped
+    # wine-wayland
+    # winetricks
+    # wineasio
+    # bottles-unwrapped
     yarn
     pkgs.nodejs_20
     pkgs.qemu
@@ -463,7 +463,7 @@ let
     caffeine-ng
     filezilla
     zed-editor
-    lutris
+    # lutris
     adwaita-icon-theme
   ];
 
@@ -472,18 +472,18 @@ let
     moonlight-qt
     sunshine
     adwaita-icon-theme
-    lutris
-    playonlinux
-    wineWowPackages.staging
-    winetricks
+    # lutris
+    # playonlinux
+    # wineWowPackages.staging
+    # winetricks
     vulkan-tools
     # Additional gaming from your current config
     steam
     appimage-run
-    wine-wayland
-    winetricks
-    wineasio
-    bottles-unwrapped
+    # wine-wayland
+    # winetricks
+    # wineasio
+    # bottles-unwrapped
   ];
 
   # GTK applications

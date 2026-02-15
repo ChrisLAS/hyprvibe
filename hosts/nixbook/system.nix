@@ -84,8 +84,8 @@ let
     libepoxy
     audacity
     # Additional multimedia tools from Omarchy
-    yabridge
-    yabridgectl
+    # yabridge
+    # yabridgectl
     lsp-plugins
     ffmpegthumbnailer
     gnome.gvfs
@@ -251,10 +251,10 @@ let
     moonlight-qt
     sunshine
     adwaita-icon-theme
-    lutris
-    playonlinux
-    wineWowPackages.staging
-    winetricks
+    # lutris
+    # playonlinux
+    # wineWowPackages.staging
+    # winetricks
     vulkan-tools
   ];
 
@@ -423,7 +423,7 @@ in
 
     # List of flatpak applications to install
     FLATPAKS=(
-      "flathub:com.usebottles.bottles"
+      # "flathub:com.usebottles.bottles"  # Wine prefix manager - commented out with Wine removal
       "flathub:org.telegram.desktop"
       "flathub:org.kde.haruna"
       "flathub:com.github.tchx84.Flatseal"
