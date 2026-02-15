@@ -69,7 +69,8 @@
   "custom/mpris": {
     "return-type": "json",
     "exec": "/home/chrisf/.config/waybar/scripts/waybar-mpris.sh",
-    "interval": 10,
+    "interval": 30,
+    "exec-if": "which playerctl",
     "tooltip": true,
     "format": "{}",
     "on-click": "playerctl -p playerctld play-pause",
@@ -79,7 +80,8 @@
   "custom/dunst": {
     "return-type": "json",
     "exec": "/home/chrisf/.config/waybar/scripts/waybar-dunst.sh",
-    "interval": 5,
+    "interval": 30,
+    "exec-if": "which dunstctl",
     "on-click": "dunstctl set-paused toggle",
     "tooltip": true,
     "format": "{}"
@@ -110,7 +112,8 @@
   "custom/amd_gpu": {
     "return-type": "json",
     "exec": "/home/chrisf/.config/waybar/scripts/waybar-amd-gpu.sh",
-    "interval": 5,
+    "interval": 15,
+    "exec-if": "test -d /sys/class/drm/card0",
     "tooltip": true,
     "format": "🎮 {}"
   },
@@ -157,7 +160,7 @@
     "on-click": "~/.local/bin/rofi-brightness",
     "return-type": "json",
     "exec": "echo '{\"text\": \"🖥️\"}'",
-    "interval": 0
+    "interval": -1
   },
   
   "custom/reboot": {
@@ -167,6 +170,6 @@
     "on-click": "/home/chrisf/.config/waybar/scripts/waybar-reboot.sh",
     "return-type": "json",
     "exec": "echo '{\"text\": \"⏻\"}'",
-    "interval": 0
+    "interval": -1
   }
 } 

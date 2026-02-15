@@ -158,7 +158,7 @@
     "on-click": "~/.local/bin/rofi-brightness",
     "return-type": "json",
     "exec": "echo '{\"text\": \"🖥️\"}'",
-    "interval": 0
+    "interval": -1
   },
   
   "custom/reboot": {
@@ -168,6 +168,6 @@
     "on-click": "/home/chrisf/.config/waybar/scripts/waybar-reboot.sh",
     "return-type": "json",
     "exec": "echo '{\"text\": \"⏻\"}'",
-    "interval": 0
+    "interval": -1
   }
 } 
