@@ -91,8 +91,8 @@ let
     libepoxy
     audacity
     # Additional multimedia tools from Omarchy
-    yabridge
-    yabridgectl
+    # yabridge
+    # yabridgectl
     lsp-plugins
     ffmpegthumbnailer
     gnome.gvfs
@@ -140,7 +140,6 @@ let
     wlroots
     xdg-desktop-portal-hyprland
     xdg-desktop-portal-gtk
-    xdg-utils
     desktop-file-utils
     kdePackages.polkit-kde-agent-1
     qt6.qtbase
@@ -262,10 +261,10 @@ let
     moonlight-qt
     sunshine
     adwaita-icon-theme
-    lutris
-    playonlinux
-    wineWowPackages.staging
-    winetricks
+    # lutris
+    # playonlinux
+    # wineWowPackages.staging
+    # winetricks
     vulkan-tools
   ];
 
@@ -708,6 +707,7 @@ in
   ];
 
   # Enable shared module toggles
+  hyprvibe.enable = true;
   hyprvibe.desktop = {
     enable = true;
     fonts.enable = true;

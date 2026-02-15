@@ -47,6 +47,7 @@ let
     janWrappedUpper
   ];
   desktopPackages = with pkgs; [
+    xdg-utils
     wl-clipboard
     grim
     slurp

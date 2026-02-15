@@ -119,7 +119,7 @@ let
     # rustdesk-flutter
     tor-browser
     # lmstudio
-    vdhcoapp
+    # vdhcoapp - removed: VDH >= 10 doesn't require companion app and repo is archived
     ulauncher
     #    python312Packages.todoist-api-python
     wmctrl
@@ -133,7 +133,6 @@ let
     wlroots
     xdg-desktop-portal-hyprland
     xdg-desktop-portal-gtk
-    xdg-utils
     desktop-file-utils
     kdePackages.polkit-kde-agent-1
     qt6.qtbase

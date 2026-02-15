@@ -186,7 +186,6 @@ let
     wlroots
     xdg-desktop-portal-hyprland
     xdg-desktop-portal-gtk
-    xdg-utils
     kdePackages.polkit-kde-agent-1
     polkit_gnome
     qt6.qtbase
