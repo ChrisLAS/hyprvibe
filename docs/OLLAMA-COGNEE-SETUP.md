@@ -1,0 +1,107 @@
+# Declarative Ollama + Cognee (rvbee)
+
+This repo now manages a CPU-only Ollama + Cognee stack declaratively on `rvbee` via NixOS Podman containers.
+
+## What this config provides
+
+- `ollama` on `127.0.0.1:11434`
+- `cognee` on `127.0.0.1:8001`
+- Persistent model/data directories:
+  - `/var/lib/ollama`
+  - `/var/lib/cognee`
+- Core models pre-pulled (blocking for readiness):
+  - `mistral`
+  - `nomic-embed-text`
+- Optional model pre-pulled (non-blocking):
+  - `neural-chat`
+
+## LTE-safe behavior
+
+Model pulls are handled by systemd oneshot services with:
+- Long timeout (`24h`)
+- Retry + backoff loops
+- Per-model marker files in `/var/lib/ollama/.prefetch`
+
+This means slow or unstable LTE links are tolerated and downloads resume safely across retries/restarts.
+
+## Apply configuration
+
+```bash
+cd /home/chrisf/build/config
+sudo nixos-rebuild dry-build --flake .#rvbee
+sudo nixos-rebuild switch --flake .#rvbee
+```
+
+## Service management
+
+```bash
+# container units
+systemctl status podman-ollama.service
+systemctl status podman-cognee.service
+
+# model preload units
+systemctl status ollama-models-core-prepull.service
+systemctl status ollama-models-optional-prepull.service
+
+# restart stack
+sudo systemctl restart podman-ollama.service
+sudo systemctl restart ollama-models-core-prepull.service
+sudo systemctl restart podman-cognee.service
+```
+
+## Verify models and APIs
+
+```bash
+# Ollama API and model list
+curl -sS http://127.0.0.1:11434/api/tags | jq
+podman exec ollama ollama list
+
+# Generate test
+curl -sS http://127.0.0.1:11434/api/generate \
+  -d '{"model":"mistral","prompt":"Respond with: ok","stream":false}' | jq
+
+# Embeddings test
+curl -sS http://127.0.0.1:11434/api/embeddings \
+  -d '{"model":"nomic-embed-text","prompt":"hello world"}' | jq
+
+# Cognee health (if health endpoint is exposed by image version)
+curl -sS http://127.0.0.1:8001/api/health
+```
+
+## OpenClaw + Cognee integration
+
+Your OpenClaw Cognee memory plugin should point to local Cognee:
+
+- `plugins.entries.memory-cognee.config.baseUrl = "http://localhost:8001"`
+- `plugins.slots.memory = "memory-cognee"`
+
+Useful commands:
+
+```bash
+openclaw config set plugins.entries.memory-cognee.config.baseUrl "http://localhost:8001"
+openclaw config set plugins.slots.memory memory-cognee
+openclaw doctor --fix
+systemctl --user restart openclaw-gateway.service
+```
+
+If your OpenClaw build supports Cognee subcommands:
+
+```bash
+openclaw cognee index
+openclaw cognee status
+```
+
+If not, verify via gateway logs:
+
+```bash
+journalctl --user -u openclaw-gateway.service -n 200 | rg -i 'memory-cognee|cognee'
+```
+
+## Resource limits
+
+Configured container limits for this host (Ryzen 5700U, 30GB RAM):
+
+- Ollama: `--cpus=6`, `--memory=16g`
+- Cognee: `--cpus=4`, `--memory=8g`
+
+These are conservative defaults for CPU-only operation and can be tuned in `hosts/rvbee/ai-memory-stack.nix`.

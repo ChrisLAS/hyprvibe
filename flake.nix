@@ -49,6 +49,7 @@
           system = "x86_64-linux";
           modules = [
             ./hosts/rvbee/system.nix
+            ./hosts/rvbee/ai-memory-stack.nix
             prettyswitch.nixosModules.default
             freshrss-mcp.nixosModules.default
           ];
