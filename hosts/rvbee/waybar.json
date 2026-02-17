@@ -157,19 +157,13 @@
     "format": "🖥️",
     "tooltip": true,
     "tooltip-format": "Brightness menu",
-    "on-click": "~/.local/bin/rofi-brightness",
-    "return-type": "json",
-    "exec": "echo '{\"text\": \"🖥️\"}'",
-    "interval": -1
+    "on-click": "~/.local/bin/rofi-brightness"
   },
   
   "custom/reboot": {
     "format": "⏻",
     "tooltip": true,
     "tooltip-format": "Reboot",
-    "on-click": "/home/chrisf/.config/waybar/scripts/waybar-reboot.sh",
-    "return-type": "json",
-    "exec": "echo '{\"text\": \"⏻\"}'",
-    "interval": -1
+    "on-click": "/home/chrisf/.config/waybar/scripts/waybar-reboot.sh"
   }
 } 

@@ -8,7 +8,7 @@
   "margin-left": 0,
   "margin-right": 0,
   "output": ["DP-3"],
-  "modules-left": ["hyprland/workspaces", "hyprland/window", "custom/mpris"],
+  "modules-left": ["hyprland/workspaces", "hyprland/window", "mpris"],
   "modules-center": [],
   "modules-right": [
     "custom/btc_price",
@@ -67,12 +67,9 @@
     "format-muted": "󰖁",
     "on-click": "pavucontrol"
   },
-  "custom/mpris": {
-    "return-type": "json",
-    "exec": "~/.config/waybar/scripts/waybar-mpris.sh",
-    "interval": 1,
-    "tooltip": true,
-    "format": "{}",
+  "mpris": {
+    "format": "{icon} {status}",
+    "format-paused": "⏸️ {status}",
     "on-click": "playerctl -p playerctld play-pause",
     "on-scroll-up": "playerctl -p playerctld next",
     "on-scroll-down": "playerctl -p playerctld previous"
@@ -80,7 +77,7 @@
   "custom/dunst": {
     "return-type": "json",
     "exec": "~/.config/waybar/scripts/waybar-dunst.sh",
-    "interval": 5,
+    "interval": 30,
     "on-click": "dunstctl set-paused toggle",
     "tooltip": true,
     "format": "{}"
@@ -111,7 +108,7 @@
   "custom/amd_gpu": {
     "return-type": "json",
     "exec": "~/.config/waybar/scripts/waybar-amd-gpu.sh",
-    "interval": 5,
+    "interval": 30,
     "tooltip": true,
     "format": "󰓃 {}"
   },
@@ -140,7 +137,7 @@
   "custom/timezones": {
     "return-type": "json",
     "exec": "~/.config/waybar/scripts/waybar-timezones.sh",
-    "interval": 1,
+    "interval": 60,
     "tooltip": true,
     "format": "{}"
   },
@@ -159,18 +156,12 @@
     "format": "󰃠",
     "tooltip": true,
     "tooltip-format": "Brightness menu",
-    "on-click": "~/.local/bin/rofi-brightness",
-    "return-type": "json",
-    "exec": "echo '{\"text\": \"󰃠\"}'",
-    "interval": -1
+    "on-click": "~/.local/bin/rofi-brightness"
   },
   "custom/reboot": {
     "format": "󰐥",
     "tooltip": true,
     "tooltip-format": "Reboot",
-    "on-click": "~/.config/waybar/scripts/waybar-reboot.sh",
-    "return-type": "json",
-    "exec": "echo '{\"text\": \"󰐥\"}'",
-    "interval": -1
+    "on-click": "~/.config/waybar/scripts/waybar-reboot.sh"
   }
-} 
+}

@@ -7,7 +7,7 @@
   "margin-bottom": 0,
   "margin-left": 0,
   "margin-right": 0,
-  "modules-left": ["hyprland/workspaces", "hyprland/window", "custom/mpris"],
+  "modules-left": ["hyprland/workspaces", "hyprland/window", "mpris"],
   "modules-center": [],
   "modules-right": [
     "custom/btc_price",
@@ -66,12 +66,10 @@
     "format-muted": "🔊",
     "on-click": "pavucontrol"
   },
-  "custom/mpris": {
-    "return-type": "json",
-    "exec": "/home/chrisf/.config/waybar/scripts/waybar-mpris.sh",
-    "interval": 1,
-    "tooltip": true,
-    "format": "{}",
+  "mpris": {
+    "format": "{icon} {status}",
+    "format-paused": "⏸️ {status}",
+    "tooltip-format": "{artist} - {album}\n{title}",
     "on-click": "playerctl -p playerctld play-pause",
     "on-scroll-up": "playerctl -p playerctld next",
     "on-scroll-down": "playerctl -p playerctld previous"
@@ -79,7 +77,7 @@
   "custom/dunst": {
     "return-type": "json",
     "exec": "/home/chrisf/.config/waybar/scripts/waybar-dunst.sh",
-    "interval": 5,
+    "interval": 30,
     "on-click": "dunstctl set-paused toggle",
     "tooltip": true,
     "format": "{}"
@@ -112,7 +110,7 @@
   "custom/battery": {
     "return-type": "json",
     "exec": "/home/chrisf/.config/waybar/scripts/waybar-battery.sh",
-    "interval": 5,
+    "interval": 30,
     "tooltip": true,
     "format": "{}"
   },
@@ -155,19 +153,13 @@
     "format": "🖥️",
     "tooltip": true,
     "tooltip-format": "Brightness menu",
-    "on-click": "~/.local/bin/rofi-brightness",
-    "return-type": "json",
-    "exec": "echo '{\"text\": \"🖥️\"}'",
-    "interval": -1
+    "on-click": "~/.local/bin/rofi-brightness"
   },
   
   "custom/reboot": {
     "format": "⏻",
     "tooltip": true,
     "tooltip-format": "Reboot",
-    "on-click": "/home/chrisf/.config/waybar/scripts/waybar-reboot.sh",
-    "return-type": "json",
-    "exec": "echo '{\"text\": \"⏻\"}'",
-    "interval": -1
+    "on-click": "/home/chrisf/.config/waybar/scripts/waybar-reboot.sh"
   }
 } 
