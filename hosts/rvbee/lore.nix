@@ -172,6 +172,17 @@ in
       pkgs.nodejs
       pkgs.bash
       pkgs.chromium
+      pkgs.curl
+      pkgs.wget
+      pkgs.openssh
+      pkgs.procps
+      pkgs.psmisc
+      pkgs.iproute2
+      pkgs.podman
+      pkgs.docker-client
+      pkgs.gh
+      pkgs.coreutils
+      pkgs.util-linux
     ];
 
     serviceConfig = {
