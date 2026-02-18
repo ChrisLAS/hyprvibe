@@ -15,6 +15,8 @@ const DEFAULT_AUTO_RECALL = true;
 const DEFAULT_AUTO_INDEX = true;
 const DEFAULT_AUTO_COGNIFY = true;
 const DEFAULT_REQUEST_TIMEOUT_MS = 60_000;
+const DEFAULT_MAX_INDEX_CHARS = 3_000;
+const DEFAULT_OVERSIZE_MODE = "truncate";
 const DEFAULT_RECALL_SESSION_DENY_PATTERNS = ["^agent:[^:]+:cron:"];
 const DEFAULT_RECALL_SESSION_ALLOW_PATTERNS = [];
 const DEFAULT_RECALL_POLICY_LOG = true;
@@ -75,6 +77,8 @@ function resolveConfig(rawConfig) {
     const autoIndex = typeof raw.autoIndex === "boolean" ? raw.autoIndex : DEFAULT_AUTO_INDEX;
     const autoCognify = typeof raw.autoCognify === "boolean" ? raw.autoCognify : DEFAULT_AUTO_COGNIFY;
     const requestTimeoutMs = typeof raw.requestTimeoutMs === "number" ? raw.requestTimeoutMs : DEFAULT_REQUEST_TIMEOUT_MS;
+    const maxIndexChars = Math.max(500, Math.floor(typeof raw.maxIndexChars === "number" ? raw.maxIndexChars : DEFAULT_MAX_INDEX_CHARS));
+    const oversizeMode = raw.oversizeMode === "skip" ? "skip" : DEFAULT_OVERSIZE_MODE;
     const recallSessionDenyPatterns = normalizePatternList(raw.recallSessionDenyPatterns, DEFAULT_RECALL_SESSION_DENY_PATTERNS);
     const recallSessionAllowPatterns = normalizePatternList(raw.recallSessionAllowPatterns, DEFAULT_RECALL_SESSION_ALLOW_PATTERNS);
     const recallPolicyLog = typeof raw.recallPolicyLog === "boolean" ? raw.recallPolicyLog : DEFAULT_RECALL_POLICY_LOG;
@@ -95,11 +99,40 @@ function resolveConfig(rawConfig) {
         autoIndex,
         autoCognify,
         requestTimeoutMs,
+        maxIndexChars,
+        oversizeMode,
         recallSessionDenyPatterns,
         recallSessionAllowPatterns,
         recallPolicyLog,
         recallMaxConcurrent,
         recallQueueTimeoutMs,
+    };
+}
+function buildSyncPayload(file, cfg) {
+    const metadata = JSON.stringify({ path: file.path, source: "memory" });
+    const header = `# ${file.path}\n\n`;
+    const footer = `\n\n---\nMetadata: ${metadata}`;
+    const sourceLength = file.content.length;
+    if (sourceLength > cfg.maxIndexChars && cfg.oversizeMode === "skip") {
+        return {
+            skip: true,
+            hash: hashText(""),
+            data: "",
+            sourceLength,
+            indexedLength: 0,
+        };
+    }
+    let indexed = file.content;
+    if (sourceLength > cfg.maxIndexChars) {
+        indexed = `${file.content.slice(0, cfg.maxIndexChars)}\n\n[TRUNCATED: source length ${sourceLength} chars, maxIndexChars ${cfg.maxIndexChars}]`;
+    }
+    const data = `${header}${indexed}${footer}`;
+    return {
+        skip: false,
+        hash: hashText(data),
+        data,
+        sourceLength,
+        indexedLength: indexed.length,
     };
 }
 // ---------------------------------------------------------------------------
@@ -370,17 +403,27 @@ class CogneeClient {
 // Matches clawdbot cognee-provider.ts syncFiles() (lines 422-513).
 // ---------------------------------------------------------------------------
 async function syncFiles(client, files, syncIndex, cfg, logger) {
-    const result = { added: 0, updated: 0, skipped: 0, errors: 0 };
+    const result = { added: 0, updated: 0, skipped: 0, skippedOversize: 0, truncated: 0, errors: 0 };
     let datasetId = syncIndex.datasetId;
     let needsCognify = false;
     for (const file of files) {
+        const prepared = buildSyncPayload(file, cfg);
+        if (prepared.skip) {
+            result.skipped++;
+            result.skippedOversize++;
+            logger.warn?.(`memory-cognee: skipped oversized file ${file.path} (${prepared.sourceLength} chars > maxIndexChars=${cfg.maxIndexChars})`);
+            continue;
+        }
+        if (prepared.sourceLength > cfg.maxIndexChars) {
+            result.truncated++;
+            logger.info?.(`memory-cognee: truncating ${file.path} (${prepared.sourceLength} -> ${prepared.indexedLength} chars)`);
+        }
         const existing = syncIndex.entries[file.path];
         // Skip unchanged files
-        if (existing && existing.hash === file.hash) {
+        if (existing && existing.hash === prepared.hash) {
             result.skipped++;
             continue;
         }
-        const dataWithMetadata = `# ${file.path}\n\n${file.content}\n\n---\nMetadata: ${JSON.stringify({ path: file.path, source: "memory" })}`;
         try {
             // Changed file with prior dataId → try update first
             if (existing?.dataId && datasetId) {
@@ -388,9 +431,9 @@ async function syncFiles(client, files, syncIndex, cfg, logger) {
                     await client.update({
                         dataId: existing.dataId,
                         datasetId,
-                        data: dataWithMetadata,
+                        data: prepared.data,
                     });
-                    syncIndex.entries[file.path] = { hash: file.hash, dataId: existing.dataId };
+                    syncIndex.entries[file.path] = { hash: prepared.hash, dataId: existing.dataId };
                     syncIndex.datasetId = datasetId;
                     syncIndex.datasetName = cfg.datasetName;
                     result.updated++;
@@ -412,7 +455,7 @@ async function syncFiles(client, files, syncIndex, cfg, logger) {
             }
             // New file, or changed file without dataId, or update failed → add
             const response = await client.add({
-                data: dataWithMetadata,
+                data: prepared.data,
                 datasetName: cfg.datasetName,
                 datasetId,
             });
@@ -424,7 +467,7 @@ async function syncFiles(client, files, syncIndex, cfg, logger) {
                 await saveDatasetState(state);
             }
             syncIndex.entries[file.path] = {
-                hash: file.hash,
+                hash: prepared.hash,
                 dataId: response.dataId,
             };
             syncIndex.datasetId = datasetId;

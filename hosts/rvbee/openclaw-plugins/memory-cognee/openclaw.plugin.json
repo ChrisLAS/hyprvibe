@@ -55,6 +55,18 @@
         "type": "number",
         "description": "HTTP timeout in milliseconds for Cognee requests (default: 60000)"
       },
+      "maxIndexChars": {
+        "type": "number",
+        "description": "Maximum chars from each memory file to index (default: 3000)"
+      },
+      "oversizeMode": {
+        "type": "string",
+        "enum": [
+          "truncate",
+          "skip"
+        ],
+        "description": "How to handle files larger than maxIndexChars (default: truncate)"
+      },
       "recallSessionDenyPatterns": {
         "type": "array",
         "items": {
@@ -125,6 +137,14 @@
     "requestTimeoutMs": {
       "label": "Request Timeout (ms)",
       "placeholder": "60000"
+    },
+    "maxIndexChars": {
+      "label": "Max Index Chars",
+      "placeholder": "3000"
+    },
+    "oversizeMode": {
+      "label": "Oversize Mode",
+      "placeholder": "truncate"
     },
     "recallSessionDenyPatterns": {
       "label": "Recall Session Deny Patterns"

@@ -66,6 +66,8 @@ export COGNEE_API_KEY="your-key-here"
 | `autoIndex` | boolean | `true` | Sync memory files on startup and after agent runs |
 | `autoCognify` | boolean | `true` | Run cognify after new memories are added |
 | `requestTimeoutMs` | number | `60000` | HTTP timeout for Cognee requests |
+| `maxIndexChars` | number | `3000` | Max characters per memory file sent to Cognee |
+| `oversizeMode` | string | `truncate` | Oversize handling: `truncate` or `skip` |
 | `recallSessionDenyPatterns` | string[] | `["^agent:[^:]+:cron:"]` | Regex denylist for session keys (skip recall) |
 | `recallSessionAllowPatterns` | string[] | `[]` | Optional regex allowlist for session keys |
 | `recallPolicyLog` | boolean | `true` | Emit logs when recall is skipped by policy |

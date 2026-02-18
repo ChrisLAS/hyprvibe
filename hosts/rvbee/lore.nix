@@ -222,6 +222,8 @@ in
         searchType: "CHUNKS",
         autoRecall: true,
         autoIndex: false,
+        maxIndexChars: 3000,
+        oversizeMode: "truncate",
         maxResults: 6,
         minScore: 0,
         maxTokens: 512,
