@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Lore Memory Index Nightly (03:20 local)
+
+[Timer]
+OnCalendar=*-*-* 03:20:00
+Persistent=true
+RandomizedDelaySec=5m
+Unit=lore-memory-index.service
+
+[Install]
+WantedBy=timers.target

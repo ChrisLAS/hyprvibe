@@ -104,7 +104,7 @@ To keep memory useful without sustained CPU runaway, keep:
 - `plugins.entries.memory-cognee.config.autoRecall = true`
 - `plugins.entries.memory-cognee.config.autoIndex = false`
 - `plugins.entries.memory-cognee.config.searchType = "CHUNKS"`
-- `plugins.entries.memory-cognee.config.recallSessionDenyPatterns = ["^agent:[^:]+:cron:"]`
+- `plugins.entries.memory-cognee.config.recallSessionDenyPatterns = ["^agent:[^:]+:cron:(?!2d7d3035-fa8b-4f21-a324-f3e26689b3c2:run:)", "^agent:heartbeat-agent:main$"]`
 
 This policy keeps recall enabled for interactive Lore/sub-agent sessions and skips recall for cron sessions.
 
@@ -147,6 +147,37 @@ Recommended trigger policy for Lore:
 - Run during low traffic periods
 - Max 1 run every 2 hours unless manually forced
 
+Strict completeness verification:
+
+```bash
+~/.openclaw/scripts/verify-cognee-index.sh
+cat ~/.openclaw/state/memory-index-verify.json
+```
+
+Verification marks index state as `drift` if any expected `MEMORY.md` / `memory/**/*.md` file is missing from sync index or hash-mismatched.
+
+Nightly guarded automation (declarative user timer):
+
+```bash
+systemctl --user daemon-reload
+systemctl --user enable --now lore-memory-index.timer
+systemctl --user status lore-memory-index.timer lore-memory-index.service
+```
+
+Manual run of full nightly pipeline:
+
+```bash
+systemctl --user start lore-memory-index.service
+```
+
+Pipeline behavior:
+
+- runs bounded `index-memory` window
+- runs strict verifier
+- records runner status at `~/.openclaw/state/memory-index-runner-state.json`
+- writes Beads notes to `config-kkm` for cross-agent continuity
+- auto-disables timer after consecutive failures (default: 2) to prevent unattended CPU runaway loops
+
 ## Declarative policy patch on rvbee
 
 `hosts/rvbee/lore.nix` now declaratively syncs a patched `memory-cognee` plugin and policy defaults:
@@ -171,7 +202,7 @@ To reduce lock contention and CPU spikes while keeping memory utility:
 
 Session-key recall deny patterns include:
 
-- `^agent:[^:]+:cron:`
+- `^agent:[^:]+:cron:(?!2d7d3035-fa8b-4f21-a324-f3e26689b3c2:run:)`
 - `^agent:heartbeat-agent:main$`
 
 User timers/services:

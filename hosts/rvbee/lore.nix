@@ -121,23 +121,29 @@ in
   # Sync loop runner scripts and user unit files for split heartbeat/orchestration lanes.
   # Heartbeat: lightweight periodic checks (no recall lane)
   # Orchestration: hourly deep loop (recall-enabled lane)
+  # Memory index: nightly guarded index window + strict completeness verify
   system.activationScripts.openclaw-loop-runner-sync = lib.stringAfter [ "lore-bootstrap" ] ''
     export HOME=/home/${userName}
     WORKSPACE_DIR=$HOME/.openclaw/workspace-lore
+    SCRIPTS_DIR=$HOME/.openclaw/scripts
     USER_UNITS_DIR=$HOME/.config/systemd/user
 
-    mkdir -p "$WORKSPACE_DIR" "$USER_UNITS_DIR"
+    mkdir -p "$WORKSPACE_DIR" "$SCRIPTS_DIR" "$USER_UNITS_DIR"
 
     install -m 0755 ${./openclaw-loop/run-heartbeat.sh} "$WORKSPACE_DIR/run-loop.sh"
     install -m 0755 ${./openclaw-loop/run-orchestration.sh} "$WORKSPACE_DIR/run-orchestration.sh"
+    install -m 0755 ${./openclaw-loop/verify-cognee-index.sh} "$SCRIPTS_DIR/verify-cognee-index.sh"
+    install -m 0755 ${./openclaw-loop/run-memory-index-nightly.sh} "$SCRIPTS_DIR/run-memory-index-nightly.sh"
 
     install -m 0644 ${./openclaw-loop/lore-loop.service} "$USER_UNITS_DIR/lore-loop.service"
     install -m 0644 ${./openclaw-loop/lore-loop.timer} "$USER_UNITS_DIR/lore-loop.timer"
     install -m 0644 ${./openclaw-loop/lore-orchestration.service} "$USER_UNITS_DIR/lore-orchestration.service"
     install -m 0644 ${./openclaw-loop/lore-orchestration.timer} "$USER_UNITS_DIR/lore-orchestration.timer"
+    install -m 0644 ${./openclaw-loop/lore-memory-index.service} "$USER_UNITS_DIR/lore-memory-index.service"
+    install -m 0644 ${./openclaw-loop/lore-memory-index.timer} "$USER_UNITS_DIR/lore-memory-index.timer"
 
-    chown -R ${userName}:users "$WORKSPACE_DIR" "$USER_UNITS_DIR"
-    echo "[openclaw] loop runner scripts and unit files synced (heartbeat + orchestration split)"
+    chown -R ${userName}:users "$WORKSPACE_DIR" "$SCRIPTS_DIR" "$USER_UNITS_DIR"
+    echo "[openclaw] loop/memory runner scripts and unit files synced (heartbeat + orchestration + nightly index)"
   '';
 
   # Sync declarative memory-cognee plugin patch into OpenClaw extensions dir.

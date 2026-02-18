@@ -1,0 +1,15 @@
+[Unit]
+Description=Lore Memory Index Nightly Runner (guarded + verify)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=HOME=/home/chrisf
+WorkingDirectory=/home/chrisf
+ExecStart=/run/current-system/sw/bin/bash /home/chrisf/.openclaw/scripts/run-memory-index-nightly.sh
+TimeoutStartSec=30m
+SyslogIdentifier=lore-memory-index
+
+[Install]
+WantedBy=default.target
