@@ -1,0 +1,147 @@
+{
+  "id": "memory-cognee",
+  "name": "Memory (Cognee)",
+  "kind": "memory",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "baseUrl": {
+        "type": "string",
+        "description": "Cognee API base URL (default: http://localhost:8000)"
+      },
+      "apiKey": {
+        "type": "string",
+        "description": "Cognee API key (or use ${COGNEE_API_KEY})"
+      },
+      "datasetName": {
+        "type": "string",
+        "description": "Cognee dataset name to store memories in"
+      },
+      "searchType": {
+        "type": "string",
+        "enum": [
+          "GRAPH_COMPLETION",
+          "CHUNKS",
+          "SUMMARIES"
+        ],
+        "description": "Cognee search mode"
+      },
+      "maxResults": {
+        "type": "number",
+        "description": "Max recall results to inject (default: 6)"
+      },
+      "minScore": {
+        "type": "number",
+        "description": "Minimum score to include in recall (default: 0)"
+      },
+      "maxTokens": {
+        "type": "number",
+        "description": "Token cap for recall (default: 512)"
+      },
+      "autoRecall": {
+        "type": "boolean",
+        "description": "Inject memories before each agent run (default: true)"
+      },
+      "autoIndex": {
+        "type": "boolean",
+        "description": "Auto-sync memory files to Cognee on plugin startup (default: true)"
+      },
+      "autoCognify": {
+        "type": "boolean",
+        "description": "Run cognify after new memories are added (default: true)"
+      },
+      "requestTimeoutMs": {
+        "type": "number",
+        "description": "HTTP timeout in milliseconds for Cognee requests (default: 60000)"
+      },
+      "recallSessionDenyPatterns": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Regex patterns for session keys that should skip recall (default: cron sessions)"
+      },
+      "recallSessionAllowPatterns": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Optional allowlist regex patterns; if set, only matching sessions can recall"
+      },
+      "recallPolicyLog": {
+        "type": "boolean",
+        "description": "Log recall policy skip decisions (default: true)"
+      },
+      "recallMaxConcurrent": {
+        "type": "number",
+        "description": "Maximum concurrent recall searches (default: 1)"
+      },
+      "recallQueueTimeoutMs": {
+        "type": "number",
+        "description": "Max wait for recall slot before skipping recall (default: 1500)"
+      }
+    }
+  },
+  "uiHints": {
+    "baseUrl": {
+      "label": "Base URL",
+      "placeholder": "http://localhost:8000"
+    },
+    "apiKey": {
+      "label": "API Key",
+      "sensitive": true,
+      "placeholder": "${COGNEE_API_KEY}"
+    },
+    "datasetName": {
+      "label": "Dataset Name",
+      "placeholder": "openclaw"
+    },
+    "searchType": {
+      "label": "Search Type",
+      "placeholder": "GRAPH_COMPLETION"
+    },
+    "maxResults": {
+      "label": "Max Results",
+      "placeholder": "6"
+    },
+    "minScore": {
+      "label": "Min Score",
+      "placeholder": "0"
+    },
+    "maxTokens": {
+      "label": "Max Tokens",
+      "placeholder": "512"
+    },
+    "autoRecall": {
+      "label": "Auto-Recall"
+    },
+    "autoIndex": {
+      "label": "Auto-Index on Startup"
+    },
+    "autoCognify": {
+      "label": "Auto-Cognify"
+    },
+    "requestTimeoutMs": {
+      "label": "Request Timeout (ms)",
+      "placeholder": "60000"
+    },
+    "recallSessionDenyPatterns": {
+      "label": "Recall Session Deny Patterns"
+    },
+    "recallSessionAllowPatterns": {
+      "label": "Recall Session Allow Patterns"
+    },
+    "recallPolicyLog": {
+      "label": "Recall Policy Log"
+    },
+    "recallMaxConcurrent": {
+      "label": "Recall Max Concurrent",
+      "placeholder": "1"
+    },
+    "recallQueueTimeoutMs": {
+      "label": "Recall Queue Timeout (ms)",
+      "placeholder": "1500"
+    }
+  }
+}

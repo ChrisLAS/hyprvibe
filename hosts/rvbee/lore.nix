@@ -118,6 +118,62 @@ in
     echo "[openclaw] Gateway config merged: token auth + Tailscale Serve mode enabled"
   '';
 
+  # Sync declarative memory-cognee plugin patch into OpenClaw extensions dir.
+  # This keeps recall policy behavior stable across plugin/gateway updates.
+  system.activationScripts.openclaw-memory-cognee-plugin-sync = lib.stringAfter [ "lore-bootstrap" ] ''
+    export HOME=/home/${userName}
+    PLUGIN_DIR=$HOME/.openclaw/extensions/memory-cognee
+
+    mkdir -p "$PLUGIN_DIR/dist"
+    install -m 0644 ${./openclaw-plugins/memory-cognee/openclaw.plugin.json} "$PLUGIN_DIR/openclaw.plugin.json"
+    install -m 0644 ${./openclaw-plugins/memory-cognee/dist/index.js} "$PLUGIN_DIR/dist/index.js"
+    install -m 0644 ${./openclaw-plugins/memory-cognee/README.md} "$PLUGIN_DIR/README.md"
+
+    chown -R ${userName}:users "$PLUGIN_DIR"
+    chmod 0755 "$PLUGIN_DIR" "$PLUGIN_DIR/dist"
+    chmod 0644 "$PLUGIN_DIR/openclaw.plugin.json" "$PLUGIN_DIR/dist/index.js" "$PLUGIN_DIR/README.md"
+    echo "[openclaw] memory-cognee plugin patch synced (declarative)"
+  '';
+
+  # Enforce memory-cognee policy defaults:
+  # - recall enabled for interactive sessions
+  # - cron sessions skipped via session-key deny regex
+  # - autoIndex disabled by default (manual index-window workflow only)
+  system.activationScripts.openclaw-memory-cognee-policy = lib.stringAfter [ "openclaw-gateway-config" "openclaw-memory-cognee-plugin-sync" ] ''
+    export HOME=/home/${userName}
+    CONFIG_FILE=$HOME/.openclaw/openclaw.json
+
+    if [ ! -f "$CONFIG_FILE" ]; then
+      echo "[openclaw] Config file not found, skipping memory-cognee policy merge"
+      exit 0
+    fi
+
+    if ! ${pkgs.jq}/bin/jq -e '.plugins.entries["memory-cognee"]' "$CONFIG_FILE" >/dev/null 2>&1; then
+      echo "[openclaw] memory-cognee not configured, skipping policy merge"
+      exit 0
+    fi
+
+    ${pkgs.jq}/bin/jq '
+      .plugins.entries["memory-cognee"].config |= ((. // {}) + {
+        searchType: "CHUNKS",
+        autoRecall: true,
+        autoIndex: false,
+        maxResults: 6,
+        minScore: 0,
+        maxTokens: 512,
+        recallSessionDenyPatterns: ["^agent:[^:]+:cron:"],
+        recallSessionAllowPatterns: [],
+        recallPolicyLog: true,
+        recallMaxConcurrent: 1,
+        recallQueueTimeoutMs: 1500
+      })
+    ' "$CONFIG_FILE" > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+
+    chown ${userName}:users "$CONFIG_FILE"
+    chmod 600 "$CONFIG_FILE"
+    echo "[openclaw] memory-cognee policy merged (interactive recall on, cron recall off, autoIndex off)"
+  '';
+
   # Shared agentic environment variables
   environment.variables = {
     LORE_CORE = "active";

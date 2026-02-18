@@ -103,6 +103,10 @@ To keep memory useful without sustained CPU runaway, keep:
 
 - `plugins.entries.memory-cognee.config.autoRecall = true`
 - `plugins.entries.memory-cognee.config.autoIndex = false`
+- `plugins.entries.memory-cognee.config.searchType = "CHUNKS"`
+- `plugins.entries.memory-cognee.config.recallSessionDenyPatterns = ["^agent:[^:]+:cron:"]`
+
+This policy keeps recall enabled for interactive Lore/sub-agent sessions and skips recall for cron sessions.
 
 Then run bounded manual index windows with:
 
@@ -142,6 +146,18 @@ Recommended trigger policy for Lore:
 - Run after significant memory edits (about 10+ changed memory files), or end-of-day
 - Run during low traffic periods
 - Max 1 run every 2 hours unless manually forced
+
+## Declarative policy patch on rvbee
+
+`hosts/rvbee/lore.nix` now declaratively syncs a patched `memory-cognee` plugin and policy defaults:
+
+- Plugin sync target: `~/.openclaw/extensions/memory-cognee/`
+- Recall policy:
+  - interactive sessions: recall enabled
+  - cron sessions: recall skipped by session-key regex
+- Index policy:
+  - default `autoIndex=false`
+  - run bounded manual windows via `index-memory`
 
 Rollback conditions in the script:
 
