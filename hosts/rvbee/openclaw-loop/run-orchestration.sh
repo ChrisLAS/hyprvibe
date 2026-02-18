@@ -31,6 +31,10 @@ else
     log "Canonical LOOP.md not found at $CANONICAL_LOOP_FILE; orchestration may run with stale/missing instructions."
 fi
 
+if [ -d "$LOOP_WORKSPACE" ]; then
+    cd "$LOOP_WORKSPACE"
+fi
+
 exec 210>"$GLOBAL_LOCK_FILE"
 if ! flock -w "$LOCK_WAIT_SECONDS" 210; then
     log "Global loop lock still held after ${LOCK_WAIT_SECONDS}s; deferring orchestration run (non-failure)."
