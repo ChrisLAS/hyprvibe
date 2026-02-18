@@ -110,6 +110,12 @@ Then run bounded manual index windows with:
 ~/.openclaw/scripts/memory_index_window.sh
 ```
 
+Convenience wrapper (same behavior):
+
+```bash
+~/.openclaw/scripts/index-memory
+```
+
 Optional flags:
 
 ```bash
@@ -117,6 +123,9 @@ Optional flags:
 ~/.openclaw/scripts/memory_index_window.sh --cpu-threshold 300
 ~/.openclaw/scripts/memory_index_window.sh --cooldown-minutes 120
 ~/.openclaw/scripts/memory_index_window.sh --force
+
+# wrapper form
+~/.openclaw/scripts/index-memory --max-minutes 15
 ```
 
 What the script does:
