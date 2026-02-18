@@ -190,7 +190,7 @@ in
         maxResults: 6,
         minScore: 0,
         maxTokens: 512,
-        recallSessionDenyPatterns: ["^agent:[^:]+:cron:", "^agent:heartbeat-agent:main$"],
+        recallSessionDenyPatterns: ["^agent:[^:]+:cron:(?!2d7d3035-fa8b-4f21-a324-f3e26689b3c2:run:)", "^agent:heartbeat-agent:main$"],
         recallSessionAllowPatterns: [],
         recallPolicyLog: true,
         recallMaxConcurrent: 1,
