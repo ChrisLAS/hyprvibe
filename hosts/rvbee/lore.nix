@@ -11,19 +11,6 @@ let
 
   # Package provided by the top-level flake input
   openclaw-pkg = openclaw.packages.${pkgs.system}.default;
-
-  # Python environment for embedding service
-  embeddingPython = pkgs.python3.withPackages (
-    ps: with ps; [
-      fastapi
-      uvicorn
-      sentence-transformers
-      pydantic
-      httpx
-      torch
-      numpy
-    ]
-  );
 in
 {
   # ==============================================================================
@@ -44,105 +31,99 @@ in
     fi
   '';
 
+  # Generate OpenClaw gateway auth token if it doesn't exist
+  # This token is idempotent: if the file exists, we preserve it; if missing, we generate a new one
+  system.activationScripts.openclaw-token-gen = lib.stringAfter [ "lore-bootstrap" ] ''
+    export HOME=/home/${userName}
+    OPENCLAW_DIR=$HOME/.openclaw
+    TOKEN_FILE=$OPENCLAW_DIR/openclaw-token.txt
+
+    if [ ! -f "$TOKEN_FILE" ]; then
+      # Generate a random 32-byte token, base64-encoded
+      ${pkgs.openssl}/bin/openssl rand -base64 32 > "$TOKEN_FILE"
+      chmod 600 "$TOKEN_FILE"
+      chown ${userName}:users "$TOKEN_FILE"
+      echo "[openclaw] Generated new gateway auth token: $TOKEN_FILE"
+    else
+      echo "[openclaw] Gateway auth token already exists, preserving: $TOKEN_FILE"
+    fi
+  '';
+
+  # Configure Tailscale Serve to expose OpenClaw gateway dashboard to tailnet
+  # Gateway runs on loopback (127.0.0.1:18789) and Tailscale Serve provides the public HTTPS endpoint
+  # Accessible at https://rvbee.coin-noodlefish.ts.net/ (encrypted Tailscale tunnel to tailnet members only)
+  system.activationScripts.openclaw-tailscale-serve-setup = lib.stringAfter [ "lore-bootstrap" ] ''
+    TAILSCALE_BIN=${pkgs.tailscale}/bin/tailscale
+
+    if [ ! -x "$TAILSCALE_BIN" ]; then
+      echo "[openclaw] Tailscale binary not found, skipping Serve setup"
+      exit 0
+    fi
+
+    # Check if Tailscale Serve is already configured
+    CURRENT_SERVE=$($TAILSCALE_BIN serve status 2>&1 | grep -c "proxy http://127.0.0.1:18789" || true)
+
+    if [ "$CURRENT_SERVE" -eq 0 ]; then
+      echo "[openclaw] Setting up Tailscale Serve for OpenClaw gateway..."
+      $TAILSCALE_BIN serve --bg --https 443 http://127.0.0.1:18789 2>&1
+      if [ $? -eq 0 ]; then
+        echo "[openclaw] Tailscale Serve configured: https://rvbee.coin-noodlefish.ts.net/ (tailnet-only)"
+      else
+        echo "[openclaw] Tailscale Serve setup failed; verify with: tailscale serve status"
+      fi
+    else
+      echo "[openclaw] Tailscale Serve already configured for OpenClaw gateway"
+    fi
+  '';
+
+  # Configure OpenClaw gateway authentication and Tailscale integration
+  # Gateway binds to loopback (127.0.0.1) by default in local mode
+  # Tailscale Serve provides secure public HTTPS endpoint via encrypted tunnel
+  system.activationScripts.openclaw-gateway-config = lib.stringAfter [ "openclaw-token-gen" ] ''
+    export HOME=/home/${userName}
+    CONFIG_FILE=$HOME/.openclaw/openclaw.json
+    TOKEN_FILE=$HOME/.openclaw/openclaw-token.txt
+
+    if [ ! -f "$CONFIG_FILE" ]; then
+      echo "[openclaw] Config file not found, skipping gateway config"
+      exit 0
+    fi
+
+    # Read the token (fallback to existing if file doesn't exist)
+    TOKEN=""
+    if [ -f "$TOKEN_FILE" ]; then
+      TOKEN=$(cat "$TOKEN_FILE" | tr -d '\n')
+    fi
+
+    # Use jq to safely merge gateway config
+    # This merge only adds/updates specific fields, preserving all other user customizations
+    ${pkgs.jq}/bin/jq \
+      --arg token "$TOKEN" \
+      '.gateway |= . + {
+        tailscale: { mode: "serve" },
+        auth: (.auth // {} | . + { allowTailscale: true }),
+        controlUi: { basePath: "/" },
+        trustedProxies: (
+          (.trustedProxies // ["127.0.0.1", "::1"]) as $existing |
+          (["127.0.0.1", "::1", "100.75.168.43", "100.64.0.0/10"] | unique) as $required |
+          if ($existing | length) == 0 then $required
+          else (($existing + $required) | unique)
+          end
+        )
+      } | .gateway.auth |= if (.token | length) == 0 and ($token | length) > 0 then . + { token: $token } else . end' \
+      "$CONFIG_FILE" > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+
+    chown ${userName}:users "$CONFIG_FILE"
+    chmod 600 "$CONFIG_FILE"
+    echo "[openclaw] Gateway config merged: token auth + Tailscale Serve mode enabled"
+  '';
+
   # Shared agentic environment variables
   environment.variables = {
     LORE_CORE = "active";
     LORE_OS = "NixOS";
     OPENCLAW_NIX_MODE = "1";
     OPENCLAW_CONFIG_DIR = "/home/${userName}/.openclaw";
-  };
-
-  # ==============================================================================
-  # Vector Memory: Self-Hosted Qdrant + Embedding Service (Replaces Voyage AI)
-  # ==============================================================================
-
-  # Enable Qdrant vector database
-  services.qdrant = {
-    enable = true;
-    settings = {
-      storage = {
-        storage_type = "mmap"; # Memory-mapped for efficiency on Ryzen 5700U
-      };
-      service = {
-        http_port = 6333;
-        grpc_port = 6334;
-        host = "127.0.0.1"; # localhost only for security
-      };
-      telemetry_disabled = true; # Privacy: disable telemetry
-      log_level = "INFO";
-    };
-  };
-
-  # Embedding Service User
-  users.users.embedding-service = {
-    isSystemUser = true;
-    group = "embedding-service";
-    home = "/var/lib/embedding-service";
-    createHome = true;
-    description = "Embedding service for vector memory";
-  };
-  users.groups.embedding-service = { };
-
-  # Embedding service directories
-  systemd.tmpfiles.rules = [
-    "d /var/lib/embedding-service 0755 embedding-service embedding-service -"
-    "d /var/cache/embedding-service 0755 embedding-service embedding-service -"
-    "d /var/cache/embedding-service/huggingface 0755 embedding-service embedding-service -"
-    "d /var/cache/embedding-service/transformers 0755 embedding-service embedding-service -"
-  ];
-
-  # Embedding Service Package (Python + FastAPI + sentence-transformers)
-  systemd.services.embedding-service = {
-    description = "Embedding Service - all-MiniLM-L6-v2 via sentence-transformers";
-    wantedBy = [ "multi-user.target" ];
-    after = [ "network-online.target" ];
-
-    serviceConfig = {
-      Type = "simple";
-      User = "embedding-service";
-      Group = "embedding-service";
-      WorkingDirectory = "/var/lib/embedding-service";
-
-      # Start script that downloads model and runs FastAPI
-      ExecStart = pkgs.writeShellScript "embedding-service-start" ''
-        export HF_HOME=/var/cache/embedding-service/huggingface
-        export TRANSFORMERS_CACHE=/var/cache/embedding-service/transformers
-        export SENTENCE_TRANSFORMERS_HOME=/var/cache/embedding-service/sentence-transformers
-        export HF_TOKEN_FILE=/etc/secrets/huggingface_token
-
-        # Run embedding server
-        ${embeddingPython}/bin/python ${./embedding-service/app.py}
-      '';
-
-      Restart = "always";
-      RestartSec = "10s";
-
-      # Resource limits appropriate for Ryzen 5700U
-      MemoryMax = "512M";
-      CPUQuota = "200%"; # 2 cores max
-
-      # Security hardening
-      PrivateTmp = true;
-      NoNewPrivileges = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      ReadWritePaths = [
-        "/var/cache/embedding-service"
-        "/var/lib/embedding-service"
-      ];
-
-      # Logging
-      StandardOutput = "journal";
-      StandardError = "journal";
-      SyslogIdentifier = "embedding-service";
-    };
-
-    environment = {
-      PYTHONUNBUFFERED = "1";
-      EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2";
-      EMBEDDING_PORT = "18000";
-      EMBEDDING_HOST = "127.0.0.1";
-    };
   };
 
   # System packages for vector memory
@@ -155,19 +136,6 @@ in
     python3 # Foundation for background sentries & logic shims
     babashka # Low-latency Clojure scripting for agentic tasks
     bun # JavaScript runtime for QMD
-
-    # --- Vector Memory Stack ---
-    qdrant # Vector database
-    (python3.withPackages (
-      ps: with ps; [
-        sentence-transformers # Embedding models
-        fastapi # API server
-        uvicorn # ASGI server
-        httpx # HTTP client
-        pydantic # Data validation
-      ]
-    ))
-    curl # Health checks
 
     # --- Transcription & Media ---
     whisper-cpp # High-fidelity speech-to-text processing
@@ -235,6 +203,41 @@ in
         "OPENCLAW_BIND=0.0.0.0"
         "OPENCLAW_ALLOW_INSECURE_WEBSOCKETS=1"
       ];
+    };
+  };
+
+  # Tailscale Serve: Expose OpenClaw gateway to tailnet via HTTPS
+  # Dashboard accessible at https://rvbee.coin-noodlefish.ts.net/ (tailnet-only)
+  # Tailscale Serve is configured via system activation script (openclaw-tailscale-serve-setup)
+  # This service is a placeholder to document the setup and allow manual control
+  systemd.user.services.openclaw-tailscale-serve = {
+    description = "OpenClaw Tailscale Serve - Expose gateway to tailnet";
+    documentation = [ "https://docs.openclaw.ai/gateway/tailscale.md" ];
+    after = [ "openclaw-gateway.service" ];
+    wants = [ "openclaw-gateway.service" ];
+    wantedBy = [ "default.target" ];
+
+    # This is a documentation/placeholder service. The actual Tailscale Serve config
+    # is managed by system.activationScripts.openclaw-tailscale-serve-setup and persists
+    # in Tailscale's own configuration. To control Serve manually:
+    #   tailscale serve status         # View current configuration
+    #   tailscale serve reset          # Disable Serve
+    #   tailscale serve --help         # Full usage details
+
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+
+      # No-op exec: service succeeds immediately (Serve is managed by activation script)
+      ExecStart = "${pkgs.coreutils}/bin/true";
+
+      # Process management
+      KillMode = "none";
+
+      # Logging
+      StandardOutput = "journal";
+      StandardError = "journal";
+      SyslogIdentifier = "openclaw-tailscale-serve";
     };
   };
 

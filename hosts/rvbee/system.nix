@@ -14,6 +14,7 @@ let
 
   # Package groups
   devTools = with pkgs; [
+    hugo
     gcc
     cmake
     go
@@ -750,7 +751,7 @@ in
     enable = true;
 
     virt.enable = true;
-    docker.enable = true;
+    docker.enable = false;
     nebula = {
       enable = true;
       nebulaIp = "192.168.100.10/24";
@@ -778,7 +779,7 @@ in
           "uvx"
           "mcp-obsidian"
         ];
-        env = {
+        environment = {
           OBSIDIAN_API_KEY = "$(cat /home/chrisf/.config/secrets/obsidian_mcp_key)"; # Note: Shell expansion handled by assembly script
           OBSIDIAN_PORT = "27124";
           OBSIDIAN_HOST = "127.0.0.1";
@@ -802,7 +803,7 @@ in
           "github:RekklesNA/ProxmoxMCP-Plus"
           "--"
         ];
-        env = {
+        environment = {
           PROXMOX_HOST = "100.120.212.39";
           PROXMOX_USER = "root@pam";
           PROXMOX_TOKEN_NAME = "lore-mcp";
@@ -821,11 +822,37 @@ in
           "-y"
           "@byungkyu/todoist-api"
         ];
-        env = {
+        environment = {
           TODOIST_API_TOKEN = "$(cat /home/chrisf/.config/secrets/todoist_token)";
         };
         enabled = true;
       };
+    };
+    "opencode/mcp.d/chrome-devtools.json".text = builtins.toJSON {
+      chrome-devtools = {
+        type = "local";
+        command = [
+          "npx"
+          "-y"
+          "chrome-devtools-mcp"
+        ];
+        environment = {
+          CHROME_PATH = "${pkgs.chromium}/bin/chromium";
+        };
+        enabled = true;
+      };
+    };
+    # Enable rootless Podman containers via /etc/subuid and /etc/subgid
+    # Maps container UID 0-65535 to host UID 100000-165535 for chrisf
+    # Required for: virtualisation.podman.enable + rootless containers
+    # Fixes: "newuidmap: write to uid_map failed: Operation not permitted" errors
+    "subuid" = {
+      mode = "0644";
+      text = "chrisf:100000:65536\n";
+    };
+    "subgid" = {
+      mode = "0644";
+      text = "chrisf:100000:65536\n";
     };
   };
 
@@ -1311,30 +1338,24 @@ in
     };
   };
 
-  # Crabwalk Monitor (Next.js Application)
-  virtualisation.oci-containers.containers.crabwalk = {
-    image = "ghcr.io/luccast/crabwalk:latest";
+  # FalkorDB Graph Database
+  # Lightweight graph database for AI agent knowledge graphs (alternative to Neo4j)
+  # Uses Redis protocol, much faster than Neo4j for AI workloads
+  virtualisation.oci-containers.containers.falkordb = {
+    image = "docker.io/falkordb/falkordb:latest";
     autoStart = true;
+    pull = "newer";
     ports = [
+      "6379:6379"
       "3000:3000"
     ];
-    environmentFiles = [
-      "/home/chrisf/.config/secrets/openclaw-crabwalk.env"
-    ];
-    environment = {
-      # Explicitly point to the gateway on the host's loopback from the container's perspective
-      OPENCLAW_GATEWAY_URL = "ws://100.120.88.96:18789";
-    };
-    extraOptions = [
-      "--network=host"
-    ];
     volumes = [
-      # Consolidated OpenClaw workspace path
-      "/home/chrisf/.openclaw/workspace-main:/root/.openclaw/workspace"
+      "/var/lib/falkordb:/data"
     ];
     labels = {
       "io.containers.autoupdate" = "registry";
     };
+    extraOptions = [ ];
   };
 
   # Ensure persistent data directories exist
@@ -1343,6 +1364,7 @@ in
     "d /var/lib/companion 0777 root root -"
     "d /var/lib/camofox 0755 root root -"
     "d /var/lib/camofox-builder 0755 root root -"
+    "d /var/lib/falkordb 0755 root root -"
     # Disable CoW on directories that benefit from it (databases, VMs, downloads)
     "d /var/lib/docker 0755 root root -"
     "d /var/lib/libvirt 0755 root root -"
