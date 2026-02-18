@@ -222,7 +222,7 @@ in
         searchType: "CHUNKS",
         autoRecall: true,
         autoIndex: false,
-        maxIndexChars: 3000,
+        maxIndexChars: 1200,
         oversizeMode: "truncate",
         maxResults: 6,
         minScore: 0,

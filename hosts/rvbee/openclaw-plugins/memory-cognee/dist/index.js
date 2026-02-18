@@ -15,7 +15,7 @@ const DEFAULT_AUTO_RECALL = true;
 const DEFAULT_AUTO_INDEX = true;
 const DEFAULT_AUTO_COGNIFY = true;
 const DEFAULT_REQUEST_TIMEOUT_MS = 60_000;
-const DEFAULT_MAX_INDEX_CHARS = 3_000;
+const DEFAULT_MAX_INDEX_CHARS = 1_200;
 const DEFAULT_OVERSIZE_MODE = "truncate";
 const DEFAULT_RECALL_SESSION_DENY_PATTERNS = ["^agent:[^:]+:cron:"];
 const DEFAULT_RECALL_SESSION_ALLOW_PATTERNS = [];
@@ -112,8 +112,10 @@ function buildSyncPayload(file, cfg) {
     const metadata = JSON.stringify({ path: file.path, source: "memory" });
     const header = `# ${file.path}\n\n`;
     const footer = `\n\n---\nMetadata: ${metadata}`;
+    const truncationOverhead = 120;
+    const contentBudget = Math.max(200, cfg.maxIndexChars - header.length - footer.length - truncationOverhead);
     const sourceLength = file.content.length;
-    if (sourceLength > cfg.maxIndexChars && cfg.oversizeMode === "skip") {
+    if (sourceLength > contentBudget && cfg.oversizeMode === "skip") {
         return {
             skip: true,
             hash: hashText(""),
@@ -123,10 +125,13 @@ function buildSyncPayload(file, cfg) {
         };
     }
     let indexed = file.content;
-    if (sourceLength > cfg.maxIndexChars) {
-        indexed = `${file.content.slice(0, cfg.maxIndexChars)}\n\n[TRUNCATED: source length ${sourceLength} chars, maxIndexChars ${cfg.maxIndexChars}]`;
+    if (sourceLength > contentBudget) {
+        indexed = `${file.content.slice(0, contentBudget)}\n\n[TRUNCATED: source length ${sourceLength} chars, content budget ${contentBudget}]`;
     }
-    const data = `${header}${indexed}${footer}`;
+    let data = `${header}${indexed}${footer}`;
+    if (data.length > cfg.maxIndexChars) {
+        data = `${data.slice(0, cfg.maxIndexChars - 64)}\n\n[TRUNCATED: payload capped at ${cfg.maxIndexChars} chars]`;
+    }
     return {
         skip: false,
         hash: hashText(data),

@@ -103,7 +103,7 @@ To keep memory useful without sustained CPU runaway, keep:
 
 - `plugins.entries.memory-cognee.config.autoRecall = true`
 - `plugins.entries.memory-cognee.config.autoIndex = false`
-- `plugins.entries.memory-cognee.config.maxIndexChars = 3000`
+- `plugins.entries.memory-cognee.config.maxIndexChars = 1200`
 - `plugins.entries.memory-cognee.config.oversizeMode = "truncate"`
 - `plugins.entries.memory-cognee.config.searchType = "CHUNKS"`
 - `plugins.entries.memory-cognee.config.recallSessionDenyPatterns = ["^agent:[^:]+:cron:(?!2d7d3035-fa8b-4f21-a324-f3e26689b3c2:run:)", "^agent:heartbeat-agent:main$"]`

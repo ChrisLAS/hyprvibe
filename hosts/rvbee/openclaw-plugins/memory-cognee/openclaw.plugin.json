@@ -57,7 +57,7 @@
       },
       "maxIndexChars": {
         "type": "number",
-        "description": "Maximum chars from each memory file to index (default: 3000)"
+        "description": "Maximum payload chars sent to Cognee per memory file (default: 1200)"
       },
       "oversizeMode": {
         "type": "string",
@@ -140,7 +140,7 @@
     },
     "maxIndexChars": {
       "label": "Max Index Chars",
-      "placeholder": "3000"
+      "placeholder": "1200"
     },
     "oversizeMode": {
       "label": "Oversize Mode",
