@@ -62,6 +62,7 @@ in
       EMBEDDING_API_KEY = "ollama-local";
       EMBEDDING_DIMENSIONS = "768";
       HUGGINGFACE_TOKENIZER = "nomic-ai/nomic-embed-text-v1.5";
+      ENABLE_BACKEND_ACCESS_CONTROL = "false";
     };
     extraOptions = [
       "--cpus=4"
