@@ -97,6 +97,48 @@ If not, verify via gateway logs:
 journalctl --user -u openclaw-gateway.service -n 200 | rg -i 'memory-cognee|cognee'
 ```
 
+## Manual indexing workflow (recommended)
+
+To keep memory useful without sustained CPU runaway, keep:
+
+- `plugins.entries.memory-cognee.config.autoRecall = true`
+- `plugins.entries.memory-cognee.config.autoIndex = false`
+
+Then run bounded manual index windows with:
+
+```bash
+~/.openclaw/scripts/memory_index_window.sh
+```
+
+Optional flags:
+
+```bash
+~/.openclaw/scripts/memory_index_window.sh --max-minutes 15
+~/.openclaw/scripts/memory_index_window.sh --cpu-threshold 300
+~/.openclaw/scripts/memory_index_window.sh --cooldown-minutes 120
+~/.openclaw/scripts/memory_index_window.sh --force
+```
+
+What the script does:
+
+- Verifies gateway + `podman-cognee` + `podman-ollama` are active
+- Temporarily enables `autoIndex=true`
+- Restarts gateway and monitors per-minute CPU + Cognee sync errors
+- Automatically rolls back to `autoIndex=false` if guardrails trip
+- Always restores `autoIndex=false` before exit
+- Emits JSON run summary to `~/.openclaw/state/memory-index-window-state.json`
+
+Recommended trigger policy for Lore:
+
+- Run after significant memory edits (about 10+ changed memory files), or end-of-day
+- Run during low traffic periods
+- Max 1 run every 2 hours unless manually forced
+
+Rollback conditions in the script:
+
+- `ollama runner` CPU above threshold for 3 consecutive samples
+- Memory-cognee error count exceeds cap during the index window
+
 ## Resource limits
 
 Configured container limits for this host (Ryzen 5700U, 30GB RAM):
