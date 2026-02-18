@@ -63,11 +63,13 @@ in
 
       EMBEDDING_PROVIDER = "ollama";
       EMBEDDING_MODEL = embeddingModel;
-      EMBEDDING_ENDPOINT = "http://host.containers.internal:11434/v1";
+      EMBEDDING_ENDPOINT = "http://host.containers.internal:11434/api/embed";
       EMBEDDING_API_KEY = "ollama-local";
       EMBEDDING_DIMENSIONS = "768";
       HUGGINGFACE_TOKENIZER = "nomic-ai/nomic-embed-text-v1.5";
       ENABLE_BACKEND_ACCESS_CONTROL = "false";
+      REQUIRE_AUTHENTICATION = "false";
+      JWT_LIFETIME_SECONDS = "31536000";
     };
     extraOptions = [
       "--cpus=4"
