@@ -60,6 +60,8 @@ in
       EMBEDDING_MODEL = embeddingModel;
       EMBEDDING_ENDPOINT = "http://host.containers.internal:11434/v1";
       EMBEDDING_API_KEY = "ollama-local";
+      EMBEDDING_DIMENSIONS = "768";
+      HUGGINGFACE_TOKENIZER = "nomic-ai/nomic-embed-text-v1.5";
     };
     extraOptions = [
       "--cpus=4"
