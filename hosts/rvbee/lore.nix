@@ -132,8 +132,11 @@ in
 
     install -m 0755 ${./openclaw-loop/run-heartbeat.sh} "$WORKSPACE_DIR/run-loop.sh"
     install -m 0755 ${./openclaw-loop/run-orchestration.sh} "$WORKSPACE_DIR/run-orchestration.sh"
+    install -m 0755 ${./openclaw-loop/memory_index_window.sh} "$SCRIPTS_DIR/memory_index_window.sh"
+    install -m 0755 ${./openclaw-loop/index-memory} "$SCRIPTS_DIR/index-memory"
     install -m 0755 ${./openclaw-loop/verify-cognee-index.sh} "$SCRIPTS_DIR/verify-cognee-index.sh"
     install -m 0755 ${./openclaw-loop/run-memory-index-nightly.sh} "$SCRIPTS_DIR/run-memory-index-nightly.sh"
+    install -m 0755 ${./openclaw-loop/rebuild-cognee-sync-index.sh} "$SCRIPTS_DIR/rebuild-cognee-sync-index.sh"
 
     install -m 0644 ${./openclaw-loop/lore-loop.service} "$USER_UNITS_DIR/lore-loop.service"
     install -m 0644 ${./openclaw-loop/lore-loop.timer} "$USER_UNITS_DIR/lore-loop.timer"
@@ -144,6 +147,32 @@ in
 
     chown -R ${userName}:users "$WORKSPACE_DIR" "$SCRIPTS_DIR" "$USER_UNITS_DIR"
     echo "[openclaw] loop/memory runner scripts and unit files synced (heartbeat + orchestration + nightly index)"
+  '';
+
+  # Validate sudo wrapper path/permissions used by automation scripts.
+  # Scripts should prefer /run/wrappers/bin/sudo, never the /nix/store sudo binary.
+  system.activationScripts.openclaw-sudo-wrapper-check = lib.stringAfter [ "users" ] ''
+    SUDO_WRAPPER=/run/wrappers/bin/sudo
+    SUDO_SYSTEM=/run/current-system/sw/bin/sudo
+
+    if [ -x "$SUDO_WRAPPER" ]; then
+      mode="$(${pkgs.coreutils}/bin/stat -c '%a' "$SUDO_WRAPPER" 2>/dev/null || true)"
+      owner="$(${pkgs.coreutils}/bin/stat -c '%u:%g' "$SUDO_WRAPPER" 2>/dev/null || true)"
+      if [ "$owner" != "0:0" ] || [ "$mode" != "4511" ]; then
+        echo "[openclaw][warn] sudo wrapper permissions unexpected: owner=$owner mode=$mode path=$SUDO_WRAPPER"
+      else
+        echo "[openclaw] sudo wrapper healthy: $SUDO_WRAPPER"
+      fi
+    else
+      echo "[openclaw][warn] sudo wrapper missing: $SUDO_WRAPPER"
+    fi
+
+    if [ -L "$SUDO_SYSTEM" ]; then
+      target="$(${pkgs.coreutils}/bin/readlink -f "$SUDO_SYSTEM" 2>/dev/null || true)"
+      if [ -n "$target" ]; then
+        echo "[openclaw] system sudo symlink target: $target (do not use directly in scripts)"
+      fi
+    fi
   '';
 
   # Sync declarative memory-cognee plugin patch into OpenClaw extensions dir.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PATH="/run/current-system/sw/bin:/usr/bin:/bin:${HOME}/.nix-profile/bin"
+PATH="/run/wrappers/bin:/run/current-system/sw/bin:/usr/bin:/bin:${HOME}/.nix-profile/bin"
 
 STATE_DIR="${HOME}/.openclaw/state"
 WINDOW_STATE="${STATE_DIR}/memory-index-window-state.json"
@@ -40,17 +40,13 @@ started_at="$(date -Is)"
 log "Starting guarded nightly memory index (max=${MAX_MINUTES}m, cpu=${CPU_THRESHOLD}, cooldown=${COOLDOWN_MINUTES}m)."
 
 index_rc=0
-if ! "${HOME}/.openclaw/scripts/index-memory" \
+"${HOME}/.openclaw/scripts/index-memory" \
   --max-minutes "$MAX_MINUTES" \
   --cpu-threshold "$CPU_THRESHOLD" \
-  --cooldown-minutes "$COOLDOWN_MINUTES"; then
-  index_rc=$?
-fi
+  --cooldown-minutes "$COOLDOWN_MINUTES" || index_rc=$?
 
 verify_rc=0
-if ! "${HOME}/.openclaw/scripts/verify-cognee-index.sh"; then
-  verify_rc=$?
-fi
+"${HOME}/.openclaw/scripts/verify-cognee-index.sh" || verify_rc=$?
 
 window_status="unknown"
 window_reason="unknown"
@@ -76,6 +72,22 @@ if (( verify_rc != 0 )); then
     failure_reason+=";"
   fi
   failure_reason+="verify_rc_${verify_rc}:${verify_status}"
+fi
+
+if [[ "$window_status" != "ok" ]]; then
+  healthy=false
+  if [[ -n "$failure_reason" ]]; then
+    failure_reason+=";"
+  fi
+  failure_reason+="window_status_${window_status}:${window_reason}"
+fi
+
+if [[ "$verify_status" != "ok" ]]; then
+  healthy=false
+  if [[ -n "$failure_reason" ]]; then
+    failure_reason+=";"
+  fi
+  failure_reason+="verify_status_${verify_status}"
 fi
 
 previous_streak=0

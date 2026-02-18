@@ -170,6 +170,12 @@ Manual run of full nightly pipeline:
 systemctl --user start lore-memory-index.service
 ```
 
+Local reconciliation (when Cognee added a file but verifier still reports drift):
+
+```bash
+~/.openclaw/scripts/rebuild-cognee-sync-index.sh
+```
+
 Pipeline behavior:
 
 - runs bounded `index-memory` window
@@ -177,6 +183,29 @@ Pipeline behavior:
 - records runner status at `~/.openclaw/state/memory-index-runner-state.json`
 - writes Beads notes to `config-kkm` for cross-agent continuity
 - auto-disables timer after consecutive failures (default: 2) to prevent unattended CPU runaway loops
+
+## NixOS sudo/path reliability notes
+
+Memory index scripts now prefer wrapper binaries:
+
+- `/run/wrappers/bin/sudo`
+- `/run/wrappers/bin` precedes `/run/current-system/sw/bin` in script PATH
+
+Reason: calling the store sudo binary directly (`/nix/store/.../sudo`) fails with:
+
+```text
+must be owned by uid 0 and have the setuid bit set
+```
+
+Preflight checks in `memory_index_window.sh` no longer require sudo to succeed first; they check root system services directly and only fall back to `sudo -n` if needed.
+
+Nightly runner health is strict:
+
+- non-zero index exit -> degraded
+- non-zero verify exit -> degraded
+- `window_status != ok` or `verify_status != ok` -> degraded
+
+So drift/unknown states can no longer be logged as healthy.
 
 ## Declarative policy patch on rvbee
 
