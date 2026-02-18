@@ -17,6 +17,7 @@ in
     pull = "newer";
     ports = [
       "127.0.0.1:11434:11434"
+      "10.88.0.1:11434:11434"
     ];
     volumes = [
       "/var/lib/ollama:/root/.ollama"
@@ -50,6 +51,10 @@ in
     environment = {
       HOST = "0.0.0.0";
       ENV = "local";
+      DATA_ROOT_DIRECTORY = "/app/data/.data_storage";
+      SYSTEM_ROOT_DIRECTORY = "/app/data/.cognee_system";
+      CACHE_ROOT_DIRECTORY = "/app/data/.cognee_cache";
+      COGNEE_LOGS_DIR = "/app/data/logs";
 
       LLM_PROVIDER = "ollama";
       LLM_MODEL = coreLlmModel;
