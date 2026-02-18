@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Lore orchestration every 60 minutes
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=60min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

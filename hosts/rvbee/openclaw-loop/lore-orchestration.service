@@ -1,0 +1,16 @@
+[Unit]
+Description=Lore Orchestration Runner Service (hourly)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/run/current-system/sw/bin/bash /home/chrisf/.openclaw/workspace-lore/run-orchestration.sh
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lore-orchestration
+TimeoutStartSec=30min
+Environment="PATH=/run/current-system/sw/bin:/usr/bin:/bin"
+
+[Install]
+WantedBy=default.target

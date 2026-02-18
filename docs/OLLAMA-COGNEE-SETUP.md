@@ -159,6 +159,35 @@ Recommended trigger policy for Lore:
   - default `autoIndex=false`
   - run bounded manual windows via `index-memory`
 
+## Split loop lanes (heartbeat vs orchestration)
+
+To reduce lock contention and CPU spikes while keeping memory utility:
+
+- `heartbeat-agent` lane (timer-driven): lightweight health checks only, recall denied
+- `loop-agent` lane (hourly): full orchestration per `LOOP.md`, recall allowed
+- Before each run, runner scripts sync canonical docs:
+  - `HEARTBEAT.md` from `/home/chrisf/code/clawdbot-local/documents/HEARTBEAT.md` into `~/.openclaw/workspace-heartbeat-agent/`
+  - `LOOP.md` from `/home/chrisf/code/clawdbot-local/documents/LOOP.md` into `~/.openclaw/workspace-loop-agent/`
+
+Session-key recall deny patterns include:
+
+- `^agent:[^:]+:cron:`
+- `^agent:heartbeat-agent:main$`
+
+User timers/services:
+
+```bash
+systemctl --user status lore-loop.timer lore-orchestration.timer
+systemctl --user status lore-loop.service lore-orchestration.service
+```
+
+Manual triggers:
+
+```bash
+systemctl --user start lore-loop.service
+systemctl --user start lore-orchestration.service
+```
+
 Rollback conditions in the script:
 
 - `ollama runner` CPU above threshold for 3 consecutive samples

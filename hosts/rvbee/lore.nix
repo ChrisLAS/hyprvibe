@@ -118,6 +118,28 @@ in
     echo "[openclaw] Gateway config merged: token auth + Tailscale Serve mode enabled"
   '';
 
+  # Sync loop runner scripts and user unit files for split heartbeat/orchestration lanes.
+  # Heartbeat: lightweight periodic checks (no recall lane)
+  # Orchestration: hourly deep loop (recall-enabled lane)
+  system.activationScripts.openclaw-loop-runner-sync = lib.stringAfter [ "lore-bootstrap" ] ''
+    export HOME=/home/${userName}
+    WORKSPACE_DIR=$HOME/.openclaw/workspace-lore
+    USER_UNITS_DIR=$HOME/.config/systemd/user
+
+    mkdir -p "$WORKSPACE_DIR" "$USER_UNITS_DIR"
+
+    install -m 0755 ${./openclaw-loop/run-heartbeat.sh} "$WORKSPACE_DIR/run-loop.sh"
+    install -m 0755 ${./openclaw-loop/run-orchestration.sh} "$WORKSPACE_DIR/run-orchestration.sh"
+
+    install -m 0644 ${./openclaw-loop/lore-loop.service} "$USER_UNITS_DIR/lore-loop.service"
+    install -m 0644 ${./openclaw-loop/lore-loop.timer} "$USER_UNITS_DIR/lore-loop.timer"
+    install -m 0644 ${./openclaw-loop/lore-orchestration.service} "$USER_UNITS_DIR/lore-orchestration.service"
+    install -m 0644 ${./openclaw-loop/lore-orchestration.timer} "$USER_UNITS_DIR/lore-orchestration.timer"
+
+    chown -R ${userName}:users "$WORKSPACE_DIR" "$USER_UNITS_DIR"
+    echo "[openclaw] loop runner scripts and unit files synced (heartbeat + orchestration split)"
+  '';
+
   # Sync declarative memory-cognee plugin patch into OpenClaw extensions dir.
   # This keeps recall policy behavior stable across plugin/gateway updates.
   system.activationScripts.openclaw-memory-cognee-plugin-sync = lib.stringAfter [ "lore-bootstrap" ] ''
@@ -154,6 +176,13 @@ in
     fi
 
     ${pkgs.jq}/bin/jq '
+      .agents.list = (
+        if ((.agents.list // []) | map(.id) | index("heartbeat-agent")) == null
+        then ((.agents.list // []) + [{ id: "heartbeat-agent" }])
+        else .agents.list
+        end
+      )
+      |
       .plugins.entries["memory-cognee"].config |= ((. // {}) + {
         searchType: "CHUNKS",
         autoRecall: true,
@@ -161,7 +190,7 @@ in
         maxResults: 6,
         minScore: 0,
         maxTokens: 512,
-        recallSessionDenyPatterns: ["^agent:[^:]+:cron:"],
+        recallSessionDenyPatterns: ["^agent:[^:]+:cron:", "^agent:heartbeat-agent:main$"],
         recallSessionAllowPatterns: [],
         recallPolicyLog: true,
         recallMaxConcurrent: 1,

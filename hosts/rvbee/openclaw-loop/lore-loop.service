@@ -1,0 +1,16 @@
+[Unit]
+Description=Lore Heartbeat Runner Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/run/current-system/sw/bin/bash /home/chrisf/.openclaw/workspace-lore/run-loop.sh
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lore-loop
+TimeoutStartSec=20min
+Environment="PATH=/run/current-system/sw/bin:/usr/bin:/bin"
+
+[Install]
+WantedBy=default.target
