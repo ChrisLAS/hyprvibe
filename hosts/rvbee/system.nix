@@ -193,6 +193,7 @@ let
     oh-my-posh
     ddcutil
     curl
+    gogcli
     v4l-utils
     openssh
     sshpass # For automated Home Assistant SSH key setup

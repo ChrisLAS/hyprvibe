@@ -17,6 +17,11 @@
 
     freshrss-mcp.url = "github:ChrisLAS/freshrss-mcp";
     freshrss-mcp.inputs.nixpkgs.follows = "nixpkgs";
+
+    # gogcli - GOG CLI tool
+    # Note: pinning to v0.11.0 tag to avoid unstable main branch
+    gogcli-src.url = "github:steipete/gogcli/v0.11.0";
+    gogcli-src.flake = false;
   };
 
   outputs =
@@ -27,11 +32,22 @@
       hyprland,
       openclaw,
       freshrss-mcp,
+      gogcli-src,
       ...
     }:
     {
       # Formatter (optional)
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
+
+      # Packages
+      packages.x86_64-linux = let
+        pkgs = import nixpkgs {
+          system = "x86_64-linux";
+          overlays = [ (import ./overlays/gogcli.nix gogcli-src) ];
+        };
+      in {
+        gogcli = pkgs.gogcli;
+      };
 
       nixosModules = {
         # New hyprvibe-prefixed exports
@@ -50,11 +66,14 @@
           modules = [
             ./hosts/rvbee/system.nix
             ./hosts/rvbee/ai-memory-stack.nix
+            # gogcli overlay for custom package
+            ({ ... }: { nixpkgs.overlays = [ (import ./overlays/gogcli.nix gogcli-src) ]; })
             prettyswitch.nixosModules.default
             freshrss-mcp.nixosModules.default
           ];
           specialArgs = {
             inherit self hyprland openclaw;
+            inputs = self.inputs;
           };
         };
         nixstation = nixpkgs.lib.nixosSystem {

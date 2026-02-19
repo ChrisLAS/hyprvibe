@@ -18,7 +18,7 @@ TIMER_OVERRIDE_DIR="$HOME/.config/systemd/user/lore-loop.timer.d"
 TIMER_OVERRIDE_FILE="$TIMER_OVERRIDE_DIR/override.conf"
 LOOP_AGENT_ID="heartbeat-agent"
 
-export PATH="/run/current-system/sw/bin:/usr/bin:/bin:$HOME/.nix-profile/bin"
+export PATH="/run/wrappers/bin:/run/current-system/sw/bin:/usr/bin:/bin:$HOME/.nix-profile/bin"
 
 log() {
     echo "$(date -u +'%Y-%m-%dT%H:%M:%SZ') [bash] $1"
