@@ -380,8 +380,10 @@ SHIM
       KillSignal = "SIGTERM";
       TimeoutStopSec = "30s";
 
-      # Security
-      PrivateTmp = true;
+      # Security — PrivateTmp creates a mount namespace that prevents the
+      # NixOS setuid sudo wrapper from working (the nix-store sudo binary
+      # sees itself as non-setuid under the new namespace and refuses to run).
+      PrivateTmp = false;
       NoNewPrivileges = false;
 
       # Logging
