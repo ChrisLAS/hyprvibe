@@ -19,7 +19,8 @@
     freshrss-mcp.inputs.nixpkgs.follows = "nixpkgs";
 
     # gogcli - GOG CLI tool
-    gogcli-src.url = "github:steipete/gogcli";
+    # Note: pinning to v0.11.0 tag to avoid unstable main branch
+    gogcli-src.url = "github:steipete/gogcli/v0.11.0";
     gogcli-src.flake = false;
   };
 

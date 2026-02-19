@@ -131,15 +131,16 @@
     "gogcli-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1771223011,
-        "narHash": "sha256-k8dqJmeQlAP+Fqd+PrDHNys/jGdE0/6AAjN6WHNh5hw=",
+        "lastModified": 1771126104,
+        "narHash": "sha256-hJU40ysjRx4p9SWGmbhhpToYCpk3DcMAWCnKqxHRmh0=",
         "owner": "steipete",
         "repo": "gogcli",
-        "rev": "4ac03838c917c8b3af6d8996fdcc720397b93ae4",
+        "rev": "91c4c15884441105c7e793217366f1335b344478",
         "type": "github"
       },
       "original": {
         "owner": "steipete",
+        "ref": "v0.11.0",
         "repo": "gogcli",
         "type": "github"
       }
