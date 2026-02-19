@@ -4,10 +4,11 @@
 Package gogcli (https://github.com/steipete/gogcli) for NixOS rvbee
 
 ## State
-- upstream_version: v0.11.0
+- upstream_version: v0.11.0 (pinned)
 - status: complete
 - derivation_path: overlays/gogcli.nix
 - integration_status: complete
+- build_status: passing
 
 ## Progress
 - [x] Create Nix derivation (overlays/gogcli.nix)
