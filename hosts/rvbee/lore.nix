@@ -95,11 +95,14 @@ in
       TOKEN=$(cat "$TOKEN_FILE" | tr -d '\n')
     fi
 
-    # Use jq to safely merge gateway config
+    # Use jq to safely merge gateway config + tools.exec config
     # This merge only adds/updates specific fields, preserving all other user customizations
     ${pkgs.jq}/bin/jq \
       --arg token "$TOKEN" \
-      '.gateway |= . + {
+      --arg home "$HOME" \
+      '
+      # Gateway settings
+      .gateway |= . + {
         tailscale: { mode: "serve" },
         auth: (.auth // {} | . + { allowTailscale: true }),
         controlUi: { basePath: "/" },
@@ -110,12 +113,36 @@ in
           else (($existing + $required) | unique)
           end
         )
-      } | .gateway.auth |= if (.token | length) == 0 and ($token | length) > 0 then . + { token: $token } else . end' \
+      }
+      | .gateway.auth |= if (.token | length) == 0 and ($token | length) > 0 then . + { token: $token } else . end
+
+      # Tools exec: ensure the sudo-shim dir and /run/wrappers/bin lead PATH,
+      # and all privileged system binaries are in safeBins.
+      | .tools.exec.pathPrepend = [
+          ($home + "/.openclaw/bin"),
+          "/run/wrappers/bin",
+          "/run/current-system/sw/bin",
+          "/etc/profiles/per-user/${userName}/bin",
+          ($home + "/.nix-profile/bin"),
+          ($home + "/.local/bin")
+        ]
+      | .tools.exec.safeBins = (
+          (.tools.exec.safeBins // [])
+          + ["nix", "nixos-rebuild", "sudo", "systemctl", "journalctl", "nix-env", "nix-store", "nix-channel"]
+          | unique | sort
+        )
+      | .env.vars.PATH = (
+          ($home + "/.openclaw/bin")
+          + ":/run/wrappers/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/etc/profiles/per-user/${userName}/bin:"
+          + ($home + "/.nix-profile/bin:")
+          + ($home + "/.local/bin:/usr/bin:/bin")
+        )
+      ' \
       "$CONFIG_FILE" > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
 
     chown ${userName}:users "$CONFIG_FILE"
     chmod 600 "$CONFIG_FILE"
-    echo "[openclaw] Gateway config merged: token auth + Tailscale Serve mode enabled"
+    echo "[openclaw] Gateway config merged: token auth + Tailscale Serve + tools.exec sudo/PATH policy"
   '';
 
   # Sync loop runner scripts and user unit files for split heartbeat/orchestration lanes.
@@ -173,6 +200,24 @@ in
         echo "[openclaw] system sudo symlink target: $target (do not use directly in scripts)"
       fi
     fi
+  '';
+
+  # Deploy a thin sudo shim into ~/.openclaw/bin that always dispatches to the
+  # NixOS setuid wrapper.  This directory is prepended to PATH in openclaw.json
+  # so agents and sub-agents never accidentally invoke the non-setuid nix-store sudo.
+  system.activationScripts.openclaw-sudo-shim = lib.stringAfter [ "lore-bootstrap" ] ''
+    export HOME=/home/${userName}
+    BIN_DIR=$HOME/.openclaw/bin
+
+    mkdir -p "$BIN_DIR"
+
+    cat > "$BIN_DIR/sudo" << 'SHIM'
+#!/bin/sh
+exec /run/wrappers/bin/sudo "$@"
+SHIM
+    chmod 755 "$BIN_DIR/sudo"
+    chown ${userName}:users "$BIN_DIR/sudo"
+    echo "[openclaw] sudo shim deployed: $BIN_DIR/sudo -> /run/wrappers/bin/sudo"
   '';
 
   # Sync declarative memory-cognee plugin patch into OpenClaw extensions dir.
@@ -240,6 +285,17 @@ in
     echo "[openclaw] memory-cognee policy merged (interactive recall on, cron recall off, autoIndex off)"
   '';
 
+  # Explicit NOPASSWD + SETENV sudo rule for agent-driven privileged operations.
+  # SETENV allows sudo to preserve PATH/NIX_PATH which nixos-rebuild needs.
+  security.sudo.extraRules = [
+    {
+      users = [ userName ];
+      commands = [
+        { command = "ALL"; options = [ "NOPASSWD" "SETENV" ]; }
+      ];
+    }
+  ];
+
   # Shared agentic environment variables
   environment.variables = {
     LORE_CORE = "active";
@@ -305,6 +361,11 @@ in
       pkgs.gh
       pkgs.coreutils
       pkgs.util-linux
+      pkgs.nix
+      pkgs.nixos-rebuild
+      pkgs.git
+      pkgs.systemd
+      pkgs.sudo
     ];
 
     serviceConfig = {
