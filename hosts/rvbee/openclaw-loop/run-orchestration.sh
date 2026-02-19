@@ -14,7 +14,7 @@ HEALTH_FILE="$WORKDIR/orchestration-health.json"
 LOCK_WAIT_SECONDS=300
 LOOP_AGENT_ID="loop-agent"
 
-export PATH="/run/current-system/sw/bin:/usr/bin:/bin:$HOME/.nix-profile/bin"
+export PATH="/run/wrappers/bin:/run/current-system/sw/bin:/usr/bin:/bin:$HOME/.nix-profile/bin"
 
 log() {
     echo "$(date -u +'%Y-%m-%dT%H:%M:%SZ') [bash] $1"
