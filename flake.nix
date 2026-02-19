@@ -17,6 +17,10 @@
 
     freshrss-mcp.url = "github:ChrisLAS/freshrss-mcp";
     freshrss-mcp.inputs.nixpkgs.follows = "nixpkgs";
+
+    # gogcli - GOG CLI tool
+    gogcli-src.url = "github:steipete/gogcli";
+    gogcli-src.flake = false;
   };
 
   outputs =
@@ -27,11 +31,46 @@
       hyprland,
       openclaw,
       freshrss-mcp,
+      gogcli-src,
       ...
     }:
     {
       # Formatter (optional)
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
+
+      # Packages
+      packages.x86_64-linux = let
+        pkgs = import nixpkgs {
+          system = "x86_64-linux";
+        };
+      in {
+        gogcli = pkgs.buildGoModule {
+          pname = "gogcli";
+          version = "0.11.0";
+
+          src = pkgs.fetchFromGitHub {
+            owner = "steipete";
+            repo = "gogcli";
+            rev = "v0.11.0";
+            sha256 = "sha256-hJU40ysjRx4p9SWGmbhhpToYCpk3DcMAWCnKqxHRmh0=";
+          };
+
+          vendorHash = "sha256-WGRlv3UsK3SVBQySD7uZ8+FiRl03p0rzjBm9Se1iITs=";
+
+          ldflags = [
+            "-s"
+            "-w"
+            "-X=github.com/steipete/gogcli/cmd.Version=v0.11.0"
+          ];
+
+          meta = with pkgs.lib; {
+            description = "CLI tool for GOG.com";
+            homepage = "https://github.com/steipete/gogcli";
+            license = licenses.mit;
+            mainProgram = "gog";
+          };
+        };
+      };
 
       nixosModules = {
         # New hyprvibe-prefixed exports
@@ -50,11 +89,14 @@
           modules = [
             ./hosts/rvbee/system.nix
             ./hosts/rvbee/ai-memory-stack.nix
+            # gogcli overlay for custom package
+            ({ ... }: { nixpkgs.overlays = [ (import ./overlays/gogcli.nix gogcli-src) ]; })
             prettyswitch.nixosModules.default
             freshrss-mcp.nixosModules.default
           ];
           specialArgs = {
             inherit self hyprland openclaw;
+            inputs = self.inputs;
           };
         };
         nixstation = nixpkgs.lib.nixosSystem {
