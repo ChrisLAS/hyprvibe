@@ -28,7 +28,7 @@ in
     src = src;
 
     # If this fails after updating `gogcli-src`, rebuild once and replace with the hash Nix reports.
-    vendorHash = "sha256-jMvPQfh4E3EKzFqFxaNMq1Ae/ZXQvUU3eAZ0DqM7+hc=";
+    vendorHash = "sha256-WGRlv3UsK3SVBQySD7uZ8+FiRl03p0rzjBm9Se1iITs=";
 
     ldflags = [
       "-s"
