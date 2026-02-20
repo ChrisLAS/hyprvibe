@@ -105,7 +105,10 @@ in
       .gateway |= . + {
         tailscale: { mode: "serve" },
         auth: (.auth // {} | . + { allowTailscale: true }),
-        controlUi: { basePath: "/" },
+        controlUi: {
+          basePath: "/",
+          dangerouslyDisableDeviceAuth: true
+        },
         trustedProxies: (
           (.trustedProxies // ["127.0.0.1", "::1"]) as $existing |
           (["127.0.0.1", "::1", "100.75.168.43", "100.64.0.0/10"] | unique) as $required |
