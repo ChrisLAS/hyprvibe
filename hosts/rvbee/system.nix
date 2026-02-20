@@ -339,15 +339,15 @@ let
     # 3. Safe Merge using jq
     # Iterates over snippets in /etc/opencode/mcp.d and merges them into the base
     if [ -d "/etc/opencode/mcp.d" ] && [ "$(ls -A /etc/opencode/mcp.d/*.json 2>/dev/null)" ]; then
-      MERGED_MCP=$(jq -s 'reduce .[] as $item ({}; . * $item)' /etc/opencode/mcp.d/*.json)
-      FINAL_JSON=$(echo "$BASE_CONFIG" | jq --argjson mcp "$MERGED_MCP" '.mcp = $mcp')
+      MERGED_MCP=$(${pkgs.jq}/bin/jq -s 'reduce .[] as $item ({}; . * $item)' /etc/opencode/mcp.d/*.json)
+      FINAL_JSON=$(echo "$BASE_CONFIG" | ${pkgs.jq}/bin/jq --argjson mcp "$MERGED_MCP" '.mcp = $mcp')
     else
       FINAL_JSON="$BASE_CONFIG"
     fi
 
     # 4. Atomic Deployment
     echo "$FINAL_JSON" > ${homeDir}/.config/opencode/opencode.json.tmp
-    if jq . ${homeDir}/.config/opencode/opencode.json.tmp > /dev/null 2>&1; then
+    if ${pkgs.jq}/bin/jq . ${homeDir}/.config/opencode/opencode.json.tmp > /dev/null 2>&1; then
       mv ${homeDir}/.config/opencode/opencode.json.tmp ${homeDir}/.config/opencode/opencode.json
       chown ${userName}:${userGroup} ${homeDir}/.config/opencode/opencode.json
     else
@@ -777,11 +777,11 @@ in
       obsidian = {
         type = "local";
         command = [
-          "uvx"
-          "mcp-obsidian"
+          "sh"
+          "-c"
+          "export OBSIDIAN_API_KEY=$(cat /home/chrisf/.config/secrets/obsidian_mcp_key); exec uvx mcp-obsidian"
         ];
         environment = {
-          OBSIDIAN_API_KEY = "c6041e8c694da45ad0266ba8f89224fdcc53d113eac0ed30754e5d0f6938f473";
           OBSIDIAN_PORT = "27124";
           OBSIDIAN_HOST = "127.0.0.1";
         };
@@ -795,38 +795,14 @@ in
         enabled = true;
       };
     };
-    # proxmox MCP - REMOVED (flake github:RekklesNA/ProxmoxMCP-Plus does not exist)
-    # "opencode/mcp.d/proxmox.json".text = builtins.toJSON {
-    #   proxmox = {
-    #     type = "local";
-    #     command = [
-    #       "nix"
-    #       "run"
-    #       "github:RekklesNA/ProxmoxMCP-Plus"
-    #       "--"
-    #     ];
-    #     environment = {
-    #       PROXMOX_HOST = "100.120.212.39";
-    #       PROXMOX_USER = "root@pam";
-    #       PROXMOX_TOKEN_NAME = "lore-mcp";
-    #       PROXMOX_TOKEN_VALUE = "$(cat /home/chrisf/.config/secrets/proxmox_mcp_key)";
-    #       PROXMOX_PORT = "8006";
-    #       PROXMOX_VERIFY_SSL = "false";
-    #     };
-    #     enabled = true;
-    #   };
-    # };
     "opencode/mcp.d/todoist.json".text = builtins.toJSON {
       todoist = {
         type = "local";
         command = [
-          "npx"
-          "-y"
-          "todoist-mcp"
+          "sh"
+          "-c"
+          "export API_KEY=$(cat /home/chrisf/.config/secrets/todoist_token); exec npx -y todoist-mcp"
         ];
-        environment = {
-          API_KEY = "6e70210863ca13724bdec58d81bfa5d4289b38b2";
-        };
         enabled = true;
       };
     };
