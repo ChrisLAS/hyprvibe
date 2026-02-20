@@ -781,7 +781,7 @@ in
           "mcp-obsidian"
         ];
         environment = {
-          OBSIDIAN_API_KEY = "$(cat /home/chrisf/.config/secrets/obsidian_mcp_key)"; # Note: Shell expansion handled by assembly script
+          OBSIDIAN_API_KEY = "c6041e8c694da45ad0266ba8f89224fdcc53d113eac0ed30754e5d0f6938f473";
           OBSIDIAN_PORT = "27124";
           OBSIDIAN_HOST = "127.0.0.1";
         };
@@ -795,36 +795,37 @@ in
         enabled = true;
       };
     };
-    "opencode/mcp.d/proxmox.json".text = builtins.toJSON {
-      proxmox = {
-        type = "local";
-        command = [
-          "nix"
-          "run"
-          "github:RekklesNA/ProxmoxMCP-Plus"
-          "--"
-        ];
-        environment = {
-          PROXMOX_HOST = "100.120.212.39";
-          PROXMOX_USER = "root@pam";
-          PROXMOX_TOKEN_NAME = "lore-mcp";
-          PROXMOX_TOKEN_VALUE = "$(cat /home/chrisf/.config/secrets/proxmox_mcp_key)";
-          PROXMOX_PORT = "8006";
-          PROXMOX_VERIFY_SSL = "false";
-        };
-        enabled = true;
-      };
-    };
+    # proxmox MCP - REMOVED (flake github:RekklesNA/ProxmoxMCP-Plus does not exist)
+    # "opencode/mcp.d/proxmox.json".text = builtins.toJSON {
+    #   proxmox = {
+    #     type = "local";
+    #     command = [
+    #       "nix"
+    #       "run"
+    #       "github:RekklesNA/ProxmoxMCP-Plus"
+    #       "--"
+    #     ];
+    #     environment = {
+    #       PROXMOX_HOST = "100.120.212.39";
+    #       PROXMOX_USER = "root@pam";
+    #       PROXMOX_TOKEN_NAME = "lore-mcp";
+    #       PROXMOX_TOKEN_VALUE = "$(cat /home/chrisf/.config/secrets/proxmox_mcp_key)";
+    #       PROXMOX_PORT = "8006";
+    #       PROXMOX_VERIFY_SSL = "false";
+    #     };
+    #     enabled = true;
+    #   };
+    # };
     "opencode/mcp.d/todoist.json".text = builtins.toJSON {
       todoist = {
         type = "local";
         command = [
           "npx"
           "-y"
-          "@byungkyu/todoist-api"
+          "todoist-mcp"
         ];
         environment = {
-          TODOIST_API_TOKEN = "$(cat /home/chrisf/.config/secrets/todoist_token)";
+          API_KEY = "6e70210863ca13724bdec58d81bfa5d4289b38b2";
         };
         enabled = true;
       };
