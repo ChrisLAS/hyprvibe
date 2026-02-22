@@ -316,6 +316,9 @@ SHIM
     codex # Code analysis and refactoring
     python3 # Foundation for background sentries & logic shims
     babashka # Low-latency Clojure scripting for agentic tasks
+    jdk21_headless # JVM runtime for Clojure
+    clojure # Clojure programming language
+    cljstyle # Clojure code formatter
     bun # JavaScript runtime for QMD
 
     # --- Transcription & Media ---
