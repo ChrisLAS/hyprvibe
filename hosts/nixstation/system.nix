@@ -13,7 +13,7 @@ let
   homeDir = config.hyprvibe.user.home;
 
   # Package groups - preserving your existing packages
-  devTools = with pkgs; [
+  packages = with pkgs; [
     git
     gcc
     cmake
@@ -40,7 +40,6 @@ let
     lazydocker
     opencode
     android-tools
-    # Additional dev tools from your current config
     yarn
     nodejs_20
     qemu
@@ -50,15 +49,10 @@ let
     quickemu
     junction
     distrobox
-    gitui
-    cmake
     ispell
-    aspell
     gnumake
-    patchelf
     mesa-demos
     roc-toolkit
-    binutils
     dool
     file
     iotop
@@ -72,15 +66,269 @@ let
     obs-studio-plugins.wlrobs
     obs-studio-plugins.waveform
     obs-studio-plugins.obs-pipewire-audio-capture
-    lazygit
     brave
     simplex-chat-desktop
     xrdp
     caffeine-ng
     filezilla
-    zed-editor
-    # lutris
+    lutris
     adwaita-icon-theme
+
+    mpv
+    vlc
+    ffmpeg-full
+    lame
+    reaper
+    (pkgs.writeShellScriptBin "reaper-x11" ''
+      if [ -z "$DISPLAY" ]; then
+        export DISPLAY=:0
+      fi
+      exec env -u WAYLAND_DISPLAY -u QT_QPA_PLATFORM -u GDK_BACKEND -u XDG_SESSION_TYPE \
+        QT_QPA_PLATFORM=xcb \
+        GDK_BACKEND=x11 \
+        XDG_SESSION_TYPE=x11 \
+        reaper -newinst "$@"
+    '')
+    (pkgs.makeDesktopItem {
+      name = "reaper-x11";
+      desktopName = "REAPER (X11)";
+      comment = "Launch REAPER using X11/XWayland for Wayland compositors";
+      exec = "reaper-x11 %F";
+      terminal = false;
+      categories = [
+        "AudioVideo"
+        "Audio"
+        "Midi"
+      ];
+      icon = "reaper";
+      type = "Application";
+    })
+    qjackctl
+    qpwgraph
+    x32edit
+    easyeffects
+    wayfarer
+    libepoxy
+    audacity
+    ffmpegthumbnailer
+    gnome.gvfs
+    imv
+    v4l-utils
+    v4l2-relayd
+    libv4l
+    libarchive
+    libzip
+    unrar
+    pzip
+    lrzip
+    kdePackages.ark
+    kdePackages.yakuake
+    kdePackages.kdenlive
+    kdePackages.ktorrent
+    krita
+    kdePackages.discover
+    kdePackages.kfind
+    kdePackages.kleopatra
+    kdePackages.filelight
+    kdePackages.isoimagewriter
+    kdePackages.partitionmanager
+
+    ghostty
+    htop
+    btop
+    neofetch
+    nmap
+    mosh
+    yt-dlp
+    zip
+    unzip
+    gnupg
+    restic
+    autorestic
+    restique
+    hddtemp
+    smartmontools
+    lm_sensors
+    tor-browser
+    wmctrl
+    waybar
+    wl-clipboard
+    grim
+    slurp
+    swappy
+    wf-recorder
+    wlroots
+    xdg-desktop-portal-hyprland
+    xdg-desktop-portal-gtk
+    xdg-utils
+    kdePackages.polkit-kde-agent-1
+    polkit_gnome
+    qt6.qtbase
+    qt6.qtwayland
+    dunst
+    cliphist
+    brightnessctl
+    playerctl
+    kdePackages.kwallet
+    kdePackages.kwallet-pam
+    kdePackages.kate
+    libnotify
+    fd
+    eza
+    fzf
+    ripgrep
+    zoxide
+    bat
+    jq
+    xmlstarlet
+    tldr
+    plocate
+    less
+    whois
+    bash-completion
+    pamixer
+    wiremix
+    fcitx5
+    fcitx5-gtk
+    kdePackages.fcitx5-qt
+    nautilus
+    libqalculate
+    mako
+    swaybg
+    swayosd
+    rofi
+    pavucontrol
+    networkmanagerapplet
+    atuin
+    ddcutil
+    curl
+    openssh
+    glib-networking
+    rclone
+    rclone-ui
+    librclone
+    syncrclone
+    git-annex-remote-rclone
+    usbmuxd
+    magic-wormhole
+    adb-sync
+    jmtpfs
+    nextcloud-client
+    gnome-firmware
+    usbutils
+    parted
+    gparted
+    libisoburn
+    dvdplusrwtools
+    wayland-protocols
+    wayland-scanner
+    wayland
+    avahi
+    mesa
+    libffi
+    libevdev
+    libcap
+    libdrm
+    libxrandr
+    libxcb
+    libpulseaudio
+    libx11
+    libxfixes
+    libva
+    libvdpau
+    moonlight-qt
+    sunshine
+    virt-manager
+    fuse
+    fuse3
+    appimage-run
+    pop-gtk-theme
+    cool-retro-term
+    vscode-fhs
+    logitech-udev-rules
+    ltunify
+    solaar
+    gtop
+    wine-wayland
+    bottles-unwrapped
+    pwvucontrol
+    pipecontrol
+    wireplumber
+    kdePackages.plasma-browser-integration
+    qownnotes
+
+    btrfs-progs
+    btrfs-snap
+    cifs-utils
+    samba
+    docker-compose
+
+    firefox
+    google-chrome
+    trayscale
+    libation
+    audible-cli
+    chromium
+    gnome-calculator
+    gnome-keyring
+    libreoffice
+    xournalpp
+    localsend
+    _1password-gui
+    _1password-cli
+    hyprpicker
+    hyprshot
+    wl-clip-persist
+    hyprpaper
+    hypridle
+    hyprlock
+    hyprsunset
+    yazi
+    starship
+    maestral
+    steam-run
+    steam
+
+    steam-run
+    moonlight-qt
+    sunshine
+    vulkan-tools
+    playonlinux
+
+    kdePackages.dolphin
+    kdePackages.kio-extras
+    kdePackages.kio-fuse
+    kdePackages.kio-admin
+    kdePackages.kdenetwork-filesharing
+    kdePackages.ffmpegthumbs
+    kdePackages.kdegraphics-thumbnailers
+    kdePackages.kimageformats
+    kdePackages.konsole
+    kdePackages.systemsettings
+    kdePackages.kinfocenter
+    kdePackages.kfilemetadata
+    kdePackages.baloo
+    kdePackages.baloo-widgets
+    kdePackages.kservice
+    kdePackages.kded
+    kdePackages.kio-extras-kf5
+    shared-mime-info
+    desktop-file-utils
+    thunar
+    tumbler
+    gvfs
+    tokyonight-gtk-theme
+    papirus-icon-theme
+    bibata-cursors
+    evince
+    eog
+    file-roller
+    celluloid
+    fragments
+    blanket
+    metadata-cleaner
+    dialect
+    drawing
   ];
 
   multimedia = with pkgs; [
@@ -173,7 +421,6 @@ let
     lsof
     lshw
     tor-browser
-    vdhcoapp
     wmctrl
     oh-my-posh
     # Hyprland utilities
@@ -186,6 +433,7 @@ let
     wlroots
     xdg-desktop-portal-hyprland
     xdg-desktop-portal-gtk
+    xdg-utils
     kdePackages.polkit-kde-agent-1
     polkit_gnome
     qt6.qtbase
@@ -256,12 +504,12 @@ let
     libevdev
     libcap
     libdrm
-    xorg.libXrandr
-    xorg.libxcb
+    libxrandr
+    libxcb
     libevdev
     libpulseaudio
-    xorg.libX11
-    xorg.libXfixes
+    libx11
+    libxfixes
     libva
     libvdpau
     moonlight-qt
@@ -278,10 +526,8 @@ let
     ltunify
     solaar
     gtop
-    # wine-wayland
-    # winetricks
-    # wineasio
-    # bottles-unwrapped
+    wine-wayland
+    bottles-unwrapped
     # rustdesk-flutter  # disabled: build failure
     pwvucontrol
     pipecontrol
@@ -360,14 +606,14 @@ let
     libevdev
     libcap
     libdrm
-    xorg.libXrandr
-    xorg.libxcb
+    libxrandr
+    libxcb
     ffmpeg-full
     libevdev
     libpulseaudio
-    xorg.libX11
-    pkgs.xorg.libxcb
-    xorg.libXfixes
+    libx11
+    pkgs.libxcb
+    libxfixes
     libva
     libvdpau
     pkgs.moonlight-qt
@@ -384,10 +630,8 @@ let
     ltunify
     solaar
     gtop
-    # wine-wayland
-    # winetricks
-    # wineasio
-    # bottles-unwrapped
+    wine-wayland
+    bottles-unwrapped
     yarn
     pkgs.nodejs_20
     pkgs.qemu
@@ -463,7 +707,7 @@ let
     caffeine-ng
     filezilla
     zed-editor
-    # lutris
+    lutris
     adwaita-icon-theme
   ];
 
@@ -472,18 +716,14 @@ let
     moonlight-qt
     sunshine
     adwaita-icon-theme
-    # lutris
-    # playonlinux
-    # wineWowPackages.staging
-    # winetricks
+    lutris
+    playonlinux
     vulkan-tools
     # Additional gaming from your current config
     steam
     appimage-run
-    # wine-wayland
-    # winetricks
-    # wineasio
-    # bottles-unwrapped
+    wine-wayland
+    bottles-unwrapped
   ];
 
   # GTK applications
@@ -744,8 +984,7 @@ in
     dev.enable = true;
     gaming.enable = true;
     # Add NIXSTATION-specific packages as extra packages
-    extraPackages =
-      devTools ++ multimedia ++ utilities ++ systemTools ++ applications ++ gaming ++ gtkApps;
+    extraPackages = packages;
   };
 
   # Boot configuration - BIOS/legacy boot (not EFI)
