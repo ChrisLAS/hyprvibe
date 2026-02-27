@@ -47,7 +47,6 @@ let
     dvdplusrwtools
     udftools
     xorriso
-    makemkv
     handbrake
     lsdvd
     # haruna
@@ -840,10 +839,6 @@ in
     # Elgato Stream Deck (USB + hidraw)
     SUBSYSTEM=="usb", ATTR{idVendor}=="0fd9", MODE="0660", GROUP="plugdev"
     KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0fd9", MODE="0660", GROUP="plugdev"
-
-    # Optical drives (DVD/BluRay): allow the active user (seat) to access SCSI generic nodes.
-    # Needed for tools like MakeMKV which use /dev/sg* (scsi_generic) in addition to /dev/sr*.
-    SUBSYSTEM=="scsi_generic", ATTRS{type}=="5", TAG+="uaccess", GROUP="cdrom", MODE="0660"
   '';
   hyprvibe.packages = {
     enable = true;
@@ -873,10 +868,8 @@ in
     consoleLogLevel = 7;
     initrd.verbose = true;
     # v4l2loopback for virtual webcam support (OBS, conferencing apps)
-    # sg is required to create /dev/sg* nodes (SCSI generic), used by MakeMKV and some disc tools.
     kernelModules = [
       "v4l2loopback"
-      "sg"
     ];
     extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
     extraModprobeConfig = ''
@@ -1129,6 +1122,34 @@ in
       host = "0.0.0.0";
       openFirewall = false; # Firewall already disabled
     };
+  };
+
+  # Upstream NixOS module uses DynamicUser + heavy sandboxing that conflicts
+  # with uv's venv creation (ProtectHome creates a mount namespace that breaks
+  # symlink resolution into the nix store). Override to run as nobody with
+  # writable state/cache dirs and minimal sandboxing.
+  systemd.services.freshrss-mcp-server.serviceConfig = {
+    CacheDirectory = "freshrss-mcp";
+    StateDirectory = "freshrss-mcp";
+    Environment = pkgs.lib.mkAfter [
+      "UV_CACHE_DIR=/var/cache/freshrss-mcp"
+      "UV_PROJECT_ENVIRONMENT=/var/lib/freshrss-mcp/.venv"
+      "UV_LINK_MODE=copy"
+    ];
+    DynamicUser = pkgs.lib.mkForce false;
+    User = "nobody";
+    Group = "nogroup";
+    PrivateTmp = pkgs.lib.mkForce false;
+    ProtectSystem = pkgs.lib.mkForce false;
+    ProtectHome = pkgs.lib.mkForce false;
+    NoNewPrivileges = pkgs.lib.mkForce false;
+    PrivateDevices = pkgs.lib.mkForce false;
+    ProtectKernelTunables = pkgs.lib.mkForce false;
+    ProtectControlGroups = pkgs.lib.mkForce false;
+    RestrictSUIDSGID = pkgs.lib.mkForce false;
+    RestrictRealtime = pkgs.lib.mkForce false;
+    SystemCallFilter = pkgs.lib.mkForce [];
+    SystemCallArchitectures = pkgs.lib.mkForce "";
   };
 
   # Auto Tune
