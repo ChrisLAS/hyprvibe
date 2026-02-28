@@ -260,7 +260,7 @@ let
     # steam - now managed by programs.steam
     steam-run
     moonlight-qt
-    sunshine
+    # sunshine  # Temporarily disabled - build fails fetching Boost dependencies
     adwaita-icon-theme
     # lutris
     # playonlinux
