@@ -26,8 +26,10 @@ in
     chown -R ${userName} $HOME/.openclaw
 
     # Maintain legacy symlink for backward compatibility during migration
-    if [ ! -L $HOME/.clawdbot ]; then
+    if [ ! -e $HOME/.clawdbot ]; then
       ln -s $HOME/.openclaw $HOME/.clawdbot
+    elif [ ! -L $HOME/.clawdbot ]; then
+      echo "[openclaw][warn] Existing non-symlink at $HOME/.clawdbot; leaving it unchanged"
     fi
   '';
 
@@ -57,28 +59,44 @@ in
 
     if [ ! -x "$TAILSCALE_BIN" ]; then
       echo "[openclaw] Tailscale binary not found, skipping Serve setup"
-      exit 0
-    fi
-
-    # Check if Tailscale Serve is already configured
-    CURRENT_SERVE=$($TAILSCALE_BIN serve status 2>&1 | grep -c "proxy http://127.0.0.1:18789" || true)
-
-    if [ "$CURRENT_SERVE" -eq 0 ]; then
-      echo "[openclaw] Setting up Tailscale Serve for OpenClaw gateway..."
-      $TAILSCALE_BIN serve --bg --https 443 http://127.0.0.1:18789 2>&1
-      if [ $? -eq 0 ]; then
-        echo "[openclaw] Tailscale Serve configured: https://rvbee.coin-noodlefish.ts.net/ (tailnet-only)"
-      else
-        echo "[openclaw] Tailscale Serve setup failed; verify with: tailscale serve status"
-      fi
     else
-      echo "[openclaw] Tailscale Serve already configured for OpenClaw gateway"
+      # Check if Tailscale Serve is already configured
+      CURRENT_SERVE=$($TAILSCALE_BIN serve status 2>&1 | grep -c "proxy http://127.0.0.1:18789" || true)
+
+      if [ "$CURRENT_SERVE" -eq 0 ]; then
+        echo "[openclaw] Setting up Tailscale Serve for OpenClaw gateway..."
+        if $TAILSCALE_BIN serve --bg --https 443 http://127.0.0.1:18789 >/dev/null 2>&1; then
+          echo "[openclaw] Tailscale Serve configured: https://rvbee.coin-noodlefish.ts.net/ (tailnet-only)"
+        else
+          echo "[openclaw] Tailscale Serve setup failed; verify with: tailscale serve status"
+        fi
+      else
+        echo "[openclaw] Tailscale Serve already configured for OpenClaw gateway"
+      fi
     fi
   '';
 
   # Configure OpenClaw gateway authentication and Tailscale integration
   # Gateway binds to loopback (127.0.0.1) by default in local mode
   # Tailscale Serve provides secure public HTTPS endpoint via encrypted tunnel
+  #
+  # PLUGIN MANIFEST STRATEGY (Nix-specific):
+  # =========================================
+  # Our setup uses the Nix-packaged OpenClaw gateway, which includes bundled plugins
+  # in the immutable /nix/store/ closure (e.g., telegram, discord, google-antigravity-auth).
+  #
+  # Problem: OpenClaw's config validator rejects /nix/store/... paths as "unsafe plugin
+  # manifest paths" because the upstream installer expects mutable plugin locations.
+  # However, Nix store paths ARE safe by design (cryptographically sealed immutability).
+  #
+  # Solution: Let the gateway auto-discover bundled plugins from its /nix/store/.../lib/openclaw/extensions/
+  # directory. Only declare plugins in openclaw.json if they have custom config or are
+  # user-installed extensions (e.g., memory-cognee, openclaw-mcp-bridge).
+  # This means removing plugins.allow and the bare plugin entries (telegram, discord, etc.)
+  # from the config.
+  #
+  # Result: Gateway starts cleanly without validation errors, channels work perfectly,
+  # and updates to the gateway automatically include new bundled plugins.
   system.activationScripts.openclaw-gateway-config = lib.stringAfter [ "openclaw-token-gen" ] ''
     export HOME=/home/${userName}
     CONFIG_FILE=$HOME/.openclaw/openclaw.json
@@ -86,66 +104,74 @@ in
 
     if [ ! -f "$CONFIG_FILE" ]; then
       echo "[openclaw] Config file not found, skipping gateway config"
-      exit 0
+    else
+      # Read the token (fallback to existing if file doesn't exist)
+      TOKEN=""
+      if [ -f "$TOKEN_FILE" ]; then
+        TOKEN=$(cat "$TOKEN_FILE" | tr -d '\n')
+      fi
+
+      # Use jq to safely merge gateway config + tools.exec config
+      # This merge only adds/updates specific fields, preserving all other user customizations
+      if ${pkgs.jq}/bin/jq \
+        --arg token "$TOKEN" \
+        --arg home "$HOME" \
+        '
+        # Gateway settings
+        .gateway |= . + {
+          tailscale: { mode: "serve" },
+          auth: (.auth // {} | . + { allowTailscale: true }),
+          controlUi: {
+            basePath: "/",
+            dangerouslyDisableDeviceAuth: true
+          },
+          trustedProxies: (
+            (.trustedProxies // ["127.0.0.1", "::1"]) as $existing |
+            (["127.0.0.1", "::1", "100.75.168.43", "100.64.0.0/10"] | unique) as $required |
+            if ($existing | length) == 0 then $required
+            else (($existing + $required) | unique)
+            end
+          )
+        }
+        # Agent bootstrap injection limits (prompt context budget)
+        | .agents.defaults |= ((. // {}) + {
+          bootstrapMaxChars: 2200,
+          bootstrapTotalMaxChars: 9000
+        })
+        | .gateway.auth |= if (.token | length) == 0 and ($token | length) > 0 then . + { token: $token } else . end
+
+        # Tools exec: ensure the sudo-shim dir and /run/wrappers/bin lead PATH,
+        # and all privileged system binaries are in safeBins.
+        | .tools.exec.pathPrepend = [
+            ($home + "/.openclaw/bin"),
+            "/run/wrappers/bin",
+            "/run/current-system/sw/bin",
+            "/etc/profiles/per-user/${userName}/bin",
+            ($home + "/.nix-profile/bin"),
+            ($home + "/.local/bin")
+          ]
+        | .tools.exec.safeBins = (
+            (.tools.exec.safeBins // [])
+            + ["nix", "nixos-rebuild", "sudo", "systemctl", "journalctl", "nix-env", "nix-store", "nix-channel"]
+            | unique | sort
+          )
+        | .env.vars.PATH = (
+            ($home + "/.openclaw/bin")
+            + ":/run/wrappers/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/etc/profiles/per-user/${userName}/bin:"
+            + ($home + "/.nix-profile/bin:")
+            + ($home + "/.local/bin:/usr/bin:/bin")
+          )
+        ' \
+        "$CONFIG_FILE" > "$CONFIG_FILE.tmp"; then
+        mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+        chown ${userName}:users "$CONFIG_FILE"
+        chmod 600 "$CONFIG_FILE"
+        echo "[openclaw] Gateway config merged: token auth + Tailscale Serve + tools.exec sudo/PATH policy"
+      else
+        rm -f "$CONFIG_FILE.tmp"
+        echo "[openclaw][warn] Gateway config merge failed; preserving existing config"
+      fi
     fi
-
-    # Read the token (fallback to existing if file doesn't exist)
-    TOKEN=""
-    if [ -f "$TOKEN_FILE" ]; then
-      TOKEN=$(cat "$TOKEN_FILE" | tr -d '\n')
-    fi
-
-    # Use jq to safely merge gateway config + tools.exec config
-    # This merge only adds/updates specific fields, preserving all other user customizations
-    ${pkgs.jq}/bin/jq \
-      --arg token "$TOKEN" \
-      --arg home "$HOME" \
-      '
-      # Gateway settings
-      .gateway |= . + {
-        tailscale: { mode: "serve" },
-        auth: (.auth // {} | . + { allowTailscale: true }),
-        controlUi: {
-          basePath: "/",
-          dangerouslyDisableDeviceAuth: true
-        },
-        trustedProxies: (
-          (.trustedProxies // ["127.0.0.1", "::1"]) as $existing |
-          (["127.0.0.1", "::1", "100.75.168.43", "100.64.0.0/10"] | unique) as $required |
-          if ($existing | length) == 0 then $required
-          else (($existing + $required) | unique)
-          end
-        )
-      }
-      | .gateway.auth |= if (.token | length) == 0 and ($token | length) > 0 then . + { token: $token } else . end
-
-      # Tools exec: ensure the sudo-shim dir and /run/wrappers/bin lead PATH,
-      # and all privileged system binaries are in safeBins.
-      | .tools.exec.pathPrepend = [
-          ($home + "/.openclaw/bin"),
-          "/run/wrappers/bin",
-          "/run/current-system/sw/bin",
-          "/etc/profiles/per-user/${userName}/bin",
-          ($home + "/.nix-profile/bin"),
-          ($home + "/.local/bin")
-        ]
-      | .tools.exec.safeBins = (
-          (.tools.exec.safeBins // [])
-          + ["nix", "nixos-rebuild", "sudo", "systemctl", "journalctl", "nix-env", "nix-store", "nix-channel"]
-          | unique | sort
-        )
-      | .env.vars.PATH = (
-          ($home + "/.openclaw/bin")
-          + ":/run/wrappers/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/etc/profiles/per-user/${userName}/bin:"
-          + ($home + "/.nix-profile/bin:")
-          + ($home + "/.local/bin:/usr/bin:/bin")
-        )
-      ' \
-      "$CONFIG_FILE" > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
-
-    chown ${userName}:users "$CONFIG_FILE"
-    chmod 600 "$CONFIG_FILE"
-    echo "[openclaw] Gateway config merged: token auth + Tailscale Serve + tools.exec sudo/PATH policy"
   '';
 
   # Sync loop runner scripts and user unit files for split heartbeat/orchestration lanes.
@@ -209,84 +235,112 @@ in
   # NixOS setuid wrapper.  This directory is prepended to PATH in openclaw.json
   # so agents and sub-agents never accidentally invoke the non-setuid nix-store sudo.
   system.activationScripts.openclaw-sudo-shim = lib.stringAfter [ "lore-bootstrap" ] ''
-    export HOME=/home/${userName}
-    BIN_DIR=$HOME/.openclaw/bin
+        export HOME=/home/${userName}
+        BIN_DIR=$HOME/.openclaw/bin
 
-    mkdir -p "$BIN_DIR"
+        mkdir -p "$BIN_DIR"
 
-    cat > "$BIN_DIR/sudo" << 'SHIM'
-#!/bin/sh
-exec /run/wrappers/bin/sudo "$@"
-SHIM
-    chmod 755 "$BIN_DIR/sudo"
-    chown ${userName}:users "$BIN_DIR/sudo"
-    echo "[openclaw] sudo shim deployed: $BIN_DIR/sudo -> /run/wrappers/bin/sudo"
+        cat > "$BIN_DIR/sudo" << 'SHIM'
+    #!/bin/sh
+    exec /run/wrappers/bin/sudo "$@"
+    SHIM
+        chmod 755 "$BIN_DIR/sudo"
+        chown ${userName}:users "$BIN_DIR/sudo"
+        echo "[openclaw] sudo shim deployed: $BIN_DIR/sudo -> /run/wrappers/bin/sudo"
   '';
 
   # Sync declarative memory-cognee plugin patch into OpenClaw extensions dir.
   # This keeps recall policy behavior stable across plugin/gateway updates.
-  system.activationScripts.openclaw-memory-cognee-plugin-sync = lib.stringAfter [ "lore-bootstrap" ] ''
+  system.activationScripts.openclaw-memory-cognee-plugin-sync =
+    lib.stringAfter [ "lore-bootstrap" ]
+      ''
+        export HOME=/home/${userName}
+        PLUGIN_DIR=$HOME/.openclaw/extensions/memory-cognee
+
+        mkdir -p "$PLUGIN_DIR/dist"
+        install -m 0644 ${./openclaw-plugins/memory-cognee/openclaw.plugin.json} "$PLUGIN_DIR/openclaw.plugin.json"
+        install -m 0644 ${./openclaw-plugins/memory-cognee/dist/index.js} "$PLUGIN_DIR/dist/index.js"
+        install -m 0644 ${./openclaw-plugins/memory-cognee/README.md} "$PLUGIN_DIR/README.md"
+
+        chown -R ${userName}:users "$PLUGIN_DIR"
+        chmod 0755 "$PLUGIN_DIR" "$PLUGIN_DIR/dist"
+        chmod 0644 "$PLUGIN_DIR/openclaw.plugin.json" "$PLUGIN_DIR/dist/index.js" "$PLUGIN_DIR/README.md"
+        echo "[openclaw] memory-cognee plugin patch synced (declarative)"
+      '';
+
+  # Copy bundled extensions out of the Nix store to avoid hardlink validation
+  # failures in the gateway plugin loader after updates.
+  system.activationScripts.openclaw-bundled-plugins-sync = lib.stringAfter [ "lore-bootstrap" ] ''
     export HOME=/home/${userName}
-    PLUGIN_DIR=$HOME/.openclaw/extensions/memory-cognee
+    DEST_DIR=$HOME/.openclaw/extensions-bundled
+    SRC_DIR=${openclaw-pkg}/lib/openclaw/extensions
 
-    mkdir -p "$PLUGIN_DIR/dist"
-    install -m 0644 ${./openclaw-plugins/memory-cognee/openclaw.plugin.json} "$PLUGIN_DIR/openclaw.plugin.json"
-    install -m 0644 ${./openclaw-plugins/memory-cognee/dist/index.js} "$PLUGIN_DIR/dist/index.js"
-    install -m 0644 ${./openclaw-plugins/memory-cognee/README.md} "$PLUGIN_DIR/README.md"
+    ${pkgs.coreutils}/bin/mkdir -p "$DEST_DIR"
 
-    chown -R ${userName}:users "$PLUGIN_DIR"
-    chmod 0755 "$PLUGIN_DIR" "$PLUGIN_DIR/dist"
-    chmod 0644 "$PLUGIN_DIR/openclaw.plugin.json" "$PLUGIN_DIR/dist/index.js" "$PLUGIN_DIR/README.md"
-    echo "[openclaw] memory-cognee plugin patch synced (declarative)"
+    if [ ! -d "$SRC_DIR" ]; then
+      echo "[openclaw][warn] Bundled extensions directory missing: $SRC_DIR"
+    else
+      # Copy without preserving hardlinks (Nix store files are hardlinked).
+      if [ -n "$(${pkgs.findutils}/bin/find "$SRC_DIR" -mindepth 1 -maxdepth 1 -print -quit)" ]; then
+        ${pkgs.coreutils}/bin/cp -R --no-preserve=links "$SRC_DIR"/* "$DEST_DIR"/
+        ${pkgs.coreutils}/bin/chown -R ${userName}:users "$DEST_DIR"
+        ${pkgs.coreutils}/bin/chmod -R u+rwX,go+rX "$DEST_DIR"
+        echo "[openclaw] Bundled plugins synced to $DEST_DIR"
+      else
+        echo "[openclaw] Bundled extensions source empty, nothing to sync"
+      fi
+    fi
   '';
 
   # Enforce memory-cognee policy defaults:
   # - recall enabled for interactive sessions
   # - cron sessions skipped via session-key deny regex
   # - autoIndex disabled by default (manual index-window workflow only)
-  system.activationScripts.openclaw-memory-cognee-policy = lib.stringAfter [ "openclaw-gateway-config" "openclaw-memory-cognee-plugin-sync" ] ''
-    export HOME=/home/${userName}
-    CONFIG_FILE=$HOME/.openclaw/openclaw.json
+  system.activationScripts.openclaw-memory-cognee-policy =
+    lib.stringAfter [ "openclaw-gateway-config" "openclaw-memory-cognee-plugin-sync" ]
+      ''
+        export HOME=/home/${userName}
+        CONFIG_FILE=$HOME/.openclaw/openclaw.json
 
-    if [ ! -f "$CONFIG_FILE" ]; then
-      echo "[openclaw] Config file not found, skipping memory-cognee policy merge"
-      exit 0
-    fi
-
-    if ! ${pkgs.jq}/bin/jq -e '.plugins.entries["memory-cognee"]' "$CONFIG_FILE" >/dev/null 2>&1; then
-      echo "[openclaw] memory-cognee not configured, skipping policy merge"
-      exit 0
-    fi
-
-    ${pkgs.jq}/bin/jq '
-      .agents.list = (
-        if ((.agents.list // []) | map(.id) | index("heartbeat-agent")) == null
-        then ((.agents.list // []) + [{ id: "heartbeat-agent" }])
-        else .agents.list
-        end
-      )
-      |
-      .plugins.entries["memory-cognee"].config |= ((. // {}) + {
-        searchType: "CHUNKS",
-        autoRecall: true,
-        autoIndex: false,
-        maxIndexChars: 1200,
-        oversizeMode: "truncate",
-        maxResults: 6,
-        minScore: 0,
-        maxTokens: 512,
-        recallSessionDenyPatterns: ["^agent:[^:]+:cron:(?!2d7d3035-fa8b-4f21-a324-f3e26689b3c2:run:)", "^agent:heartbeat-agent:main$"],
-        recallSessionAllowPatterns: [],
-        recallPolicyLog: true,
-        recallMaxConcurrent: 1,
-        recallQueueTimeoutMs: 1500
-      })
-    ' "$CONFIG_FILE" > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
-
-    chown ${userName}:users "$CONFIG_FILE"
-    chmod 600 "$CONFIG_FILE"
-    echo "[openclaw] memory-cognee policy merged (interactive recall on, cron recall off, autoIndex off)"
-  '';
+        if [ ! -f "$CONFIG_FILE" ]; then
+          echo "[openclaw] Config file not found, skipping memory-cognee policy merge"
+        elif ! ${pkgs.jq}/bin/jq -e '.plugins.entries["memory-cognee"]' "$CONFIG_FILE" >/dev/null 2>&1; then
+          echo "[openclaw] memory-cognee not configured, skipping policy merge"
+        else
+          if ${pkgs.jq}/bin/jq '
+            .agents.list = (
+              if ((.agents.list // []) | map(.id) | index("heartbeat-agent")) == null
+              then ((.agents.list // []) + [{ id: "heartbeat-agent" }])
+              else .agents.list
+              end
+            )
+            |
+            .plugins.entries["memory-cognee"].config |= ((. // {}) + {
+              searchType: "CHUNKS",
+              autoRecall: true,
+              autoIndex: false,
+              maxIndexChars: 1200,
+              oversizeMode: "truncate",
+              maxResults: 6,
+              minScore: 0,
+              maxTokens: 512,
+              recallSessionDenyPatterns: ["^agent:[^:]+:cron:(?!2d7d3035-fa8b-4f21-a324-f3e26689b3c2:run:)", "^agent:heartbeat-agent:main$"],
+              recallSessionAllowPatterns: [],
+              recallPolicyLog: true,
+              recallMaxConcurrent: 1,
+              recallQueueTimeoutMs: 1500
+            })
+          ' "$CONFIG_FILE" > "$CONFIG_FILE.tmp"; then
+            mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+            chown ${userName}:users "$CONFIG_FILE"
+            chmod 600 "$CONFIG_FILE"
+            echo "[openclaw] memory-cognee policy merged (interactive recall on, cron recall off, autoIndex off)"
+          else
+            rm -f "$CONFIG_FILE.tmp"
+            echo "[openclaw][warn] memory-cognee policy merge failed; preserving existing config"
+          fi
+        fi
+      '';
 
   # Explicit NOPASSWD + SETENV sudo rule for agent-driven privileged operations.
   # SETENV allows sudo to preserve PATH/NIX_PATH which nixos-rebuild needs.
@@ -294,7 +348,13 @@ SHIM
     {
       users = [ userName ];
       commands = [
-        { command = "ALL"; options = [ "NOPASSWD" "SETENV" ]; }
+        {
+          command = "ALL";
+          options = [
+            "NOPASSWD"
+            "SETENV"
+          ];
+        }
       ];
     }
   ];
@@ -420,6 +480,7 @@ SHIM
         "OPENCLAW_NIX_MODE=1"
         "OPENCLAW_BIND=0.0.0.0"
         "OPENCLAW_ALLOW_INSECURE_WEBSOCKETS=1"
+        "OPENCLAW_BUNDLED_PLUGINS_DIR=/home/${userName}/.openclaw/extensions-bundled"
       ];
     };
   };
