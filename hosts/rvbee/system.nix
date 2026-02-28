@@ -822,6 +822,17 @@ in
     # Enable rootless Podman containers via /etc/subuid and /etc/subgid
     # Maps container UID 0-65535 to host UID 100000-165535 for chrisf
     # Required for: virtualisation.podman.enable + rootless containers
+    "opencode/mcp.d/tomtom.json".text = builtins.toJSON {
+      tomtom = {
+        type = "local";
+        command = [
+          "sh"
+          "-c"
+          "export TOMTOM_API_KEY=$(cat /home/chrisf/.config/secrets/tomtom_api_key | cut -d= -f2); exec npx -y @tomtom-org/tomtom-mcp"
+        ];
+        enabled = true;
+      };
+    };
     # Fixes: "newuidmap: write to uid_map failed: Operation not permitted" errors
     "subuid" = {
       mode = "0644";
@@ -868,9 +879,7 @@ in
     consoleLogLevel = 7;
     initrd.verbose = true;
     # v4l2loopback for virtual webcam support (OBS, conferencing apps)
-    kernelModules = [
-      "v4l2loopback"
-    ];
+    # Keep it out of early boot to avoid potential boot-time panics.
     extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
     extraModprobeConfig = ''
       # Dedicated virtual camera for OBS capture, fixed at /dev/video10
@@ -918,6 +927,17 @@ in
     # Keep Netdata unit installed but do not enable it at boot
     services.netdata.wantedBy = pkgs.lib.mkForce [ ];
     services.netdata.restartIfChanged = false;
+    # Load v4l2loopback after base boot instead of in early kernel module phase.
+    services.load-v4l2loopback = {
+      description = "Load v4l2loopback kernel module";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "systemd-modules-load.service" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = "${pkgs.kmod}/bin/modprobe v4l2loopback";
+      };
+    };
     user.services.kwalletd = {
       description = "KWallet user daemon";
       after = [ "graphical-session.target" ];
