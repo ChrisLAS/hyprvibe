@@ -513,7 +513,7 @@ let
     libva
     libvdpau
     moonlight-qt
-    sunshine
+    # sunshine  # Temporarily disabled - build fails fetching Boost dependencies
     virt-manager
     fuse
     fuse3
@@ -617,7 +617,7 @@ let
     libva
     libvdpau
     pkgs.moonlight-qt
-    pkgs.sunshine
+    # pkgs.sunshine  # Temporarily disabled - build fails fetching Boost dependencies
     virt-manager
     fuse
     fuse3
@@ -645,7 +645,7 @@ let
     v4l-utils
     v4l2-relayd
     libv4l
-    sunshine
+    # sunshine  # Temporarily disabled - build fails fetching Boost dependencies
     nixfmt
     qownnotes
     roc-toolkit
@@ -714,7 +714,7 @@ let
   gaming = with pkgs; [
     steam-run
     moonlight-qt
-    sunshine
+    # sunshine  # Temporarily disabled - build fails fetching Boost dependencies
     adwaita-icon-theme
     lutris
     playonlinux
@@ -1253,13 +1253,13 @@ in
       login.enableGnomeKeyring = true;
       gdm-password.enableGnomeKeyring = true;
     };
-    # Sunshine wrapper - PRESERVING YOUR EXISTING CONFIG
-    wrappers.sunshine = {
-      owner = "root";
-      group = "root";
-      capabilities = "cap_sys_admin+p";
-      source = "${pkgs.sunshine}/bin/sunshine";
-    };
+    # Sunshine wrapper - DISABLED - build fails fetching Boost dependencies
+    # wrappers.sunshine = {
+    #   owner = "root";
+    #   group = "root";
+    #   capabilities = "cap_sys_admin+p";
+    #   source = "${pkgs.sunshine}/bin/sunshine";
+    # };
   };
 
   # Virtualization - PRESERVING YOUR EXISTING CONFIG
@@ -1810,22 +1810,22 @@ in
     })
   ];
 
-  # Systemd user services - PRESERVING YOUR EXISTING CONFIG
-  systemd.user.services.sunshine = {
-    description = "sunshine";
-    wantedBy = [ "graphical-session.target" ];
-    serviceConfig = {
-      ExecStart = "${config.security.wrapperDir}/sunshine";
-      Restart = "always";
-    };
-    environment = {
-      WAYLAND_DISPLAY = "wayland-0";
-      XDG_RUNTIME_DIR = "/home/chrisf/tmp";
-      XDG_SESSION_TYPE = "wayland";
-      WLR_BACKENDS = "headless";
-      PULSE_SERVER = "/run/user/1000/pulse/native";
-    };
-  };
+  # Systemd user services - DISABLED - build fails fetching Boost dependencies
+  # systemd.user.services.sunshine = {
+  #   description = "sunshine";
+  #   wantedBy = [ "graphical-session.target" ];
+  #   serviceConfig = {
+  #     ExecStart = "${config.security.wrapperDir}/sunshine";
+  #     Restart = "always";
+  #   };
+  #   environment = {
+  #     WAYLAND_DISPLAY = "wayland-0";
+  #     XDG_RUNTIME_DIR = "/home/chrisf/tmp";
+  #     XDG_SESSION_TYPE = "wayland";
+  #     WLR_BACKENDS = "headless";
+  #     PULSE_SERVER = "/run/user/1000/pulse/native";
+  #   };
+  # };
 
   systemd.user.services.set-github-token = {
     description = "Set GITHUB_TOKEN in systemd --user environment from ~/.config/secrets/github_token";

@@ -338,7 +338,23 @@ SHIM
     jq # JSON logic processing
     ripgrep # Massive filesystem scan capability
     fd # High-speed file discovery
+    mcp-proxy # MCP stdio to StreamableHTTP bridge
   ];
+
+  # MCP Proxy server configuration (commented out - now using CLI format)
+  # environment.etc."mcp-proxy/servers.json".text = ''
+  # {
+  #   "mcpServers": {
+  #     "clojure-mcp": {
+  #       "disabled": false,
+  #       "timeout": 60,
+  #       "command": "clojure",
+  #       "args": ["-Tmcp", "start", ":config-profile", ":cli-assist"],
+  #       "transportType": "stdio"
+  #     }
+  #   }
+  # }
+  # '';
 
   # ==============================================================================
   # OpenClaw Services: Real-time Communication & Intelligence
@@ -498,6 +514,22 @@ SHIM
       OnCalendar = "*-*-* 07:00:00";
       Persistent = true;
       Unit = "openclaw-morning-digest.service";
+    };
+  };
+
+  # MCP Proxy: stdio to StreamableHTTP bridge for MCP servers
+  systemd.services.mcp-proxy = {
+    description = "MCP Proxy - stdio to StreamableHTTP bridge";
+    after = [ "network.target" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "simple";
+      User = "chrisf";
+      Group = "users";
+      Restart = "on-failure";
+      RestartSec = "5s";
+      ExecStart = "${pkgs.mcp-proxy}/bin/mcp-proxy --host 127.0.0.1 --port 3006 -- clojure -Tmcp start :config-profile :cli-assist";
+      Environment = "PATH=/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/nix/profile/bin:/home/chrisf/.nix-profile/bin:/home/chrisf/.local/state/nix/profile/bin:/etc/profiles/per-user/chrisf/bin";
     };
   };
 }

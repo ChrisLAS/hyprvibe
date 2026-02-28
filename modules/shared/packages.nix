@@ -88,7 +88,7 @@ let
     steam-run
     lutris
     moonlight-qt
-    sunshine
+    # sunshine  # Temporarily disabled - build fails fetching Boost dependencies
     vulkan-tools
   ];
 in
