@@ -1168,7 +1168,7 @@ in
     ProtectControlGroups = pkgs.lib.mkForce false;
     RestrictSUIDSGID = pkgs.lib.mkForce false;
     RestrictRealtime = pkgs.lib.mkForce false;
-    SystemCallFilter = pkgs.lib.mkForce [];
+    SystemCallFilter = pkgs.lib.mkForce [ ];
     SystemCallArchitectures = pkgs.lib.mkForce "";
   };
 
@@ -2550,6 +2550,10 @@ in
     "nix-command"
     "flakes"
   ];
+  # Allow insecure hashes for openclaw pnpm-deps when upstream mismatches occur
+  # This is temporary: upstream openclaw/nix-openclaw should fix their hashes
+  nix.settings.allow-insecure-hashes = true;
+
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.permittedInsecurePackages = [
     "libsoup-2.74.3"

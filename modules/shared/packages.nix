@@ -40,7 +40,7 @@ let
     less
     eza
     grc
-    cursor-cli
+    # cursor-cli  # Temporarily disabled - causing build failure
     tmate
     # Jan desktop/CLI (wrapped to ensure compatible OpenSSL libcrypto)
     janWrappedLower
