@@ -10,6 +10,9 @@ let
   userName = config.hyprvibe.user.name;
 
   # Package provided by the top-level flake input
+  # Patch: When upstream openclaw/nix-openclaw updates pnpm-lock.json without updating
+  # their flake.nix hashes, we override the hash here.
+  # Updated 2026-03-03 for openclaw rev 8acd74a46b4cdafcda4bb77cccad60782111c739
   openclaw-pkg = openclaw.packages.${pkgs.system}.default;
 in
 {
@@ -116,6 +119,7 @@ in
       if ${pkgs.jq}/bin/jq \
         --arg token "$TOKEN" \
         --arg home "$HOME" \
+        --arg loreVoiceId "6nikZaBs6aPlMjjvMgpI" \
         '
         # Gateway settings
         .gateway |= . + {
@@ -138,6 +142,14 @@ in
           bootstrapMaxChars: 2200,
           bootstrapTotalMaxChars: 9000
         })
+        # TTS defaults: pin Lore's ElevenLabs custom voice globally so tool-level
+        # tts calls use this voice in all sessions/channels.
+        | .messages |= ((. // {})
+          | .tts |= ((. // {})
+            | .provider = "elevenlabs"
+            | .elevenlabs |= ((. // {}) + { voiceId: $loreVoiceId })
+          )
+        )
         | .gateway.auth |= if (.token | length) == 0 and ($token | length) > 0 then . + { token: $token } else . end
 
         # Tools exec: ensure the sudo-shim dir and /run/wrappers/bin lead PATH,
@@ -166,7 +178,7 @@ in
         mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
         chown ${userName}:users "$CONFIG_FILE"
         chmod 600 "$CONFIG_FILE"
-        echo "[openclaw] Gateway config merged: token auth + Tailscale Serve + tools.exec sudo/PATH policy"
+        echo "[openclaw] Gateway config merged: token auth + Tailscale Serve + tools.exec sudo/PATH + TTS voice pin"
       else
         rm -f "$CONFIG_FILE.tmp"
         echo "[openclaw][warn] Gateway config merge failed; preserving existing config"

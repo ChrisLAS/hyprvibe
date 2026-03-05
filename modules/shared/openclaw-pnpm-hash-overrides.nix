@@ -30,10 +30,10 @@
     };
   };
 
-  config = {
-    hyprvibe.openclaw.pnpmHashOverrides = {
-      # Updated: 2026-03-03 for openclaw rev 8acd74a46b4cdafcda4bb77cccad60782111c739
-      "8acd74a46b4cdafcda4bb77cccad60782111c739" = "sha256-xPGDG4JohOkLX1w03lMc0L55uhLlT+fJQm4I9IFpQzY=";
-    };
-  };
+  #config = {
+  #  hyprvibe.openclaw.pnpmHashOverrides = {
+  #    # Updated: 2026-03-03 for openclaw rev 8acd74a46b4cdafcda4bb77cccad60782111c739
+  #    "8acd74a46b4cdafcda4bb77cccad60782111c739" = "sha256-xPGDG4JohOkLX1w03lMc0L55uhLlT+fJQm4I9IFpQzY=";
+  #  };
+  #};
 }

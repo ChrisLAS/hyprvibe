@@ -239,8 +239,8 @@ let
     localsend
     # Note: Some packages like pinta, typora, spotify, zoom may need to be installed via other means
     # or may have different names in Nix
-    _1password-gui
-    _1password-cli
+    # _1password-gui
+    # _1password-cli
     hyprpicker
     hyprshot
     wl-clip-persist
@@ -252,7 +252,7 @@ let
     starship
     # zoxide  # deduped; present in utilities
     rclone-browser
-    code-cursor
+    # code-cursor
 
   ];
 
@@ -2550,9 +2550,6 @@ in
     "nix-command"
     "flakes"
   ];
-  # Allow insecure hashes for openclaw pnpm-deps when upstream mismatches occur
-  # This is temporary: upstream openclaw/nix-openclaw should fix their hashes
-  nix.settings.allow-insecure-hashes = true;
 
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.permittedInsecurePackages = [
@@ -2560,6 +2557,10 @@ in
     "jitsi-meet-1.0.8792"
   ];
   # Workaround: upstream mat2 test regression (breaks metadata-cleaner)
+  # OpenClaw pnpm-deps hash override for upstream hash mismatches
+  # When upstream openclaw/nix-openclaw updates pnpm-lock.json without updating flake.nix,
+  # we patch the hash here. See OPENCLAW_HASH_MISMATCH.md for details.
+  # Updated 2026-03-03 for openclaw rev 8acd74a46b4cdafcda4bb77cccad60782111c739
   nixpkgs.overlays = [
     (final: prev: {
       python3Packages = prev.python3Packages.override {
