@@ -43,6 +43,7 @@ let
     # cursor-cli  # Temporarily disabled - causing build failure
     tmate
     gws
+    google-cloud-sdk
     # Jan desktop/CLI (wrapped to ensure compatible OpenSSL libcrypto)
     janWrappedLower
     janWrappedUpper
