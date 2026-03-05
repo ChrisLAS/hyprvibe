@@ -142,7 +142,7 @@ in
           bootstrapMaxChars: 2200,
           bootstrapTotalMaxChars: 9000
         })
-        # TTS defaults: pin Lore's ElevenLabs custom voice globally so tool-level
+        # TTS defaults: pin Lore ElevenLabs custom voice globally so tool-level
         # tts calls use this voice in all sessions/channels.
         | .messages |= ((. // {})
           | .tts |= ((. // {})
