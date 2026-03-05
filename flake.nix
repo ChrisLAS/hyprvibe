@@ -18,6 +18,9 @@
     freshrss-mcp.url = "github:ChrisLAS/freshrss-mcp";
     freshrss-mcp.inputs.nixpkgs.follows = "nixpkgs";
 
+    googleworkspace-cli.url = "github:googleworkspace/cli";
+    googleworkspace-cli.inputs.nixpkgs.follows = "nixpkgs";
+
     # gogcli - GOG CLI tool
     # Note: pinning to v0.11.0 tag to avoid unstable main branch
     gogcli-src.url = "github:steipete/gogcli/v0.11.0";
@@ -32,6 +35,7 @@
       hyprland,
       openclaw,
       freshrss-mcp,
+      googleworkspace-cli,
       gogcli-src,
       ...
     }:
@@ -43,10 +47,16 @@
       packages.x86_64-linux = let
         pkgs = import nixpkgs {
           system = "x86_64-linux";
-          overlays = [ (import ./overlays/gogcli.nix gogcli-src) ];
+          overlays = [
+            (import ./overlays/gogcli.nix gogcli-src)
+            (final: prev: {
+              gws = googleworkspace-cli.packages.${prev.system}.default;
+            })
+          ];
         };
       in {
         gogcli = pkgs.gogcli;
+        gws = pkgs.gws;
       };
 
       nixosModules = {
@@ -66,8 +76,15 @@
           modules = [
             ./hosts/rvbee/system.nix
             ./hosts/rvbee/ai-memory-stack.nix
-            # gogcli overlay for custom package
-            ({ ... }: { nixpkgs.overlays = [ (import ./overlays/gogcli.nix gogcli-src) ]; })
+            # Shared overlays for custom flake packages
+            ({ ... }: {
+              nixpkgs.overlays = [
+                (import ./overlays/gogcli.nix gogcli-src)
+                (final: prev: {
+                  gws = googleworkspace-cli.packages.${prev.system}.default;
+                })
+              ];
+            })
             prettyswitch.nixosModules.default
             freshrss-mcp.nixosModules.default
           ];
@@ -80,6 +97,13 @@
           system = "x86_64-linux";
           modules = [
             ./hosts/nixstation/system.nix
+            ({ ... }: {
+              nixpkgs.overlays = [
+                (final: prev: {
+                  gws = googleworkspace-cli.packages.${prev.system}.default;
+                })
+              ];
+            })
             prettyswitch.nixosModules.default
           ];
           specialArgs = {
@@ -90,6 +114,13 @@
           system = "x86_64-linux";
           modules = [
             ./hosts/nixbook/system.nix
+            ({ ... }: {
+              nixpkgs.overlays = [
+                (final: prev: {
+                  gws = googleworkspace-cli.packages.${prev.system}.default;
+                })
+              ];
+            })
             prettyswitch.nixosModules.default
           ];
           specialArgs = {

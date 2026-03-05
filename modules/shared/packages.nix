@@ -42,6 +42,7 @@ let
     grc
     # cursor-cli  # Temporarily disabled - causing build failure
     tmate
+    gws
     # Jan desktop/CLI (wrapped to ensure compatible OpenSSL libcrypto)
     janWrappedLower
     janWrappedUpper
