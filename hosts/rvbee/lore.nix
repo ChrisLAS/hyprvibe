@@ -300,18 +300,24 @@ in
         echo "[openclaw] memory-cognee plugin patch synced (declarative)"
       '';
 
-  # Copy bundled extensions out of the Nix store to avoid hardlink validation
-  # failures in the gateway plugin loader after updates.
+  # Older OpenClaw builds exposed bundled extensions at lib/openclaw/extensions.
+  # Current builds resolve stock plugins internally, so a copied mirror in
+  # ~/.openclaw/extensions-bundled can become stale and break plugin resolution
+  # after upgrades.
   system.activationScripts.openclaw-bundled-plugins-sync = lib.stringAfter [ "lore-bootstrap" ] ''
     export HOME=/home/${userName}
     DEST_DIR=$HOME/.openclaw/extensions-bundled
     SRC_DIR=${openclaw-pkg}/lib/openclaw/extensions
 
-    ${pkgs.coreutils}/bin/mkdir -p "$DEST_DIR"
-
     if [ ! -d "$SRC_DIR" ]; then
-      echo "[openclaw][warn] Bundled extensions directory missing: $SRC_DIR"
+      if [ -d "$DEST_DIR" ]; then
+        ${pkgs.coreutils}/bin/rm -rf "$DEST_DIR"
+        echo "[openclaw] Removed stale bundled plugins mirror: $DEST_DIR"
+      else
+        echo "[openclaw] Bundled extensions are internal to the current package; no mirror needed"
+      fi
     else
+      ${pkgs.coreutils}/bin/mkdir -p "$DEST_DIR"
       # Copy without preserving hardlinks (Nix store files are hardlinked).
       if [ -n "$(${pkgs.findutils}/bin/find "$SRC_DIR" -mindepth 1 -maxdepth 1 -print -quit)" ]; then
         ${pkgs.coreutils}/bin/cp -R --no-preserve=links "$SRC_DIR"/* "$DEST_DIR"/
@@ -320,6 +326,37 @@ in
         echo "[openclaw] Bundled plugins synced to $DEST_DIR"
       else
         echo "[openclaw] Bundled extensions source empty, nothing to sync"
+      fi
+    fi
+  '';
+
+  # The wrapped Nix package keeps built-in skills under the vendored openclaw
+  # node_modules tree instead of a top-level package skills directory, so mirror
+  # them into a stable user path for the gateway to load explicitly.
+  system.activationScripts.openclaw-bundled-skills-sync = lib.stringAfter [ "lore-bootstrap" ] ''
+    export HOME=/home/${userName}
+    DEST_DIR=$HOME/.openclaw/skills-bundled
+    WRAPPER=${openclaw-pkg}/bin/openclaw
+    GATEWAY_STORE=$(${pkgs.gnugrep}/bin/grep -o '/nix/store/[^" ]*/lib/openclaw/dist/index.js' "$WRAPPER" | ${pkgs.coreutils}/bin/head -n1 | ${pkgs.gnused}/bin/sed 's#/lib/openclaw/dist/index.js##')
+    SRC_DIR=""
+
+    if [ -n "$GATEWAY_STORE" ] && [ -d "$GATEWAY_STORE" ]; then
+      SRC_DIR=$(${pkgs.findutils}/bin/find "$GATEWAY_STORE" -path '*/node_modules/openclaw/skills' -type d | ${pkgs.coreutils}/bin/head -n1 || true)
+    fi
+
+    if [ -n "$SRC_DIR" ] && [ -d "$SRC_DIR" ]; then
+      ${pkgs.coreutils}/bin/rm -rf "$DEST_DIR"
+      ${pkgs.coreutils}/bin/mkdir -p "$DEST_DIR"
+      ${pkgs.coreutils}/bin/cp -R --no-preserve=links "$SRC_DIR"/* "$DEST_DIR"/
+      ${pkgs.coreutils}/bin/chown -R ${userName}:users "$DEST_DIR"
+      ${pkgs.coreutils}/bin/chmod -R u+rwX,go+rX "$DEST_DIR"
+      echo "[openclaw] Bundled skills synced to $DEST_DIR"
+    else
+      if [ -d "$DEST_DIR" ]; then
+        ${pkgs.coreutils}/bin/rm -rf "$DEST_DIR"
+        echo "[openclaw] Removed stale bundled skills mirror: $DEST_DIR"
+      else
+        echo "[openclaw][warn] Bundled skills source path unavailable; no mirror created"
       fi
     fi
   '';
@@ -512,7 +549,7 @@ in
         "OPENCLAW_NIX_MODE=1"
         "OPENCLAW_BIND=0.0.0.0"
         "OPENCLAW_ALLOW_INSECURE_WEBSOCKETS=1"
-        "OPENCLAW_BUNDLED_PLUGINS_DIR=/home/${userName}/.openclaw/extensions-bundled"
+        "OPENCLAW_BUNDLED_SKILLS_DIR=/home/${userName}/.openclaw/skills-bundled"
       ];
     };
   };
