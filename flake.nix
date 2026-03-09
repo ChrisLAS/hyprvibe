@@ -15,6 +15,9 @@
     openclaw.url = "github:openclaw/nix-openclaw";
     openclaw.inputs.nixpkgs.follows = "nixpkgs";
 
+    codex-cli-nix.url = "github:sadjow/codex-cli-nix";
+    codex-cli-nix.inputs.nixpkgs.follows = "nixpkgs";
+
     freshrss-mcp.url = "github:ChrisLAS/freshrss-mcp";
     freshrss-mcp.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -34,6 +37,7 @@
       prettyswitch,
       hyprland,
       openclaw,
+      codex-cli-nix,
       freshrss-mcp,
       googleworkspace-cli,
       gogcli-src,
@@ -51,6 +55,10 @@
             (import ./overlays/gogcli.nix gogcli-src)
             (final: prev: {
               gws = googleworkspace-cli.packages.${prev.system}.default;
+              acpx = final.callPackage ./pkgs/acpx.nix { };
+              codex-latest = codex-cli-nix.packages.${prev.system}.default;
+              codex-node = codex-cli-nix.packages.${prev.system}.codex-node;
+              codex-acp = final.callPackage ./pkgs/codex-acp.nix { };
             })
           ];
         };
@@ -82,6 +90,10 @@
                 (import ./overlays/gogcli.nix gogcli-src)
                 (final: prev: {
                   gws = googleworkspace-cli.packages.${prev.system}.default;
+                  acpx = final.callPackage ./pkgs/acpx.nix { };
+                  codex-latest = codex-cli-nix.packages.${prev.system}.default;
+                  codex-node = codex-cli-nix.packages.${prev.system}.codex-node;
+                  codex-acp = final.callPackage ./pkgs/codex-acp.nix { };
                 })
               ];
             })
@@ -101,6 +113,10 @@
               nixpkgs.overlays = [
                 (final: prev: {
                   gws = googleworkspace-cli.packages.${prev.system}.default;
+                  acpx = final.callPackage ./pkgs/acpx.nix { };
+                  codex-latest = codex-cli-nix.packages.${prev.system}.default;
+                  codex-node = codex-cli-nix.packages.${prev.system}.codex-node;
+                  codex-acp = final.callPackage ./pkgs/codex-acp.nix { };
                 })
               ];
             })
@@ -118,6 +134,10 @@
               nixpkgs.overlays = [
                 (final: prev: {
                   gws = googleworkspace-cli.packages.${prev.system}.default;
+                  acpx = final.callPackage ./pkgs/acpx.nix { };
+                  codex-latest = codex-cli-nix.packages.${prev.system}.default;
+                  codex-node = codex-cli-nix.packages.${prev.system}.codex-node;
+                  codex-acp = final.callPackage ./pkgs/codex-acp.nix { };
                 })
               ];
             })

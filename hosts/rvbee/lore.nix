@@ -411,6 +411,83 @@ in
         fi
       '';
 
+  # Keep acpx declarative on NixOS and force Codex ACP to use the packaged
+  # adapter instead of runtime npx downloads.
+  system.activationScripts.openclaw-acpx-config = lib.stringAfter [ "lore-bootstrap" ] ''
+    export HOME=/home/${userName}
+    ACPX_DIR=$HOME/.acpx
+    CONFIG_FILE=$ACPX_DIR/config.json
+
+    mkdir -p "$ACPX_DIR"
+
+    cat > "$CONFIG_FILE" <<'JSON'
+    {
+      "defaultAgent": "codex",
+      "agents": {
+        "codex": {
+          "command": "${pkgs.codex-acp}/bin/codex-acp"
+        }
+      }
+    }
+    JSON
+
+    chown ${userName}:users "$CONFIG_FILE"
+    chmod 600 "$CONFIG_FILE"
+    echo "[openclaw] acpx config synced: packaged codex-acp backend"
+  '';
+
+  # Enable the bundled OpenClaw acpx runtime backend and wire ACP spawns to the
+  # packaged acpx binary. This keeps Lore's direct codex CLI workflow unchanged
+  # while making sessions_spawn runtime="acp" deterministic on NixOS.
+  system.activationScripts.openclaw-acp-config = lib.stringAfter [ "openclaw-gateway-config" "openclaw-acpx-config" ] ''
+    export HOME=/home/${userName}
+    CONFIG_FILE=$HOME/.openclaw/openclaw.json
+
+    if [ ! -f "$CONFIG_FILE" ]; then
+      echo "[openclaw] Config file not found, skipping ACP config merge"
+    else
+      if ${pkgs.jq}/bin/jq '
+        .acp |= ((. // {}) + {
+          enabled: true,
+          dispatch: ((.dispatch // {}) + { enabled: true }),
+          backend: "acpx",
+          defaultAgent: "codex",
+          allowedAgents: ["codex"],
+          maxConcurrentSessions: 2
+        })
+        | .channels.telegram |= ((. // {}) + {
+          threadBindings: ((.threadBindings // {}) + { spawnAcpSessions: true })
+        })
+        | .channels.discord |= ((. // {}) + {
+          threadBindings: ((.threadBindings // {}) + { spawnAcpSessions: true })
+        })
+        | .plugins |= ((. // {})
+          | .entries |= ((.entries // {})
+            + {
+              acpx: {
+                enabled: true,
+                config: {
+                  command: "${pkgs.acpx}/bin/acpx",
+                  expectedVersion: "any",
+                  permissionMode: "approve-all",
+                  nonInteractivePermissions: "deny"
+                }
+              }
+            }
+          )
+        )
+      ' "$CONFIG_FILE" > "$CONFIG_FILE.tmp"; then
+        mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+        chown ${userName}:users "$CONFIG_FILE"
+        chmod 600 "$CONFIG_FILE"
+        echo "[openclaw] ACP config merged: acpx backend enabled for codex ACP spawns"
+      else
+        rm -f "$CONFIG_FILE.tmp"
+        echo "[openclaw][warn] ACP config merge failed; preserving existing config"
+      fi
+    fi
+  '';
+
   # Explicit NOPASSWD + SETENV sudo rule for agent-driven privileged operations.
   # SETENV allows sudo to preserve PATH/NIX_PATH which nixos-rebuild needs.
   security.sudo.extraRules = [
@@ -440,9 +517,11 @@ in
   environment.systemPackages = with pkgs; [
     # --- Intelligence & Orchestration ---
     openclaw-pkg # Native OpenClaw fleet core
+    acpx # ACP orchestration CLI used by OpenClaw's acpx runtime backend
     opencode # Native ACP coordination core
     gemini-cli # Gemini API interaction
-    codex # Code analysis and refactoring
+    codex-latest # Code analysis and refactoring (newer upstream Codex CLI)
+    codex-acp # ACP adapter for Codex, separate from direct codex CLI workflow
     python3 # Foundation for background sentries & logic shims
     babashka # Low-latency Clojure scripting for agentic tasks
     jdk21_headless # JVM runtime for Clojure
