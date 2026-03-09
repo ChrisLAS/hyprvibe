@@ -86,7 +86,7 @@ let
     ghostty
     htop
     btop
-    neofetch
+    fastfetch
     socat
     nmap
     mosh
@@ -592,4 +592,3 @@ in
   # Copy Hyprland configuration to user's home
   # Disabled: migrated to hyprvibe.hyprland options
   # Removed disabled script - functionality now handled by hyprvibe.hyprland module
-

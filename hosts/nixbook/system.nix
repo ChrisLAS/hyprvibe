@@ -96,7 +96,7 @@ let
     ghostty
     htop
     btop
-    neofetch
+    fastfetch
     socat
     nmap
     mosh

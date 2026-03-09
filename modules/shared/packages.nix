@@ -22,7 +22,7 @@ let
     tree
     lsof
     lshw
-    neofetch
+    fastfetch
     nmap
     zip
     unzip

@@ -136,7 +136,7 @@ let
     ghostty
     htop
     btop
-    neofetch
+    fastfetch
     nmap
     mosh
     yt-dlp
@@ -401,7 +401,7 @@ let
     ghostty
     htop
     btop
-    neofetch
+    fastfetch
     nmap
     mosh
     yt-dlp
