@@ -114,7 +114,7 @@ in
         TOKEN=$(cat "$TOKEN_FILE" | tr -d '\n')
       fi
 
-      # Use jq to safely merge gateway config + tools.exec config
+      # Use jq to safely merge gateway config + tools policy
       # This merge only adds/updates specific fields, preserving all other user customizations
       if ${pkgs.jq}/bin/jq \
         --arg token "$TOKEN" \
@@ -152,8 +152,33 @@ in
         )
         | .gateway.auth |= if (.token | length) == 0 and ($token | length) > 0 then . + { token: $token } else . end
 
-        # Tools exec: ensure the sudo-shim dir and /run/wrappers/bin lead PATH,
-        # and all privileged system binaries are in safeBins.
+        # Tools exec: enforce full host exec for trusted agents, keep command prompts off,
+        # and expose elevated chat directives only to explicit trusted senders.
+        | .tools |= ((. // {}) + {
+            exec: ((.exec // {}) + {
+              host: "gateway",
+              security: "full",
+              ask: "off",
+              pathPrepend: [
+                ($home + "/.openclaw/bin"),
+                "/run/wrappers/bin",
+                "/run/current-system/sw/bin",
+                "/etc/profiles/per-user/${userName}/bin",
+                ($home + "/.nix-profile/bin"),
+                ($home + "/.local/bin")
+              ]
+            }),
+            elevated: ((.elevated // {}) + {
+              enabled: true,
+              allowFrom: ((.elevated.allowFrom // {}) + {
+                telegram: (.channels.telegram.allowFrom // [])
+              })
+            })
+          })
+        | .tools.exec |= del(.safeBins, .safeBinProfiles, .safeBinTrustedDirs)
+        | .commands |= ((. // {}) + {
+            bash: true
+          })
         | .tools.exec.pathPrepend = [
             ($home + "/.openclaw/bin"),
             "/run/wrappers/bin",
@@ -162,11 +187,6 @@ in
             ($home + "/.nix-profile/bin"),
             ($home + "/.local/bin")
           ]
-        | .tools.exec.safeBins = (
-            (.tools.exec.safeBins // [])
-            + ["nix", "nixos-rebuild", "sudo", "systemctl", "journalctl", "nix-env", "nix-store", "nix-channel"]
-            | unique | sort
-          )
         | .env.vars.PATH = (
             ($home + "/.openclaw/bin")
             + ":/run/wrappers/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/etc/profiles/per-user/${userName}/bin:"
@@ -178,7 +198,7 @@ in
         mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
         chown ${userName}:users "$CONFIG_FILE"
         chmod 600 "$CONFIG_FILE"
-        echo "[openclaw] Gateway config merged: token auth + Tailscale Serve + tools.exec sudo/PATH + TTS voice pin"
+        echo "[openclaw] Gateway config merged: token auth + Tailscale Serve + full host exec policy + elevated allowlist + TTS voice pin"
       else
         rm -f "$CONFIG_FILE.tmp"
         echo "[openclaw][warn] Gateway config merge failed; preserving existing config"
