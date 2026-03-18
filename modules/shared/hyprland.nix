@@ -152,9 +152,8 @@ in
             script_real=$(readlink -f "$script" 2>/dev/null || echo "$script")
             dest_real=$(readlink -f "$dest_file" 2>/dev/null || echo "$dest_file")
             if [ "$script_real" != "$dest_real" ]; then
-              # Use cp --remove-destination to handle symlinks properly
-              # Suppress "are the same file" errors which are harmless (can happen with nix store symlinks)
-              cp --remove-destination -f "$script" "$dest_file" 2>&1 | grep -v "are the same file" || true
+              # Use cp --remove-destination to handle symlinks properly.
+              cp --remove-destination -f "$script" "$dest_file"
             fi
           fi
         done
