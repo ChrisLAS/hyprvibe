@@ -13,7 +13,7 @@ let
   # Patch: When upstream openclaw/nix-openclaw updates pnpm-lock.json without updating
   # their flake.nix hashes, we override the hash here.
   # Updated 2026-03-03 for openclaw rev 8acd74a46b4cdafcda4bb77cccad60782111c739
-  openclaw-pkg = openclaw.packages.${pkgs.system}.default;
+  openclaw-pkg = openclaw.packages.${pkgs.stdenv.hostPlatform.system}.default;
 in
 {
   # ==============================================================================
@@ -439,54 +439,56 @@ in
   # Enable the bundled OpenClaw acpx runtime backend and wire ACP spawns to the
   # packaged acpx binary. This keeps Lore's direct codex CLI workflow unchanged
   # while making sessions_spawn runtime="acp" deterministic on NixOS.
-  system.activationScripts.openclaw-acp-config = lib.stringAfter [ "openclaw-gateway-config" "openclaw-acpx-config" ] ''
-    export HOME=/home/${userName}
-    CONFIG_FILE=$HOME/.openclaw/openclaw.json
+  system.activationScripts.openclaw-acp-config =
+    lib.stringAfter [ "openclaw-gateway-config" "openclaw-acpx-config" ]
+      ''
+        export HOME=/home/${userName}
+        CONFIG_FILE=$HOME/.openclaw/openclaw.json
 
-    if [ ! -f "$CONFIG_FILE" ]; then
-      echo "[openclaw] Config file not found, skipping ACP config merge"
-    else
-      if ${pkgs.jq}/bin/jq '
-        .acp |= ((. // {}) + {
-          enabled: true,
-          dispatch: ((.dispatch // {}) + { enabled: true }),
-          backend: "acpx",
-          defaultAgent: "codex",
-          allowedAgents: ["codex"],
-          maxConcurrentSessions: 2
-        })
-        | .channels.telegram |= ((. // {}) + {
-          threadBindings: ((.threadBindings // {}) + { spawnAcpSessions: true })
-        })
-        | .channels.discord |= ((. // {}) + {
-          threadBindings: ((.threadBindings // {}) + { spawnAcpSessions: true })
-        })
-        | .plugins |= ((. // {})
-          | .entries |= ((.entries // {})
-            + {
-              acpx: {
-                enabled: true,
-                config: {
-                  command: "${pkgs.acpx}/bin/acpx",
-                  expectedVersion: "any",
-                  permissionMode: "approve-all",
-                  nonInteractivePermissions: "deny"
+        if [ ! -f "$CONFIG_FILE" ]; then
+          echo "[openclaw] Config file not found, skipping ACP config merge"
+        else
+          if ${pkgs.jq}/bin/jq '
+            .acp |= ((. // {}) + {
+              enabled: true,
+              dispatch: ((.dispatch // {}) + { enabled: true }),
+              backend: "acpx",
+              defaultAgent: "codex",
+              allowedAgents: ["codex"],
+              maxConcurrentSessions: 2
+            })
+            | .channels.telegram |= ((. // {}) + {
+              threadBindings: ((.threadBindings // {}) + { spawnAcpSessions: true })
+            })
+            | .channels.discord |= ((. // {}) + {
+              threadBindings: ((.threadBindings // {}) + { spawnAcpSessions: true })
+            })
+            | .plugins |= ((. // {})
+              | .entries |= ((.entries // {})
+                + {
+                  acpx: {
+                    enabled: true,
+                    config: {
+                      command: "${pkgs.acpx}/bin/acpx",
+                      expectedVersion: "any",
+                      permissionMode: "approve-all",
+                      nonInteractivePermissions: "deny"
+                    }
+                  }
                 }
-              }
-            }
-          )
-        )
-      ' "$CONFIG_FILE" > "$CONFIG_FILE.tmp"; then
-        mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
-        chown ${userName}:users "$CONFIG_FILE"
-        chmod 600 "$CONFIG_FILE"
-        echo "[openclaw] ACP config merged: acpx backend enabled for codex ACP spawns"
-      else
-        rm -f "$CONFIG_FILE.tmp"
-        echo "[openclaw][warn] ACP config merge failed; preserving existing config"
-      fi
-    fi
-  '';
+              )
+            )
+          ' "$CONFIG_FILE" > "$CONFIG_FILE.tmp"; then
+            mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+            chown ${userName}:users "$CONFIG_FILE"
+            chmod 600 "$CONFIG_FILE"
+            echo "[openclaw] ACP config merged: acpx backend enabled for codex ACP spawns"
+          else
+            rm -f "$CONFIG_FILE.tmp"
+            echo "[openclaw][warn] ACP config merge failed; preserving existing config"
+          fi
+        fi
+      '';
 
   # Explicit NOPASSWD + SETENV sudo rule for agent-driven privileged operations.
   # SETENV allows sudo to preserve PATH/NIX_PATH which nixos-rebuild needs.

@@ -48,24 +48,26 @@
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
 
       # Packages
-      packages.x86_64-linux = let
-        pkgs = import nixpkgs {
-          system = "x86_64-linux";
-          overlays = [
-            (import ./overlays/gogcli.nix gogcli-src)
-            (final: prev: {
-              gws = googleworkspace-cli.packages.${prev.system}.default;
-              acpx = final.callPackage ./pkgs/acpx.nix { };
-              codex-latest = codex-cli-nix.packages.${prev.system}.default;
-              codex-node = codex-cli-nix.packages.${prev.system}.codex-node;
-              codex-acp = final.callPackage ./pkgs/codex-acp.nix { };
-            })
-          ];
+      packages.x86_64-linux =
+        let
+          pkgs = import nixpkgs {
+            system = "x86_64-linux";
+            overlays = [
+              (import ./overlays/gogcli.nix gogcli-src)
+              (final: prev: {
+                gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
+                acpx = final.callPackage ./pkgs/acpx.nix { };
+                codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
+                codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
+                codex-acp = final.callPackage ./pkgs/codex-acp.nix { };
+              })
+            ];
+          };
+        in
+        {
+          gogcli = pkgs.gogcli;
+          gws = pkgs.gws;
         };
-      in {
-        gogcli = pkgs.gogcli;
-        gws = pkgs.gws;
-      };
 
       nixosModules = {
         # New hyprvibe-prefixed exports
@@ -85,18 +87,21 @@
             ./hosts/rvbee/system.nix
             ./hosts/rvbee/ai-memory-stack.nix
             # Shared overlays for custom flake packages
-            ({ ... }: {
-              nixpkgs.overlays = [
-                (import ./overlays/gogcli.nix gogcli-src)
-                (final: prev: {
-                  gws = googleworkspace-cli.packages.${prev.system}.default;
-                  acpx = final.callPackage ./pkgs/acpx.nix { };
-                  codex-latest = codex-cli-nix.packages.${prev.system}.default;
-                  codex-node = codex-cli-nix.packages.${prev.system}.codex-node;
-                  codex-acp = final.callPackage ./pkgs/codex-acp.nix { };
-                })
-              ];
-            })
+            (
+              { ... }:
+              {
+                nixpkgs.overlays = [
+                  (import ./overlays/gogcli.nix gogcli-src)
+                  (final: prev: {
+                    gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
+                    acpx = final.callPackage ./pkgs/acpx.nix { };
+                    codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
+                    codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
+                    codex-acp = final.callPackage ./pkgs/codex-acp.nix { };
+                  })
+                ];
+              }
+            )
             prettyswitch.nixosModules.default
             freshrss-mcp.nixosModules.default
           ];
@@ -109,17 +114,20 @@
           system = "x86_64-linux";
           modules = [
             ./hosts/nixstation/system.nix
-            ({ ... }: {
-              nixpkgs.overlays = [
-                (final: prev: {
-                  gws = googleworkspace-cli.packages.${prev.system}.default;
-                  acpx = final.callPackage ./pkgs/acpx.nix { };
-                  codex-latest = codex-cli-nix.packages.${prev.system}.default;
-                  codex-node = codex-cli-nix.packages.${prev.system}.codex-node;
-                  codex-acp = final.callPackage ./pkgs/codex-acp.nix { };
-                })
-              ];
-            })
+            (
+              { ... }:
+              {
+                nixpkgs.overlays = [
+                  (final: prev: {
+                    gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
+                    acpx = final.callPackage ./pkgs/acpx.nix { };
+                    codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
+                    codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
+                    codex-acp = final.callPackage ./pkgs/codex-acp.nix { };
+                  })
+                ];
+              }
+            )
             prettyswitch.nixosModules.default
           ];
           specialArgs = {
@@ -130,17 +138,20 @@
           system = "x86_64-linux";
           modules = [
             ./hosts/nixbook/system.nix
-            ({ ... }: {
-              nixpkgs.overlays = [
-                (final: prev: {
-                  gws = googleworkspace-cli.packages.${prev.system}.default;
-                  acpx = final.callPackage ./pkgs/acpx.nix { };
-                  codex-latest = codex-cli-nix.packages.${prev.system}.default;
-                  codex-node = codex-cli-nix.packages.${prev.system}.codex-node;
-                  codex-acp = final.callPackage ./pkgs/codex-acp.nix { };
-                })
-              ];
-            })
+            (
+              { ... }:
+              {
+                nixpkgs.overlays = [
+                  (final: prev: {
+                    gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
+                    acpx = final.callPackage ./pkgs/acpx.nix { };
+                    codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
+                    codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
+                    codex-acp = final.callPackage ./pkgs/codex-acp.nix { };
+                  })
+                ];
+              }
+            )
             prettyswitch.nixosModules.default
           ];
           specialArgs = {
