@@ -1,7 +1,7 @@
 { pkgs, inputs, ... }:
 
 let
-  coreLlmModel = "nemotron-3-nano";
+  coreLlmModel = "mistral";
   preloadTimeout = "48h";
   pgSearchNixpkgs = import inputs.nixpkgsPgsearch {
     system = pkgs.stdenv.system;
