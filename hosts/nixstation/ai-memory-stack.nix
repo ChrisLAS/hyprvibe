@@ -126,8 +126,9 @@ in
       S3_ENDPOINT = "http://127.0.0.1:9000";
       S3_REGION = "us-east-1";
       S3_BUCKET = "lobehub";
-      S3_ACCESS_KEY = "lobehub";
-      S3_SECRET_KEY = "lobehub-minio-secret";
+      S3_ACCESS_KEY_ID = "lobehub";
+      S3_SECRET_ACCESS_KEY = "lobehub-minio-secret";
+      S3_ENABLE_PATH_STYLE = "true";
       KEY_VAULTS_SECRET = "/ytytLi5JVMIYeSTAFiv3yP+uD+tdDiH4oWknKqSt/U=";
       BETTER_AUTH_SECRET = "Njg2ZDcwNTk2ZmNlODM1ZWNhYjY0MTZj";
       QSTASH_TOKEN = "not-needed";
