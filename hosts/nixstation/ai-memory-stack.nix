@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 let
-  coreLlmModel = "mistral";
+  coreLlmModel = "nemotron-3-nano";
   preloadTimeout = "48h";
 in
 {
