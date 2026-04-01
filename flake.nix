@@ -1,6 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    nixpkgsPgsearch.url = "github:nixos/nixpkgs/c8c34e946ef639a0e1e7ddfc3f3aac1cfecb43a9";
     # musnix.url = "github:musnix/musnix";
     # musnix.inputs.nixpkgs.follows = "nixpkgs";
     # companion.url = "github:noblepayne/bitfocus-companion-flake";
@@ -132,6 +133,8 @@
           ];
           specialArgs = {
             inherit hyprland;
+            inherit self;
+            inputs = self.inputs;
           };
         };
         nixbook = nixpkgs.lib.nixosSystem {
