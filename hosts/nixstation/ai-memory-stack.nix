@@ -38,6 +38,31 @@ in
     };
   };
 
+  services.postgresql = {
+    enable = true;
+    package = pkgs.postgresql_16.withPackages (p: [ p.pgvector ]);
+    ensureDatabases = [ "lobehub" ];
+    ensureUsers = [
+      {
+        name = "lobehub";
+      }
+    ];
+    authentication = ''
+      local all all trust
+      host all all 127.0.0.1/32 trust
+      host all all ::1/128 trust
+    '';
+    initialScript = pkgs.writeText "lobehub-init.sql" ''
+       ALTER USER lobehub WITH PASSWORD 'lobehub-secret';
+       GRANT ALL PRIVILEGES ON DATABASE lobehub TO lobehub;
+       GRANT ALL ON SCHEMA public TO lobehub;
+       ALTER DATABASE lobehub OWNER TO lobehub;
+      \c lobehub
+       CREATE EXTENSION IF NOT EXISTS vector;
+       GRANT ALL ON SCHEMA public TO lobehub;
+    '';
+  };
+
   systemd.services.ollama-models-prepull = {
     description = "Pre-pull Ollama models for nixstation";
     wantedBy = [ "multi-user.target" ];
