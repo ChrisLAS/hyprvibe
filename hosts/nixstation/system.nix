@@ -924,6 +924,8 @@ in
     ./hardware-configuration.nix
     # Shared scaffolding (non-host-specific)
     ../../modules/shared
+    # AI/LLM stack (Ollama + LobeHub)
+    ./ai-memory-stack.nix
   ];
 
   # Enable hyprvibe module toggles
