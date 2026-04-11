@@ -205,7 +205,7 @@ let
     openssh
     glib-networking
     rclone
-    rclone-ui
+    # rclone-ui  # Disabled: build fails due to tao-macros crate unavailable
     librclone
     syncrclone
     git-annex-remote-rclone
@@ -479,7 +479,7 @@ let
     openssh
     glib-networking
     rclone
-    rclone-ui
+    # rclone-ui  # Disabled: build fails due to tao-macros crate unavailable
     librclone
     syncrclone
     git-annex-remote-rclone
