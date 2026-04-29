@@ -55,7 +55,6 @@ let
     slurp
     swappy
     wf-recorder
-    dunst
     cliphist
     brightnessctl
     playerctl

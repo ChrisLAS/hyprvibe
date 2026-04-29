@@ -22,7 +22,6 @@
     "custom/openrouter",
     "tray",
     "bluetooth",
-    "custom/dunst",
     "idle_inhibitor",
     "custom/brightness_menu",
     "clock",
@@ -76,15 +75,6 @@
     "on-click": "playerctl -p playerctld play-pause",
     "on-scroll-up": "playerctl -p playerctld next",
     "on-scroll-down": "playerctl -p playerctld previous"
-  },
-  "custom/dunst": {
-    "return-type": "json",
-    "exec": "/home/chrisf/.config/waybar/scripts/waybar-dunst.sh",
-    "interval": 30,
-    "exec-if": "which dunstctl",
-    "on-click": "dunstctl set-paused toggle",
-    "tooltip": true,
-    "format": "{}"
   },
   "network": {
     "format-wifi": "{essid} ({signalStrength}%) ",

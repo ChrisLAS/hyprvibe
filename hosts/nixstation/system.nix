@@ -165,14 +165,12 @@ let
     polkit_gnome
     qt6.qtbase
     qt6.qtwayland
-    dunst
     cliphist
     brightnessctl
     playerctl
     kdePackages.kwallet
     kdePackages.kwallet-pam
     kdePackages.kate
-    libnotify
     fd
     eza
     fzf
@@ -193,7 +191,6 @@ let
     kdePackages.fcitx5-qt
     nautilus
     libqalculate
-    mako
     swaybg
     swayosd
     rofi
@@ -438,14 +435,12 @@ let
     polkit_gnome
     qt6.qtbase
     qt6.qtwayland
-    dunst
     cliphist
     brightnessctl
     playerctl
     kdePackages.kwallet
     kdePackages.kwallet-pam
     kdePackages.kate
-    libnotify
     fd
     eza
     fzf
@@ -466,7 +461,6 @@ let
     kdePackages.fcitx5-qt
     nautilus
     libqalculate
-    mako
     swaybg
     swayosd
     rofi
@@ -1450,6 +1444,9 @@ in
       };
       # Export the overridden maestral at top level - maestral uses python313Packages
       maestral = final.python313Packages.maestral;
+      openldap = prev.openldap.overrideAttrs (_: {
+        doCheck = false;
+      });
     })
   ];
 

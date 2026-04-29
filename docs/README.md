@@ -28,7 +28,7 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
 
 - **Hyprland/Wayland desktop**
   - Hyprland session via GDM (Wayland), `programs.hyprland.enable` with `xwayland.enable`
-  - Autostarts `waybar`, `dunst`, `hyprpaper`, `hypridle`
+  - Autostarts `waybar`, `hyprpaper`, `hypridle`
   - Hyprland env/theme: `QT_QPA_PLATFORMTHEME=qt6ct`, Wayland-first (`NIXOS_OZONE_WL=1`, `MOZ_ENABLE_WAYLAND=1`, `QT_QPA_PLATFORM=wayland`, `GDK_BACKEND=wayland`)
   - Keybinds for DPMS, screenshots (grim/slurp), media/brightness, app launchers, workspace mgmt
 
@@ -37,9 +37,9 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
   - `hypridle` drives DPMS/off-on and lock-before-sleep
   - Wallpaper templated into `hyprpaper` and `hyprlock` via activation script
 
-- **Waybar + notifications**
+- **Waybar + desktop helpers**
   - Waybar modules for Hyprland workspaces/window, audio, network, CPU/Mem, brightness, AMD GPU, weather, BTC price, public IP, clock, tray
-  - Dunst notifications; custom scripts installed into `~/.config/waybar/scripts/`
+  - Custom scripts installed into `~/.config/waybar/scripts/`
 
 - **NixOS, flakes, channel**
   - Flake-based config on `nixos-unstable`
@@ -198,4 +198,3 @@ The following keybindings are available on nixstation for managing the 4-monitor
 - `SUPER+1..0` switches to workspace 1-10 on the currently focused monitor
 - `SUPER+SHIFT+1..0` moves the active window to workspace 1-10 on the currently focused monitor
 - Workspaces are independent per monitor, allowing for complex multi-monitor workflows
-

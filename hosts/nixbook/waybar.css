@@ -38,7 +38,7 @@ window#waybar {
   font-size: 14pt;
 }
 
-#clock, #memory, #cpu, #tray, #network, #pulseaudio, #custom-public_ip, #custom-amd_gpu, #custom-openrouter, #custom-dunst, #window, #battery {
+#clock, #memory, #cpu, #tray, #network, #pulseaudio, #custom-public_ip, #custom-amd_gpu, #custom-openrouter, #window, #battery {
   padding: 0 10px;
 }
 
@@ -119,4 +119,3 @@ tooltip {
   51% { opacity: 0.3; }
   100% { opacity: 0.3; }
 }
-

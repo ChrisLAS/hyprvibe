@@ -146,15 +146,12 @@ let
     qt6.qtwayland
     # Additional Hyprland utilities
     wofi
-    dunst
     cliphist
     brightnessctl
     playerctl
     kdePackages.kwallet
     kdePackages.kwallet-pam
     kdePackages.kate
-    # Notification daemon
-    libnotify
     # Additional terminal utilities from Omarchy
     fd
     eza
@@ -181,7 +178,6 @@ let
     # Additional Hyprland utilities from Omarchy
     # polkit_gnome  # removed to avoid duplicate agents; using KDE polkit agent
     libqalculate
-    mako
     swaybg
     swayosd
     qt6Packages.qt6ct
@@ -952,55 +948,6 @@ in
       };
     };
 
-    # Write dunst config in the user's home *after login* (NOT during activation).
-    # Boot-time activation runs very early; failures there can terminate PID 1 and kernel panic.
-    user.services.hyprvibe-setup-dunst = {
-      description = "Hyprvibe: write dunst config";
-      wantedBy = [ "default.target" ];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        ExecStart = "${pkgs.writeShellScript "hyprvibe-setup-dunst" ''
-          set -euo pipefail
-          mkdir -p ${homeDir}/.config/dunst
-          cat > ${homeDir}/.config/dunst/dunstrc << 'EOF'
-          [global]
-          follow = mouse
-          history_length = 20
-          indicate_hidden = yes
-          separator_height = 2
-          sort = yes
-          idle_threshold = 0
-          # Fallback timeout (seconds); urgency-specific values override this.
-          timeout = 60
-
-          [urgency_low]
-          timeout = 60
-
-          [urgency_normal]
-          timeout = 60
-
-          [urgency_critical]
-          timeout = 60
-
-          # Suppress noisy Bluetooth device connect/disconnect popups from Blueman
-          [bluetooth_blueman_connected]
-          appname = "Blueman"
-          summary = ".*(Connected|Disconnected).*"
-          skip_display = true
-          skip_history = true
-
-          # Some environments label as "Bluetooth"
-          [bluetooth_generic_connected]
-          appname = "Bluetooth"
-          summary = ".*(Connected|Disconnected).*"
-          skip_display = true
-          skip_history = true
-          EOF
-        ''}";
-      };
-    };
-
     # Load GITHUB_TOKEN into the systemd user manager environment from a local secret file
     user.services.set-github-token = {
       description = "Set GITHUB_TOKEN in systemd --user environment from ~/.config/secrets/github_token";
@@ -1545,9 +1492,6 @@ in
     # Never auto-reboot on kernel panic so we can capture the panic screen.
     "kernel.panic" = 0;
   };
-
-  # Dunst config is written by `systemd.user.services.hyprvibe-setup-dunst` (see above),
-  # not during early-boot activation.
 
   # Prefer Hyprland XDG portal
   xdg.portal = {
