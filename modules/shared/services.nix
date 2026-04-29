@@ -1,6 +1,13 @@
-{ lib, config, pkgs, ... }:
-let cfg = config.hyprvibe.services;
-in {
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
+let
+  cfg = config.hyprvibe.services;
+in
+{
   options.hyprvibe.services = {
     enable = lib.mkEnableOption "Shared baseline services (pipewire, flatpak, polkit, sudo)";
     openssh.enable = lib.mkEnableOption "OpenSSH server";
@@ -31,7 +38,6 @@ in {
       enable = true;
       nssmdns4 = true;
     };
-    services.davfs2.enable = true;
     services.gnome.gnome-keyring.enable = true;
 
     services.openssh.enable = lib.mkIf cfg.openssh.enable true;
@@ -43,5 +49,3 @@ in {
     virtualisation.docker.enable = lib.mkIf cfg.docker.enable true;
   };
 }
-
-
