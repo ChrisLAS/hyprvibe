@@ -674,6 +674,7 @@ in
   systemd.services.openclaw-bridge-dax = {
     description = "OpenClaw Bridge - Dax Telegram Station";
     wantedBy = [ "multi-user.target" ];
+    wants = [ "network-online.target" ];
     after = [
       "network-online.target"
       "openclaw-gateway.service"

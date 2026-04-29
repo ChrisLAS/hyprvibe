@@ -44,6 +44,15 @@
       gogcli-src,
       ...
     }:
+    let
+      prettySwitchModule =
+        { pkgs, ... }:
+        {
+          environment.systemPackages = [
+            prettyswitch.packages.${pkgs.stdenv.hostPlatform.system}.default
+          ];
+        };
+    in
     {
       # Formatter (optional)
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
@@ -103,7 +112,7 @@
                 ];
               }
             )
-            prettyswitch.nixosModules.default
+            prettySwitchModule
             freshrss-mcp.nixosModules.default
           ];
           specialArgs = {
@@ -129,7 +138,7 @@
                 ];
               }
             )
-            prettyswitch.nixosModules.default
+            prettySwitchModule
           ];
           specialArgs = {
             inherit hyprland;
@@ -155,7 +164,7 @@
                 ];
               }
             )
-            prettyswitch.nixosModules.default
+            prettySwitchModule
           ];
           specialArgs = {
             inherit hyprland;

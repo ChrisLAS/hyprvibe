@@ -4,7 +4,7 @@ let
   coreLlmModel = "mistral";
   preloadTimeout = "48h";
   pgSearchNixpkgs = import inputs.nixpkgsPgsearch {
-    system = pkgs.stdenv.system;
+    system = pkgs.stdenv.hostPlatform.system;
     config.allowUnfree = true;
   };
 in
