@@ -61,21 +61,17 @@ act() {
 
 current="$(get_percent || echo "?")"
 if ! command -v vicinae >/dev/null 2>&1; then
-  command -v notify-send >/dev/null 2>&1 && notify-send "Brightness" "vicinae not found"
+  printf '%s\n' "vicinae not found" >&2
   exit 1
 fi
 
 choice=$(printf "%s\n" "+5%" "-5%" "25%" "50%" "75%" "100%" | vicinae dmenu -p "Brightness (${current}% )")
 if [ -n "${choice:-}" ]; then
   if act "$choice"; then
-    newp=$(get_percent || echo "?")
-    command -v notify-send >/dev/null 2>&1 && notify-send "Brightness" "Set to: $choice (now ${newp}%)"
+    true
   else
-    command -v notify-send >/dev/null 2>&1 && notify-send "Brightness" "Adjustment failed"
+    printf '%s\n' "brightness adjustment failed" >&2
     exit 1
   fi
-else
-  command -v notify-send >/dev/null 2>&1 && notify-send "Brightness" "Cancelled"
 fi
-
 

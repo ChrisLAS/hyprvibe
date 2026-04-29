@@ -1,18 +1,24 @@
-{ lib, pkgs, config, ... }:
+{
+  lib,
+  pkgs,
+  config,
+  ...
+}:
 let
   cfg = config.hyprvibe.power;
   userName = config.hyprvibe.user.name;
   userHome = config.hyprvibe.user.home;
-in {
+in
+{
   options.hyprvibe.power = {
     enable = lib.mkEnableOption "Enable dynamic power management with performance bias";
-    
+
     autoSleepOnBatteryMinutes = lib.mkOption {
       type = lib.types.int;
       default = 30;
       description = "Minutes of inactivity on battery before auto-sleep";
     };
-    
+
     performanceMode = {
       cpuGovernor = lib.mkOption {
         type = lib.types.str;
@@ -30,7 +36,7 @@ in {
         description = "Disable disk power saving in performance mode";
       };
     };
-    
+
     powerSaverMode = {
       cpuGovernor = lib.mkOption {
         type = lib.types.str;
@@ -53,7 +59,7 @@ in {
   config = lib.mkIf cfg.enable {
     # Enable power-profiles-daemon for dynamic power profile switching
     services.power-profiles-daemon.enable = true;
-    
+
     # Install power management utilities
     environment.systemPackages = with pkgs; [
       power-profiles-daemon
@@ -89,11 +95,11 @@ in {
         ExecStart = "${pkgs.writeShellScript "battery-auto-sleep" ''
           #!/usr/bin/env bash
           set -euo pipefail
-          
+
           IDLE_TIMEOUT=$(( ${toString cfg.autoSleepOnBatteryMinutes} * 60 ))
           CHECK_INTERVAL=30
           LAST_ACTIVITY=$(date +%s)
-          
+
           # Function to check if on battery
           is_on_battery() {
             if command -v upower >/dev/null 2>&1; then
@@ -105,7 +111,7 @@ in {
               return 1
             fi
           }
-          
+
           # Function to check user activity (mouse/keyboard)
           check_activity() {
             # Use loginctl to check session idle time
@@ -117,7 +123,7 @@ in {
               echo "0"
             fi
           }
-          
+
           while true; do
             sleep "$CHECK_INTERVAL"
             
@@ -144,23 +150,23 @@ in {
       cat > ${userHome}/.local/bin/power-profile << 'POWERPROFILE_EOF'
       #!/usr/bin/env bash
       set -euo pipefail
-      
+
       # Power profile switcher for NixOS + Hyprland
       # Supports: performance, balanced, power-saver
-      
+
       PROFILE="''${1:-}"
-      
+
       if [ -z "$PROFILE" ]; then
         echo "Usage: power-profile [performance|balanced|power-saver|status]"
         exit 1
       fi
-      
+
       # Check if power-profiles-daemon is available
       if ! command -v powerprofilesctl >/dev/null 2>&1; then
         echo "Error: powerprofilesctl not found. Install power-profiles-daemon."
         exit 1
       fi
-      
+
       case "$PROFILE" in
         performance|balanced|power-saver)
           # Set via power-profiles-daemon
@@ -278,11 +284,6 @@ in {
                 fi
               fi
             done
-          fi
-          
-          # Notify user
-          if command -v notify-send >/dev/null 2>&1; then
-            notify-send "Power Profile" "Switched to: $PROFILE" -t 2000
           fi
           
           echo "Power profile set to: $PROFILE"

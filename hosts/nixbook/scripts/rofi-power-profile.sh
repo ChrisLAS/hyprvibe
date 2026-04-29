@@ -33,7 +33,7 @@ current="$(get_current_profile)"
 battery_info="$(get_battery_status)"
 
 if ! command -v rofi >/dev/null 2>&1; then
-  command -v notify-send >/dev/null 2>&1 && notify-send "Power Profile" "rofi not found"
+  printf '%s\n' "rofi not found" >&2
   exit 1
 fi
 
@@ -46,7 +46,6 @@ choice=$(printf "%s\n%s\n%s\n%s" \
   rofi -dmenu -p "Power Profile (Current: ${current})" -i -lines 4)
 
 if [ -z "${choice:-}" ]; then
-  command -v notify-send >/dev/null 2>&1 && notify-send "Power Profile" "Cancelled"
   exit 0
 fi
 
@@ -63,12 +62,10 @@ case "$choice" in
   "Status")
     # Show detailed status
     status_msg="Profile: $(power-profile status)"
-    command -v notify-send >/dev/null 2>&1 && \
-      notify-send "Power Profile Status" "$status_msg\nBattery: $battery_info" -t 5000
-    echo "$status_msg"
+    printf '%s\nBattery: %s\n' "$status_msg" "$battery_info"
     ;;
   *)
-    command -v notify-send >/dev/null 2>&1 && notify-send "Power Profile" "Unknown choice: $choice"
+    printf 'unknown choice: %s\n' "$choice" >&2
     exit 1
     ;;
 esac

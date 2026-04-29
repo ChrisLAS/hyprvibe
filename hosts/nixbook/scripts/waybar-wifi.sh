@@ -3,7 +3,7 @@
 
 # Check if NetworkManager is available
 if ! command -v nmcli &> /dev/null; then
-    notify-send "WiFi Manager" "NetworkManager (nmcli) is not available"
+    printf '%s\n' "NetworkManager (nmcli) is not available" >&2
     exit 1
 fi
 
@@ -11,7 +11,7 @@ fi
 WIFI_DEVICE=$(nmcli -t -f DEVICE,TYPE device | grep -E ':wifi$' | cut -d: -f1 | head -n1)
 
 if [ -z "$WIFI_DEVICE" ]; then
-    notify-send "WiFi Manager" "No WiFi device found"
+    printf '%s\n' "No WiFi device found" >&2
     exit 1
 fi
 
@@ -41,7 +41,7 @@ show_wifi_networks() {
         awk -F: '{printf "%-30s %3s%% %s\n", $1, $2, $3}')
     
     if [ -z "$NETWORKS" ]; then
-        notify-send "WiFi Manager" "No networks found. Try scanning again."
+        printf '%s\n' "No networks found. Try scanning again." >&2
         exit 1
     fi
     
@@ -68,7 +68,6 @@ show_wifi_networks() {
     # Check if already connected
     CURRENT_SSID=$(nmcli -t -f active,ssid dev wifi | grep '^yes:' | cut -d: -f2)
     if [ "$CURRENT_SSID" = "$SSID" ]; then
-        notify-send "WiFi Manager" "Already connected to $SSID"
         exit 0
     fi
     
@@ -79,16 +78,13 @@ show_wifi_networks() {
         # Check if this is a saved/known network first
         if nmcli -t -f NAME connection show | grep -q "^$SSID$"; then
             # Try connecting to saved network first (may prompt for password if needed)
-            if nmcli connection up "$SSID" 2>&1; then
-                notify-send "WiFi Manager" "Connected to $SSID"
-            else
+            if ! nmcli connection up "$SSID" 2>&1; then
                 # Saved connection failed, try with password prompt
                 PASSWORD=$(rofi -dmenu -password -p "Password for $SSID:" -width 400)
                 if [ -z "$PASSWORD" ]; then
                     exit 0
                 fi
-                nmcli device wifi connect "$SSID" password "$PASSWORD" 2>&1 | \
-                    notify-send "WiFi Manager" "$(cat)"
+                nmcli device wifi connect "$SSID" password "$PASSWORD"
             fi
         else
             # New network, ask for password
@@ -97,21 +93,11 @@ show_wifi_networks() {
                 exit 0
             fi
             # Connect with password
-            CONNECT_OUTPUT=$(nmcli device wifi connect "$SSID" password "$PASSWORD" 2>&1)
-            if [ $? -eq 0 ]; then
-                notify-send "WiFi Manager" "Connected to $SSID" -t 3000
-            else
-                notify-send "WiFi Manager" "Failed to connect: $CONNECT_OUTPUT" -t 5000
-            fi
+            nmcli device wifi connect "$SSID" password "$PASSWORD"
         fi
     else
         # Open network, connect without password
-        CONNECT_OUTPUT=$(nmcli device wifi connect "$SSID" 2>&1)
-        if [ $? -eq 0 ]; then
-            notify-send "WiFi Manager" "Connected to $SSID" -t 3000
-        else
-            notify-send "WiFi Manager" "Failed to connect: $CONNECT_OUTPUT" -t 5000
-        fi
+        nmcli device wifi connect "$SSID"
     fi
 }
 
@@ -134,16 +120,13 @@ show_wifi_menu() {
             show_wifi_networks
             ;;
         "Disconnect")
-            nmcli device disconnect "$WIFI_DEVICE" 2>&1 | \
-                notify-send "WiFi Manager" "$(cat)"
+            nmcli device disconnect "$WIFI_DEVICE"
             ;;
         "Toggle WiFi")
             if [ "$WIFI_ENABLED" = "enabled" ]; then
                 nmcli radio wifi off
-                notify-send "WiFi Manager" "WiFi disabled"
             else
                 nmcli radio wifi on
-                notify-send "WiFi Manager" "WiFi enabled"
             fi
             ;;
     esac

@@ -124,7 +124,7 @@ hyprvibe.power = {
 - Power profiles integrate with `power-profiles-daemon` when available
 - Falls back to manual sysfs manipulation if daemon unavailable
 - All changes require sudo privileges (handled automatically)
-- User notifications via `notify-send` when switching profiles
+- Power profile changes are applied silently
 
 ## Troubleshooting
 
