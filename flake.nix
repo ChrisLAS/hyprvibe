@@ -13,9 +13,6 @@
     hyprland.url = "github:hyprwm/Hyprland";
     hyprland.inputs.nixpkgs.follows = "nixpkgs";
 
-    openclaw.url = "github:openclaw/nix-openclaw";
-    openclaw.inputs.nixpkgs.follows = "nixpkgs";
-
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
     codex-cli-nix.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -31,145 +28,130 @@
     gogcli-src.flake = false;
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      prettyswitch,
-      hyprland,
-      openclaw,
-      codex-cli-nix,
-      freshrss-mcp,
-      googleworkspace-cli,
-      gogcli-src,
-      ...
-    }:
-    let
-      prettySwitchModule =
-        { pkgs, ... }:
-        {
-          environment.systemPackages = [
-            prettyswitch.packages.${pkgs.stdenv.hostPlatform.system}.default
-          ];
-        };
-    in
-    {
-      # Formatter (optional)
-      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
+  outputs = {
+    self,
+    nixpkgs,
+    prettyswitch,
+    hyprland,
+    codex-cli-nix,
+    freshrss-mcp,
+    googleworkspace-cli,
+    gogcli-src,
+    ...
+  }: let
+    prettySwitchModule = {pkgs, ...}: {
+      environment.systemPackages = [
+        prettyswitch.packages.${pkgs.stdenv.hostPlatform.system}.default
+      ];
+    };
+  in {
+    # Formatter (optional)
+    formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
 
-      # Packages
-      packages.x86_64-linux =
-        let
-          pkgs = import nixpkgs {
-            system = "x86_64-linux";
-            overlays = [
-              (import ./overlays/gogcli.nix gogcli-src)
-              (final: prev: {
-                gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
-                acpx = final.callPackage ./pkgs/acpx.nix { };
-                codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
-                codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
-                codex-acp = final.callPackage ./pkgs/codex-acp.nix { };
-              })
-            ];
-          };
-        in
-        {
-          gogcli = pkgs.gogcli;
-          gws = pkgs.gws;
-        };
-
-      nixosModules = {
-        # New hyprvibe-prefixed exports
-        hyprvibe = import ./modules/shared;
-        hyprvibe-packages = import ./modules/shared/packages.nix;
-        hyprvibe-desktop = import ./modules/shared/desktop.nix;
-        hyprvibe-hyprland = import ./modules/shared/hyprland.nix;
-        hyprvibe-waybar = import ./modules/shared/waybar.nix;
-        hyprvibe-shell = import ./modules/shared/shell.nix;
-        hyprvibe-services = import ./modules/shared/services.nix;
+    # Packages
+    packages.x86_64-linux = let
+      pkgs = import nixpkgs {
+        system = "x86_64-linux";
+        overlays = [
+          (import ./overlays/gogcli.nix gogcli-src)
+          (final: prev: {
+            gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
+            codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
+            codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
+            codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
+          })
+        ];
       };
+    in {
+      gogcli = pkgs.gogcli;
+      gws = pkgs.gws;
+    };
 
-      nixosConfigurations = {
-        rvbee = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          modules = [
-            ./hosts/rvbee/system.nix
-            ./hosts/rvbee/ai-memory-stack.nix
-            # Shared overlays for custom flake packages
-            (
-              { ... }:
-              {
-                nixpkgs.overlays = [
-                  (import ./overlays/gogcli.nix gogcli-src)
-                  (final: prev: {
-                    gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
-                    acpx = final.callPackage ./pkgs/acpx.nix { };
-                    codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
-                    codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
-                    codex-acp = final.callPackage ./pkgs/codex-acp.nix { };
-                  })
-                ];
-              }
-            )
-            prettySwitchModule
-            freshrss-mcp.nixosModules.default
-          ];
-          specialArgs = {
-            inherit self hyprland openclaw;
-            inputs = self.inputs;
-          };
+    nixosModules = {
+      # New hyprvibe-prefixed exports
+      hyprvibe = import ./modules/shared;
+      hyprvibe-packages = import ./modules/shared/packages.nix;
+      hyprvibe-desktop = import ./modules/shared/desktop.nix;
+      hyprvibe-hyprland = import ./modules/shared/hyprland.nix;
+      hyprvibe-waybar = import ./modules/shared/waybar.nix;
+      hyprvibe-shell = import ./modules/shared/shell.nix;
+      hyprvibe-services = import ./modules/shared/services.nix;
+    };
+
+    nixosConfigurations = {
+      rvbee = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/rvbee/system.nix
+          ./hosts/rvbee/ai-memory-stack.nix
+          # Shared overlays for custom flake packages
+          (
+            {...}: {
+              nixpkgs.overlays = [
+                (import ./overlays/gogcli.nix gogcli-src)
+                (final: prev: {
+                  gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
+                  codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
+                  codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
+                  codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
+                })
+              ];
+            }
+          )
+          prettySwitchModule
+          freshrss-mcp.nixosModules.default
+        ];
+        specialArgs = {
+          inherit self hyprland;
+          inputs = self.inputs;
         };
-        nixstation = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          modules = [
-            ./hosts/nixstation/system.nix
-            (
-              { ... }:
-              {
-                nixpkgs.overlays = [
-                  (final: prev: {
-                    gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
-                    acpx = final.callPackage ./pkgs/acpx.nix { };
-                    codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
-                    codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
-                    codex-acp = final.callPackage ./pkgs/codex-acp.nix { };
-                  })
-                ];
-              }
-            )
-            prettySwitchModule
-          ];
-          specialArgs = {
-            inherit hyprland;
-            inherit self;
-            inputs = self.inputs;
-          };
+      };
+      nixstation = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/nixstation/system.nix
+          (
+            {...}: {
+              nixpkgs.overlays = [
+                (final: prev: {
+                  gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
+                  codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
+                  codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
+                  codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
+                })
+              ];
+            }
+          )
+          prettySwitchModule
+        ];
+        specialArgs = {
+          inherit hyprland;
+          inherit self;
+          inputs = self.inputs;
         };
-        nixbook = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          modules = [
-            ./hosts/nixbook/system.nix
-            (
-              { ... }:
-              {
-                nixpkgs.overlays = [
-                  (final: prev: {
-                    gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
-                    acpx = final.callPackage ./pkgs/acpx.nix { };
-                    codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
-                    codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
-                    codex-acp = final.callPackage ./pkgs/codex-acp.nix { };
-                  })
-                ];
-              }
-            )
-            prettySwitchModule
-          ];
-          specialArgs = {
-            inherit hyprland;
-          };
+      };
+      nixbook = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/nixbook/system.nix
+          (
+            {...}: {
+              nixpkgs.overlays = [
+                (final: prev: {
+                  gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
+                  codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
+                  codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
+                  codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
+                })
+              ];
+            }
+          )
+          prettySwitchModule
+        ];
+        specialArgs = {
+          inherit hyprland;
         };
       };
     };
+  };
 }

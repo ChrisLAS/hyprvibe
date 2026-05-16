@@ -4,9 +4,7 @@
   pkgs,
   hyprland,
   ...
-}:
-
-let
+}: let
   # Hyprvibe user options (from modules/shared/user.nix)
   userName = config.hyprvibe.user.name;
   userGroup = config.hyprvibe.user.group;
@@ -249,7 +247,6 @@ let
     wine-wayland
     bottles-unwrapped
     pwvucontrol
-    pipecontrol
     wireplumber
     kdePackages.plasma-browser-integration
     qownnotes
@@ -524,7 +521,6 @@ let
     bottles-unwrapped
     # rustdesk-flutter  # disabled: build failure
     pwvucontrol
-    pipecontrol
     wireplumber
     kdePackages.plasma-browser-integration
     nixfmt
@@ -665,7 +661,6 @@ let
     pkgs.samba
     distrobox
     pwvucontrol
-    pipecontrol
     wireplumber
     pavucontrol
     qpwgraph
@@ -790,15 +785,15 @@ let
   # Script to setup R2 credentials template
   setupR2CredentialsScript = pkgs.writeShellScript "setup-r2-credentials" ''
         set -euo pipefail
-        
+
         SECRETS_DIR="${homeDir}/.config/secrets"
         TEMPLATE_FILE="$SECRETS_DIR/r2-credentials.template"
-        
+
         # Ensure secrets directory exists with proper permissions
         mkdir -p "$SECRETS_DIR"
         chmod 700 "$SECRETS_DIR"
         chown ${userName}:${userGroup} "$SECRETS_DIR"
-        
+
         # Create template file
         cat > "$TEMPLATE_FILE" << 'EOF'
     # R2 Credentials for Cloudflare R2 Storage
@@ -815,7 +810,7 @@ let
     # Public URL format (for reference):
     # https://feeds.jupiterbroadcasting.com/video/<filename>
     EOF
-        
+
         chmod 600 "$TEMPLATE_FILE"
         chown ${userName}:${userGroup} "$TEMPLATE_FILE"
   '';
@@ -823,30 +818,30 @@ let
   # Script to generate rclone config from R2 credentials
   generateRcloneConfigScript = pkgs.writeShellScript "generate-rclone-config" ''
         set -euo pipefail
-        
+
         SECRETS_FILE="${homeDir}/.config/secrets/r2-credentials"
         RCLONE_DIR="${homeDir}/.config/rclone"
         RCLONE_CONF="$RCLONE_DIR/rclone.conf"
-        
+
         # Skip if credentials file doesn't exist
         if [ ! -f "$SECRETS_FILE" ]; then
           echo "R2 credentials not found at $SECRETS_FILE - skipping rclone config generation"
           exit 0
         fi
-        
+
         # Source credentials
         source "$SECRETS_FILE"
-        
+
         # Validate required variables
         if [ -z "''${R2_ACCESS_KEY_ID:-}" ] || [ -z "''${R2_SECRET_ACCESS_KEY:-}" ] || [ -z "''${R2_ENDPOINT:-}" ]; then
           echo "ERROR: Missing required R2 credentials in $SECRETS_FILE"
           exit 1
         fi
-        
+
         # Create rclone config directory
         mkdir -p "$RCLONE_DIR"
         chmod 700 "$RCLONE_DIR"
-        
+
         # Generate rclone configuration
         cat > "$RCLONE_CONF" << EOF
     [r2-feeds]
@@ -860,10 +855,10 @@ let
     bucket_acl = public-read
     no_check_bucket = true
     EOF
-        
+
         chmod 600 "$RCLONE_CONF"
         chown ${userName}:${userGroup} "$RCLONE_CONF"
-        
+
         echo "Rclone configuration generated successfully"
   '';
 
@@ -909,8 +904,7 @@ let
         exit 1
     fi
   '';
-in
-{
+in {
   imports = [
     # Import the Hyprland flake module
     hyprland.nixosModules.default
@@ -1123,7 +1117,7 @@ in
         libva-vdpau-driver
         libvdpau-va-gl
       ];
-      extraPackages32 = with pkgs.pkgsi686Linux; [ libva-vdpau-driver ];
+      extraPackages32 = with pkgs.pkgsi686Linux; [libva-vdpau-driver];
     };
     # Batch 2: GPU optimizations are handled via kernel parameters (amdgpu.powerplay=1)
     i2c.enable = true;
@@ -1132,7 +1126,6 @@ in
 
   # Services - PRESERVING YOUR EXISTING CONFIG
   services = {
-
     # Enable CUPS to print documents
     printing.enable = true;
 
@@ -1245,7 +1238,7 @@ in
       login.kwallet.enable = true;
       gdm.kwallet.enable = true;
       gdm-password.kwallet.enable = true;
-      hyprlock = { };
+      hyprlock = {};
       login.enableGnomeKeyring = true;
       gdm-password.enableGnomeKeyring = true;
     };
@@ -1287,7 +1280,7 @@ in
   documentation.man.enable = false;
 
   # User configuration handled by hyprvibe.user
-  hyprvibe.user.extraGroups = [ "disk" ];
+  hyprvibe.user.extraGroups = ["disk"];
 
   # Removed stale nixstation-specific activation script body.
   # Shared hyprvibe modules now manage Hyprland, shell, and related desktop files.
@@ -1393,14 +1386,14 @@ in
   xdg.portal = {
     enable = true;
     xdgOpenUsePortal = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    extraPortals = [pkgs.xdg-desktop-portal-gtk];
     config = {
       common = {
         default = [
           "hyprland"
           "gtk"
         ];
-        "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
+        "org.freedesktop.impl.portal.ScreenCast" = ["hyprland"];
       };
     };
   };
@@ -1469,8 +1462,8 @@ in
 
   systemd.user.services.set-github-token = {
     description = "Set GITHUB_TOKEN in systemd --user environment from ~/.config/secrets/github_token";
-    after = [ "default.target" ];
-    wantedBy = [ "default.target" ];
+    after = ["default.target"];
+    wantedBy = ["default.target"];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -1481,8 +1474,8 @@ in
   # Setup OpenCode configuration with OpenRouter defaults
   systemd.user.services.setup-opencode-config = {
     description = "Setup OpenCode configuration with OpenRouter defaults";
-    after = [ "default.target" ];
-    wantedBy = [ "default.target" ];
+    after = ["default.target"];
+    wantedBy = ["default.target"];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -1493,8 +1486,8 @@ in
   # Solaar service for Logitech device management
   systemd.user.services.solaar = {
     description = "Solaar - Logitech device manager";
-    after = [ "graphical-session.target" ];
-    wantedBy = [ "graphical-session.target" ];
+    after = ["graphical-session.target"];
+    wantedBy = ["graphical-session.target"];
     serviceConfig = {
       Type = "simple";
       ExecStart = "${pkgs.solaar}/bin/solaar --window=hide";
@@ -1506,8 +1499,8 @@ in
   # Polkit authentication agent for GUI applications
   systemd.user.services.polkit-gnome-authentication-agent-1 = {
     description = "Polkit Authentication Agent";
-    after = [ "graphical-session.target" ];
-    wantedBy = [ "graphical-session.target" ];
+    after = ["graphical-session.target"];
+    wantedBy = ["graphical-session.target"];
     serviceConfig = {
       Type = "simple";
       ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
@@ -1520,8 +1513,8 @@ in
   # R2 Storage: Setup credentials template
   systemd.user.services.setup-r2-credentials-template = {
     description = "Setup R2 credentials template";
-    after = [ "default.target" ];
-    wantedBy = [ "default.target" ];
+    after = ["default.target"];
+    wantedBy = ["default.target"];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -1532,8 +1525,8 @@ in
   # R2 Storage: Generate rclone config from secrets
   systemd.user.services.setup-rclone-r2-config = {
     description = "Generate rclone R2 configuration from secrets";
-    after = [ "setup-r2-credentials-template.service" ];
-    wantedBy = [ "default.target" ];
+    after = ["setup-r2-credentials-template.service"];
+    wantedBy = ["default.target"];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -1550,7 +1543,7 @@ in
       "setup-rclone-r2-config.service"
       "network-online.target"
     ];
-    requires = [ "setup-rclone-r2-config.service" ];
+    requires = ["setup-rclone-r2-config.service"];
     # Disabled: wantedBy = [ "default.target" ];
 
     serviceConfig = {
@@ -1604,14 +1597,14 @@ in
         if [ -f "$LOG_FILE" ]; then
           SIZE=$(stat -c %s "$LOG_FILE" 2>/dev/null || echo 0)
           AGE=$(find "$LOG_FILE" -mtime +7 2>/dev/null | wc -l)
-          
+
           if [ "$SIZE" -gt 104857600 ] || [ "$AGE" -gt 0 ]; then
             mv "$LOG_FILE" "$LOG_FILE.$(date +%Y%m%d-%H%M%S)"
             touch "$LOG_FILE"
             chmod 600 "$LOG_FILE"
             chown ${userName}:${userGroup} "$LOG_FILE"
           fi
-          
+
           # Delete logs older than 14 days
           find "$LOG_DIR" -name "r2-feeds.log.*" -mtime +14 -delete
         fi
@@ -1622,7 +1615,7 @@ in
   # R2 Storage: Log rotation timer
   systemd.user.timers.rclone-r2-log-rotate = {
     description = "Timer for rclone R2 log rotation";
-    wantedBy = [ "timers.target" ];
+    wantedBy = ["timers.target"];
     timerConfig = {
       OnCalendar = "daily";
       Persistent = true;
