@@ -962,6 +962,7 @@ in {
     tailscale.enable = true;
     virt.enable = true;
     docker.enable = true;
+    syncthing.enable = true;
     nebula = {
       enable = false;
       nebulaIp = "192.168.100.11/24";

@@ -1,0 +1,7 @@
+creation_rules:
+  - path_regex: secrets/syncthing/nixstation\.yaml$
+    age: age1dl2qjmrgpl7de4ervzywv4wckm6yd7hhe0ymct6yn85nn33yscwsfvd73r
+  - path_regex: secrets/syncthing/rvbee\.yaml$
+    age: age1856fx0y56j8qs8mju88qsda7pkkxxllqalz8empjrwx485u35aeqsp595g
+  - path_regex: secrets/syncthing/nixbook\.yaml$
+    age: age1mmgpykkk0fdev7nz3q9ecjywl5menw3scz66m9e3hx920zsmpdyq6gyw4t

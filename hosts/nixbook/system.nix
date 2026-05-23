@@ -394,6 +394,7 @@ in
     tailscale.enable = true; # Enable Tailscale via shared module (configures useRoutingFeatures = "both")
     virt.enable = true;
     docker.enable = true;
+    syncthing.enable = true;
     nebula = {
       enable = true;
       nebulaIp = "192.168.100.12/24";

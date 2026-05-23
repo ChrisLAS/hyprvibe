@@ -19,6 +19,9 @@
     freshrss-mcp.url = "github:ChrisLAS/freshrss-mcp";
     freshrss-mcp.inputs.nixpkgs.follows = "nixpkgs";
 
+    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+
     googleworkspace-cli.url = "github:googleworkspace/cli";
     googleworkspace-cli.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -35,6 +38,7 @@
     hyprland,
     codex-cli-nix,
     freshrss-mcp,
+    sops-nix,
     googleworkspace-cli,
     gogcli-src,
     ...
@@ -76,6 +80,7 @@
       hyprvibe-waybar = import ./modules/shared/waybar.nix;
       hyprvibe-shell = import ./modules/shared/shell.nix;
       hyprvibe-services = import ./modules/shared/services.nix;
+      hyprvibe-syncthing = import ./modules/shared/syncthing.nix;
     };
 
     nixosConfigurations = {
@@ -100,6 +105,7 @@
           )
           prettySwitchModule
           freshrss-mcp.nixosModules.default
+          sops-nix.nixosModules.sops
         ];
         specialArgs = {
           inherit self hyprland;
@@ -123,6 +129,7 @@
             }
           )
           prettySwitchModule
+          sops-nix.nixosModules.sops
         ];
         specialArgs = {
           inherit hyprland;
@@ -147,6 +154,7 @@
             }
           )
           prettySwitchModule
+          sops-nix.nixosModules.sops
         ];
         specialArgs = {
           inherit hyprland;
