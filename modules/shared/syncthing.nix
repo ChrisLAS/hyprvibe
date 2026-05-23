@@ -17,6 +17,9 @@
     nixbook = {
       id = "RV7GZDJ-OE2DQFT-LTXETQF-BU5VGCC-7CRZDAJ-UJWG72P-WF6VSIL-DLKVYQP";
     };
+    nomad = {
+      id = "HUAZMND-Q4QYPQQ-UEYHN3N-I72DZCR-DTOPZUY-N2KE5WT-FTKTA5Z-YPICHQ7";
+    };
   };
 
   knownHosts = lib.attrNames devices;
