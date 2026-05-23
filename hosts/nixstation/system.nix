@@ -971,6 +971,10 @@ in {
       nebulaIp = "192.168.100.11/24";
     };
   };
+  hyprvibe.agentConfigs = {
+    enable = true;
+    codex.enable = true;
+  };
   hyprvibe.packages = {
     enable = true;
     base.enable = true;

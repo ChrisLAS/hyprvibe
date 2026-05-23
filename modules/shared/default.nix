@@ -17,6 +17,7 @@ in
     ./power.nix
     ./nebula.nix
     ./syncthing.nix
+    ./agent-configs.nix
   ];
 
   config = lib.mkIf cfg.enable {

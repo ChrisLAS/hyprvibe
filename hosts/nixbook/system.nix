@@ -403,6 +403,10 @@ in
       nebulaIp = "192.168.100.12/24";
     };
   };
+  hyprvibe.agentConfigs = {
+    enable = true;
+    codex.enable = true;
+  };
 
   # Add Flathub remote system-wide if it doesn't exist (Flatpak is enabled via hyprvibe.services)
   system.activationScripts.addFlathubRemote = ''

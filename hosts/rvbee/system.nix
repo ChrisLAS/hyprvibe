@@ -751,6 +751,10 @@ in {
       nebulaIp = "192.168.100.10/24";
     };
   };
+  hyprvibe.agentConfigs = {
+    enable = true;
+    codex.enable = true;
+  };
 
   # Define modular MCP snippets for opencode
   environment.etc = {
