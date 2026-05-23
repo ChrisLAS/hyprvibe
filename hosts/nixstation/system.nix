@@ -265,7 +265,6 @@
     chromium
     gnome-calculator
     gnome-keyring
-    libreoffice
     xournalpp
     localsend
     _1password-gui
@@ -555,7 +554,6 @@
     chromium
     gnome-calculator
     gnome-keyring
-    libreoffice
     kdePackages.kdenlive
     xournalpp
     localsend
