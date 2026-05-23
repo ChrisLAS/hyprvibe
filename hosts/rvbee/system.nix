@@ -742,7 +742,10 @@ in {
 
     virt.enable = true;
     docker.enable = false;
-    syncthing.enable = true;
+    syncthing = {
+      enable = true;
+      agentConfigs.enable = true;
+    };
     nebula = {
       enable = true;
       nebulaIp = "192.168.100.10/24";

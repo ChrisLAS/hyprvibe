@@ -2,8 +2,7 @@
   lib,
   config,
   ...
-}:
-let
+}: let
   cfg = config.hyprvibe.services.syncthing;
   user = config.hyprvibe.user;
   hostname = config.networking.hostName;
@@ -23,8 +22,7 @@ let
   knownHosts = lib.attrNames devices;
   peerNames = lib.filter (name: name != hostname) knownHosts;
   secretsFile = ../../secrets/syncthing + "/${hostname}.yaml";
-in
-{
+in {
   options.hyprvibe.services.syncthing = {
     enable = lib.mkEnableOption "Declarative Syncthing mesh for Hyprvibe hosts";
 
@@ -32,6 +30,16 @@ in
       type = lib.types.str;
       default = "${user.home}/build/hosts";
       description = "Path to the Hyprvibe hosts folder synced across machines.";
+    };
+
+    agentConfigs = {
+      enable = lib.mkEnableOption "shared agent configuration Syncthing folder";
+
+      path = lib.mkOption {
+        type = lib.types.str;
+        default = "${user.home}/Sync/agent-configs";
+        description = "Path to the Git-backed shared agent configuration folder.";
+      };
     };
   };
 
@@ -43,7 +51,7 @@ in
       }
     ];
 
-    sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+    sops.age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
     sops.secrets."syncthing/cert" = {
       sopsFile = secretsFile;
       key = "cert";
@@ -59,9 +67,14 @@ in
       mode = "0400";
     };
 
-    systemd.tmpfiles.rules = [
-      "d ${cfg.folderPath} 0750 ${user.name} ${user.group} -"
-    ];
+    systemd.tmpfiles.rules =
+      [
+        "d ${cfg.folderPath} 0750 ${user.name} ${user.group} -"
+      ]
+      ++ lib.optionals cfg.agentConfigs.enable [
+        "d ${user.home}/Sync 0750 ${user.name} ${user.group} -"
+        "d ${cfg.agentConfigs.path} 0750 ${user.name} ${user.group} -"
+      ];
 
     services.syncthing = {
       enable = true;
@@ -77,13 +90,25 @@ in
 
       settings = {
         devices = devices;
-        folders.hyprvibe-hosts = {
-          id = "hyprvibe-hosts";
-          label = "Hyprvibe hosts";
-          path = cfg.folderPath;
-          type = "sendreceive";
-          devices = peerNames;
-        };
+        folders =
+          {
+            hyprvibe-hosts = {
+              id = "hyprvibe-hosts";
+              label = "Hyprvibe hosts";
+              path = cfg.folderPath;
+              type = "sendreceive";
+              devices = peerNames;
+            };
+          }
+          // lib.optionalAttrs cfg.agentConfigs.enable {
+            agent-configs = {
+              id = "agent-configs";
+              label = "Agent configs";
+              path = cfg.agentConfigs.path;
+              type = "sendreceive";
+              devices = peerNames;
+            };
+          };
       };
     };
   };
