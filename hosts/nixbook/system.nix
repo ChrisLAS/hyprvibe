@@ -391,6 +391,9 @@ in
 
   # Define custom groups referenced by udev rules
   users.groups.plugdev = { };
+  users.users.chrisf.openssh.authorizedKeys.keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPQuXMFFm4a8Pb7yiw6l/ihc6QoemXOJNseSuzra1UZA chrisf@nixstation"
+  ];
   # Services configuration
   hyprvibe.services = {
     enable = true; # Enable baseline services (pipewire, flatpak, polkit, etc.)
