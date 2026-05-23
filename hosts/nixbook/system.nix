@@ -75,7 +75,6 @@ let
     qpwgraph
     # sonobus
     # krita
-    x32edit
     # pwvucontrol
     easyeffects
     wayfarer
@@ -343,6 +342,7 @@ in
   hyprvibe.hyprland.hyprlockTemplate = ./hyprlock.conf;
   hyprvibe.hyprland.hypridleConfig = ./hypridle.conf;
   hyprvibe.hyprland.scriptsDir = ./scripts;
+  hyprvibe.hyprland.wallpaperBackend = "swaybg"; # switch from hyprpaper (crashes with SIGSEGV on nixbook)
   # Intel GPU - no AMD-specific configuration needed
   hyprvibe.waybar.enable = true;
   hyprvibe.waybar.configPath = ./waybar.json;
@@ -383,7 +383,10 @@ in
     group = "users";
     home = "/home/chrisf";
     description = "Chris Fisher";
-    extraGroups = [ "plugdev" ];
+    extraGroups = [
+      "plugdev"
+      "dialout"
+    ];
   };
 
   # Define custom groups referenced by udev rules

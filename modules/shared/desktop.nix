@@ -17,10 +17,7 @@ in {
     };
 
     # Display manager for Hyprland sessions
-    services.displayManager.gdm = {
-      enable = true;
-      wayland = true;
-    };
+    services.displayManager.gdm.enable = true;
 
     xdg.portal = {
       enable = true;
@@ -45,5 +42,4 @@ in {
     );
   };
 }
-
 

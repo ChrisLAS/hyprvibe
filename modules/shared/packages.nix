@@ -87,7 +87,6 @@ let
   ];
   gamingPackages = with pkgs; [
     steam-run
-    lutris
     moonlight-qt
     # sunshine  # Temporarily disabled - build fails fetching Boost dependencies
     vulkan-tools
