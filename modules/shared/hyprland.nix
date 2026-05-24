@@ -175,6 +175,7 @@ in
     # exec-once during session startup and makes debugging easy via journalctl.
     systemd.user.services.hyprvibe-hyprpaper = lib.mkIf (cfg.wallpaperBackend == "hyprpaper") {
       description = "Hyprvibe: hyprpaper wallpaper daemon";
+      unitConfig.ConditionUser = userName;
       after = [ "hyprvibe-setup-hyprland.service" ];
       wants = [ "hyprvibe-setup-hyprland.service" ];
       wantedBy = [ "default.target" ];
@@ -237,14 +238,43 @@ in
     # Fallback wallpaper backend that doesn't depend on hyprpaper's IPC/config semantics.
     systemd.user.services.hyprvibe-swaybg = lib.mkIf (cfg.wallpaperBackend == "swaybg") {
       description = "Hyprvibe: swaybg wallpaper";
+      unitConfig.ConditionUser = userName;
       after = [ "hyprvibe-setup-hyprland.service" ];
       wants = [ "hyprvibe-setup-hyprland.service" ];
       wantedBy = [ "default.target" ];
       serviceConfig = {
         Type = "simple";
-        ExecStart = "${pkgs.swaybg}/bin/swaybg -i ${
-          if cfg.wallpaper != null then cfg.wallpaper else defaultWallpaper
-        } -m fill";
+        ExecStart = pkgs.writeShellScript "hyprvibe-start-swaybg" ''
+          set -euo pipefail
+
+          rundir="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+
+          pick_wayland_display() {
+            if [ -n "''${WAYLAND_DISPLAY:-}" ]; then
+              echo "''${WAYLAND_DISPLAY}"
+              return 0
+            fi
+            local sock
+            sock="$(ls -1 "$rundir"/wayland-* 2>/dev/null | head -n1 || true)"
+            [ -n "$sock" ] || return 1
+            basename "$sock"
+          }
+
+          for _ in $(seq 1 100); do
+            wl="$(pick_wayland_display || true)"
+            if [ -n "$wl" ] && [ -S "$rundir/$wl" ]; then
+              export XDG_RUNTIME_DIR="$rundir"
+              export WAYLAND_DISPLAY="$wl"
+              exec ${pkgs.swaybg}/bin/swaybg -i ${
+                if cfg.wallpaper != null then cfg.wallpaper else defaultWallpaper
+              } -m fill
+            fi
+            sleep 0.1
+          done
+
+          echo "[hyprvibe][swaybg] timeout waiting for Wayland readiness" >&2
+          exit 1
+        '';
         Restart = "on-failure";
         RestartSec = 1;
       };
@@ -253,6 +283,7 @@ in
     # Move setup to systemd --user oneshot to avoid blocking stage-2
     systemd.user.services.hyprvibe-setup-hyprland = {
       description = "Hyprvibe: setup Hyprland configs in user home";
+      unitConfig.ConditionUser = userName;
       wantedBy = [ "default.target" ];
       serviceConfig = {
         Type = "oneshot";

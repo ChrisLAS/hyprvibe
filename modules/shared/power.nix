@@ -70,6 +70,7 @@ in
     # Power profile switching script
     systemd.user.services.power-profile-switcher = {
       description = "Power profile switcher script";
+      unitConfig.ConditionUser = userName;
       wantedBy = [ "default.target" ];
       serviceConfig = {
         Type = "oneshot";
@@ -86,6 +87,7 @@ in
     # Battery monitoring and auto-sleep service
     systemd.user.services.battery-auto-sleep = lib.mkIf (cfg.autoSleepOnBatteryMinutes > 0) {
       description = "Auto-sleep on battery after inactivity";
+      unitConfig.ConditionUser = userName;
       after = [ "graphical-session.target" ];
       wantedBy = [ "graphical-session.target" ];
       serviceConfig = {

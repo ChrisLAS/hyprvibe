@@ -65,6 +65,7 @@ in
     # Move shell setup to systemd --user oneshot
     systemd.user.services.hyprvibe-setup-shell = {
       description = "Hyprvibe: setup shell config in user home";
+      unitConfig.ConditionUser = userName;
       wantedBy = [ "default.target" ];
       serviceConfig = {
         Type = "oneshot";
@@ -148,6 +149,7 @@ in
     # Move kitty config write to user oneshot as well
     systemd.user.services.hyprvibe-setup-kitty = lib.mkIf (cfg.kittyConfig.enable or false) {
       description = "Hyprvibe: write kitty.conf in user home";
+      unitConfig.ConditionUser = userName;
       wantedBy = [ "default.target" ];
       serviceConfig = {
         Type = "oneshot";

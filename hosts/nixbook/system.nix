@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   hyprland,
   ...
@@ -333,6 +334,15 @@ in
     enable = true;
     fonts.enable = true;
   };
+  # GDM 50 currently fails to start its own Wayland greeter on nixbook
+  # ("gdm-wayland-session gnome-session" exits before registering).
+  services.displayManager.gdm.enable = lib.mkForce false;
+  services.displayManager.sddm = {
+    enable = true;
+    wayland.enable = true;
+  };
+  services.displayManager.defaultSession = "hyprland";
+
   hyprvibe.hyprland.enable = true;
   # Provide per-host monitors and wallpaper paths to shared module
   hyprvibe.hyprland.monitorsFile = ../../configs/hyprland-monitors-nixbook.conf;
@@ -702,6 +712,7 @@ in
     # Load GITHUB_TOKEN into the systemd user manager environment from a local secret file
     user.services.set-github-token = {
       description = "Set GITHUB_TOKEN in systemd --user environment from ~/.config/secrets/github_token";
+      unitConfig.ConditionUser = userName;
       after = [ "default.target" ];
       wantedBy = [ "default.target" ];
       serviceConfig = {
@@ -714,6 +725,7 @@ in
     # Setup OpenCode configuration with OpenRouter defaults
     user.services.setup-opencode-config = {
       description = "Setup OpenCode configuration with OpenRouter defaults";
+      unitConfig.ConditionUser = userName;
       after = [ "default.target" ];
       wantedBy = [ "default.target" ];
       serviceConfig = {

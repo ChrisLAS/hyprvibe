@@ -58,6 +58,7 @@ in {
     # Move setup to systemd --user oneshot
     systemd.user.services.hyprvibe-setup-waybar = {
       description = "Hyprvibe: setup Waybar configs in user home";
+      unitConfig.ConditionUser = userName;
       wantedBy = [ "default.target" ];
       serviceConfig = {
         Type = "oneshot";
@@ -84,5 +85,4 @@ in {
     };
   };
 }
-
 
