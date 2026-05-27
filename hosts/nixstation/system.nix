@@ -4,7 +4,8 @@
   pkgs,
   hyprland,
   ...
-}: let
+}:
+let
   # Hyprvibe user options (from modules/shared/user.nix)
   userName = config.hyprvibe.user.name;
   userGroup = config.hyprvibe.user.group;
@@ -39,7 +40,6 @@
     opencode
     android-tools
     yarn
-    nodejs_20
     qemu
     speechd
     roboto
@@ -120,16 +120,6 @@
     pzip
     lrzip
     kdePackages.ark
-    kdePackages.yakuake
-    kdePackages.kdenlive
-    kdePackages.ktorrent
-    krita
-    kdePackages.discover
-    kdePackages.kfind
-    kdePackages.kleopatra
-    kdePackages.filelight
-    kdePackages.isoimagewriter
-    kdePackages.partitionmanager
 
     ghostty
     htop
@@ -168,7 +158,6 @@
     playerctl
     kdePackages.kwallet
     kdePackages.kwallet-pam
-    kdePackages.kate
     fd
     eza
     fzf
@@ -248,7 +237,6 @@
     bottles-unwrapped
     pwvucontrol
     wireplumber
-    kdePackages.plasma-browser-integration
     qownnotes
 
     btrfs-progs
@@ -288,23 +276,6 @@
     vulkan-tools
     playonlinux
 
-    kdePackages.dolphin
-    kdePackages.kio-extras
-    kdePackages.kio-fuse
-    kdePackages.kio-admin
-    kdePackages.kdenetwork-filesharing
-    kdePackages.ffmpegthumbs
-    kdePackages.kdegraphics-thumbnailers
-    kdePackages.kimageformats
-    kdePackages.konsole
-    kdePackages.systemsettings
-    kdePackages.kinfocenter
-    kdePackages.kfilemetadata
-    kdePackages.baloo
-    kdePackages.baloo-widgets
-    kdePackages.kservice
-    kdePackages.kded
-    kdePackages.kio-extras-kf5
     shared-mime-info
     desktop-file-utils
     thunar
@@ -323,438 +294,6 @@
     dialect
     drawing
   ];
-
-  multimedia = with pkgs; [
-    mpv
-    vlc
-    ffmpeg-full
-    lame
-    reaper
-    (pkgs.writeShellScriptBin "reaper-x11" ''
-      # Ensure an X11 DISPLAY is set; avoid Nix interpolation issues
-      if [ -z "$DISPLAY" ]; then
-        export DISPLAY=:0
-      fi
-      exec env -u WAYLAND_DISPLAY -u QT_QPA_PLATFORM -u GDK_BACKEND -u XDG_SESSION_TYPE \
-        QT_QPA_PLATFORM=xcb \
-        GDK_BACKEND=x11 \
-        XDG_SESSION_TYPE=x11 \
-        reaper -newinst "$@"
-    '')
-    (pkgs.makeDesktopItem {
-      name = "reaper-x11";
-      desktopName = "REAPER (X11)";
-      comment = "Launch REAPER using X11/XWayland for Wayland compositors";
-      exec = "reaper-x11 %F";
-      terminal = false;
-      categories = [
-        "AudioVideo"
-        "Audio"
-        "Midi"
-      ];
-      icon = "reaper";
-      type = "Application";
-    })
-    qjackctl
-    qpwgraph
-    x32edit
-    easyeffects
-    wayfarer
-    obs-studio
-    obs-studio-plugins.obs-pipewire-audio-capture
-    libepoxy
-    audacity
-    ffmpegthumbnailer
-    gnome.gvfs
-    imv
-    # Additional multimedia from your current config
-    v4l-utils
-    v4l2-relayd
-    libv4l
-    roc-toolkit
-    libarchive
-    libzip
-    unrar
-    pzip
-    lrzip
-    kdePackages.ark
-    kdePackages.yakuake
-    kdePackages.kdenlive
-    kdePackages.ktorrent
-    krita
-    kdePackages.discover
-    kdePackages.kfind
-    kdePackages.kleopatra
-    kdePackages.filelight
-    kdePackages.isoimagewriter
-    kdePackages.partitionmanager
-  ];
-
-  utilities = with pkgs; [
-    ghostty
-    htop
-    btop
-    fastfetch
-    nmap
-    mosh
-    yt-dlp
-    zip
-    unzip
-    gnupg
-    # ADB command (systemd 258+ handles uaccess rules; `programs.adb` is deprecated)
-    android-tools
-    restic
-    autorestic
-    restique
-    hddtemp
-    smartmontools
-    iotop
-    lm_sensors
-    tree
-    lsof
-    lshw
-    tor-browser
-    wmctrl
-    oh-my-posh
-    # Hyprland utilities
-    waybar
-    wl-clipboard
-    grim
-    slurp
-    swappy
-    wf-recorder
-    wlroots
-    xdg-desktop-portal-hyprland
-    xdg-desktop-portal-gtk
-    xdg-utils
-    kdePackages.polkit-kde-agent-1
-    polkit_gnome
-    qt6.qtbase
-    qt6.qtwayland
-    cliphist
-    brightnessctl
-    playerctl
-    kdePackages.kwallet
-    kdePackages.kwallet-pam
-    kdePackages.kate
-    fd
-    eza
-    fzf
-    ripgrep
-    zoxide
-    bat
-    jq
-    xmlstarlet
-    tldr
-    plocate
-    less
-    whois
-    bash-completion
-    pamixer
-    wiremix
-    fcitx5
-    fcitx5-gtk
-    kdePackages.fcitx5-qt
-    nautilus
-    libqalculate
-    swaybg
-    swayosd
-    rofi
-    # qt6ct  # Temporarily disabled - pulls in qgnomeplatform which has build failure in current nixpkgs
-    pavucontrol
-    networkmanagerapplet
-    atuin
-    ddcutil
-    curl
-    openssh
-    glib-networking
-    rclone
-    # rclone-ui  # Disabled: build fails due to tao-macros crate unavailable
-    librclone
-    syncrclone
-    git-annex-remote-rclone
-    # Additional utilities from your current config
-    usbmuxd
-    magic-wormhole
-    adb-sync
-    jmtpfs
-    nextcloud-client
-    gnome-firmware
-    usbutils
-    parted
-    gparted
-    libisoburn # Provides xorriso
-    dvdplusrwtools # Provides growisofs
-    wayland-protocols
-    wayland-scanner
-    wayland
-    avahi
-    mesa
-    libffi
-    libevdev
-    libcap
-    libdrm
-    libxrandr
-    libxcb
-    libevdev
-    libpulseaudio
-    libx11
-    libxfixes
-    libva
-    libvdpau
-    moonlight-qt
-    # sunshine  # Temporarily disabled - build fails fetching Boost dependencies
-    virt-manager
-    fuse
-    fuse3
-    appimage-run
-    pop-gtk-theme
-    cool-retro-term
-    gparted
-    vscode-fhs
-    logitech-udev-rules
-    ltunify
-    solaar
-    gtop
-    wine-wayland
-    bottles-unwrapped
-    # rustdesk-flutter  # disabled: build failure
-    pwvucontrol
-    wireplumber
-    kdePackages.plasma-browser-integration
-    nixfmt
-    qownnotes
-  ];
-
-  systemTools = with pkgs; [
-    btrfs-progs
-    btrfs-snap
-    pciutils
-    cifs-utils
-    samba
-    fuse
-    fuse3
-    docker-compose
-    # Additional system tools from your current config
-    cifs-utils
-    samba
-    distrobox
-  ];
-
-  applications = with pkgs; [
-    firefox
-    brave
-    google-chrome
-    nextcloud-client
-    trayscale
-    # maestral-gui  # Temporarily disabled - pulls in non-overridden maestral which fails tests
-    qownnotes
-    libation
-    audible-cli
-    chromium
-    gnome-calculator
-    gnome-keyring
-    kdePackages.kdenlive
-    xournalpp
-    localsend
-    _1password-gui
-    _1password-cli
-    hyprpicker
-    hyprshot
-    wl-clip-persist
-    hyprpaper
-    hypridle
-    hyprlock
-    hyprsunset
-    yazi
-    starship
-    # rclone-browser  # Temporarily disabled due to build issues
-    # Additional applications from your current config
-    maestral
-    # maestral-gui  # Temporarily disabled - pulls in non-overridden maestral which fails tests
-    steam-run
-    steam
-    appimage-run
-    adb-sync
-    gnumake
-    unzip
-    zip
-    gnupg
-    pkgs.restic
-    pkgs.autorestic
-    pkgs.restique
-    pkgs.nextcloud-client
-    pkgs.gnome-firmware
-    wayland-protocols
-    wayland-scanner
-    wayland
-    avahi
-    mesa
-    libffi
-    libevdev
-    libcap
-    libdrm
-    libxrandr
-    libxcb
-    ffmpeg-full
-    libevdev
-    libpulseaudio
-    libx11
-    pkgs.libxcb
-    libxfixes
-    libva
-    libvdpau
-    pkgs.moonlight-qt
-    # pkgs.sunshine  # Temporarily disabled - build fails fetching Boost dependencies
-    virt-manager
-    fuse
-    fuse3
-    appimage-run
-    pop-gtk-theme
-    cool-retro-term
-    gparted
-    vscode-fhs
-    logitech-udev-rules
-    ltunify
-    solaar
-    gtop
-    wine-wayland
-    bottles-unwrapped
-    yarn
-    pkgs.nodejs_20
-    pkgs.qemu
-    speechd
-    roboto
-    roboto-serif
-    quickemu
-    junction
-    distrobox
-    tor-browser
-    v4l-utils
-    v4l2-relayd
-    libv4l
-    # sunshine  # Temporarily disabled - build fails fetching Boost dependencies
-    nixfmt
-    qownnotes
-    roc-toolkit
-    libarchive
-    libzip
-    unrar
-    pzip
-    lrzip
-    kdePackages.ark
-    kdePackages.yakuake
-    kdePackages.kdenlive
-    kdePackages.ark
-    kdePackages.ktorrent
-    krita
-    kdePackages.discover
-    kdePackages.kfind
-    kdePackages.kleopatra
-    kdePackages.filelight
-    kdePackages.isoimagewriter
-    kdePackages.partitionmanager
-    # rustdesk-flutter  # disabled: build failure
-    pkgs.cifs-utils
-    pkgs.samba
-    distrobox
-    pwvucontrol
-    wireplumber
-    pavucontrol
-    qpwgraph
-    kdePackages.plasma-browser-integration
-    gitui
-    cmake
-    ispell
-    gcc
-    go
-    aspell
-    gnumake
-    patchelf
-    mesa-demos
-    roc-toolkit
-    binutils
-    dool
-    file
-    iotop
-    pciutils
-    zellij
-    tree
-    lsof
-    lshw
-    jack2
-    obs-studio
-    obs-studio-plugins.wlrobs
-    obs-studio-plugins.waveform
-    obs-studio-plugins.obs-pipewire-audio-capture
-    lazygit
-    brave
-    simplex-chat-desktop
-    xrdp
-    caffeine-ng
-    filezilla
-    zed-editor
-    lutris
-    adwaita-icon-theme
-  ];
-
-  gaming = with pkgs; [
-    steam-run
-    moonlight-qt
-    # sunshine  # Temporarily disabled - build fails fetching Boost dependencies
-    adwaita-icon-theme
-    lutris
-    playonlinux
-    vulkan-tools
-    # Additional gaming from your current config
-    steam
-    appimage-run
-    wine-wayland
-    bottles-unwrapped
-  ];
-
-  # GTK applications
-  gtkApps = with pkgs; [
-    kdePackages.dolphin
-    kdePackages.kio-extras
-    kdePackages.kio-fuse
-    kdePackages.kio-admin
-    kdePackages.kdenetwork-filesharing
-    kdePackages.ffmpegthumbs
-    kdePackages.kdegraphics-thumbnailers
-    kdePackages.kimageformats
-    kdePackages.ark
-    kdePackages.konsole
-    # KDE System Components for file associations
-    kdePackages.systemsettings
-    kdePackages.kinfocenter
-    kdePackages.kfilemetadata
-    kdePackages.baloo
-    kdePackages.baloo-widgets
-    kdePackages.kservice
-    kdePackages.kded
-    kdePackages.kio-extras-kf5
-    shared-mime-info
-    desktop-file-utils
-    thunar
-    tumbler
-    gvfs
-    tokyonight-gtk-theme
-    papirus-icon-theme
-    bibata-cursors
-    # adwaita-qt and adwaita-qt6 removed - qgnomeplatform build failure in current nixpkgs
-    evince
-    eog
-    gnome-calculator
-    file-roller
-    celluloid
-    fragments
-    blanket
-    metadata-cleaner
-    dialect
-    drawing
-  ];
-
   # Centralized wallpaper path (standardized repo path; ensure the file exists in wallpapers/)
   wallpaperPath = ../../wallpapers/aishot-2602.jpg;
 
@@ -902,7 +441,8 @@
         exit 1
     fi
   '';
-in {
+in
+{
   imports = [
     # Import the Hyprland flake module
     hyprland.nixosModules.default
@@ -1123,7 +663,7 @@ in {
         libva-vdpau-driver
         libvdpau-va-gl
       ];
-      extraPackages32 = with pkgs.pkgsi686Linux; [libva-vdpau-driver];
+      extraPackages32 = with pkgs.pkgsi686Linux; [ libva-vdpau-driver ];
     };
     # Batch 2: GPU optimizations are handled via kernel parameters (amdgpu.powerplay=1)
     i2c.enable = true;
@@ -1244,7 +784,7 @@ in {
       login.kwallet.enable = true;
       gdm.kwallet.enable = true;
       gdm-password.kwallet.enable = true;
-      hyprlock = {};
+      hyprlock = { };
       login.enableGnomeKeyring = true;
       gdm-password.enableGnomeKeyring = true;
     };
@@ -1286,7 +826,7 @@ in {
   documentation.man.enable = false;
 
   # User configuration handled by hyprvibe.user
-  hyprvibe.user.extraGroups = ["disk"];
+  hyprvibe.user.extraGroups = [ "disk" ];
 
   # Removed stale nixstation-specific activation script body.
   # Shared hyprvibe modules now manage Hyprland, shell, and related desktop files.
@@ -1392,14 +932,14 @@ in {
   xdg.portal = {
     enable = true;
     xdgOpenUsePortal = true;
-    extraPortals = [pkgs.xdg-desktop-portal-gtk];
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
     config = {
       common = {
         default = [
           "hyprland"
           "gtk"
         ];
-        "org.freedesktop.impl.portal.ScreenCast" = ["hyprland"];
+        "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
       };
     };
   };
@@ -1468,8 +1008,8 @@ in {
 
   systemd.user.services.set-github-token = {
     description = "Set GITHUB_TOKEN in systemd --user environment from ~/.config/secrets/github_token";
-    after = ["default.target"];
-    wantedBy = ["default.target"];
+    after = [ "default.target" ];
+    wantedBy = [ "default.target" ];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -1480,8 +1020,8 @@ in {
   # Setup OpenCode configuration with OpenRouter defaults
   systemd.user.services.setup-opencode-config = {
     description = "Setup OpenCode configuration with OpenRouter defaults";
-    after = ["default.target"];
-    wantedBy = ["default.target"];
+    after = [ "default.target" ];
+    wantedBy = [ "default.target" ];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -1492,8 +1032,8 @@ in {
   # Solaar service for Logitech device management
   systemd.user.services.solaar = {
     description = "Solaar - Logitech device manager";
-    after = ["graphical-session.target"];
-    wantedBy = ["graphical-session.target"];
+    after = [ "graphical-session.target" ];
+    wantedBy = [ "graphical-session.target" ];
     serviceConfig = {
       Type = "simple";
       ExecStart = "${pkgs.solaar}/bin/solaar --window=hide";
@@ -1505,8 +1045,8 @@ in {
   # Polkit authentication agent for GUI applications
   systemd.user.services.polkit-gnome-authentication-agent-1 = {
     description = "Polkit Authentication Agent";
-    after = ["graphical-session.target"];
-    wantedBy = ["graphical-session.target"];
+    after = [ "graphical-session.target" ];
+    wantedBy = [ "graphical-session.target" ];
     serviceConfig = {
       Type = "simple";
       ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
@@ -1519,8 +1059,8 @@ in {
   # R2 Storage: Setup credentials template
   systemd.user.services.setup-r2-credentials-template = {
     description = "Setup R2 credentials template";
-    after = ["default.target"];
-    wantedBy = ["default.target"];
+    after = [ "default.target" ];
+    wantedBy = [ "default.target" ];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -1531,8 +1071,8 @@ in {
   # R2 Storage: Generate rclone config from secrets
   systemd.user.services.setup-rclone-r2-config = {
     description = "Generate rclone R2 configuration from secrets";
-    after = ["setup-r2-credentials-template.service"];
-    wantedBy = ["default.target"];
+    after = [ "setup-r2-credentials-template.service" ];
+    wantedBy = [ "default.target" ];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -1549,7 +1089,7 @@ in {
       "setup-rclone-r2-config.service"
       "network-online.target"
     ];
-    requires = ["setup-rclone-r2-config.service"];
+    requires = [ "setup-rclone-r2-config.service" ];
     # Disabled: wantedBy = [ "default.target" ];
 
     serviceConfig = {
@@ -1621,7 +1161,7 @@ in {
   # R2 Storage: Log rotation timer
   systemd.user.timers.rclone-r2-log-rotate = {
     description = "Timer for rclone R2 log rotation";
-    wantedBy = ["timers.target"];
+    wantedBy = [ "timers.target" ];
     timerConfig = {
       OnCalendar = "daily";
       Persistent = true;
