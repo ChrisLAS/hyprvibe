@@ -12,6 +12,15 @@ bd close <id>         # Complete work
 bd sync               # Sync with git
 ```
 
+## Nixstation Runtime Safety
+
+- Never run `nixos-rebuild switch` or `nixos-rebuild test` on `nixstation`
+  without Chris's explicit permission.
+- This is critical when working on Wayland, Hyprland, display manager,
+  graphics, monitor, DPMS, lock-screen, or user-session configuration.
+- Prefer `nix flake check`, targeted builds, and `nixos-rebuild boot` for
+  staged changes unless Chris asks for a live activation.
+
 ## Landing the Plane (Session Completion)
 
 **When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
@@ -37,4 +46,3 @@ bd sync               # Sync with git
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
-
