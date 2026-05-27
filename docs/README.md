@@ -34,7 +34,7 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
 
 - **Lock screen and idle**
   - `hyprlock` with PAM enabled (`security.pam.services.hyprlock = { };`)
-  - `hypridle` drives DPMS/off-on and lock-before-sleep
+  - `hypridle` handles lock-before-sleep; displays are only powered off by explicit keybindings/session lock
   - Wallpaper templated into `hyprpaper` and `hyprlock` via activation script
 
 - **Waybar + desktop helpers**
@@ -141,7 +141,7 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
 | Launchers | SUPER+S | Slack & Telegram | Launch communication apps (monitor-specific) |
 | Brightness | SUPER+B | Brightness menu | `~/.local/bin/rofi-brightness` (launcher-backed menu) |
 | Session | SUPER+M | Exit Hyprland | `exit` |
-| Session | SUPER+L | Lock | `hyprlock` |
+| Session | SUPER+L | Lock and screen off | `loginctl lock-session`, then DPMS off |
 | Rofi | SUPER+SHIFT+SPACE | (unused) | previously rofi drun |
 | Rofi | SUPER+ALT+SPACE | (unused) | previously rofi file browser |
 | Rofi | SUPER+CTRL+SPACE | (unused) | previously rofi keys |
