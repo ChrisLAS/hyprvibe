@@ -158,7 +158,7 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
 | Mouse | SUPER + LMB drag | Move window | `bindm … movewindow` |
 | Mouse | SUPER + RMB drag | Resize window | `bindm … resizewindow` |
 | Display power | SUPER+SHIFT+L | Screen off (DPMS) | `hyprctl dispatch dpms off` |
-| Display power | SUPER+ALT+L | Screen on (DPMS) | `hyprctl dispatch dpms on` |
+| Display power | SUPER+ALT+L | Wake monitors | `~/.config/hypr/scripts/wake-monitors.sh` |
 | Screenshot | Print | Region to clipboard | `grim -g "$(slurp)" - | wl-copy` |
 | Screenshot | SHIFT+Print | Region to file | `grim -g "$(slurp)" ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png` |
 | Audio | XF86AudioRaiseVolume | Volume up +5% | `wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+` |
