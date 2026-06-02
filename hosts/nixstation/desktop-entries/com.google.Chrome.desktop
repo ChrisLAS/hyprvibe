@@ -1,0 +1,21 @@
+[Desktop Entry]
+Name=Google Chrome
+GenericName=Web Browser
+Comment=Launch Google Chrome through the Hyprvibe Flatpak wrapper
+Exec=/home/chrisf/.local/bin/hyprvibe-launch-chrome %U
+Icon=com.google.Chrome
+Type=Application
+MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/pdf;x-scheme-handler/http;x-scheme-handler/https;
+Categories=Network;WebBrowser;
+StartupNotify=true
+StartupWMClass=google-chrome
+Terminal=false
+Actions=new-window;incognito;
+
+[Desktop Action new-window]
+Name=New Window
+Exec=/home/chrisf/.local/bin/hyprvibe-launch-chrome about:blank
+
+[Desktop Action incognito]
+Name=New Incognito Window
+Exec=/home/chrisf/.local/bin/hyprvibe-launch-chrome --incognito

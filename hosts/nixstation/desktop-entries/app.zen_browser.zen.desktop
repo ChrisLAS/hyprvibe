@@ -1,0 +1,21 @@
+[Desktop Entry]
+Name=Zen Browser
+GenericName=Web Browser
+Comment=Launch Zen Browser through the Hyprvibe Flatpak wrapper
+Exec=/home/chrisf/.local/bin/hyprvibe-launch-zen %U
+Icon=app.zen_browser.zen
+Type=Application
+MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/pdf;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/mailto;
+Categories=Network;WebBrowser;
+StartupNotify=true
+StartupWMClass=app.zen_browser.zen
+Terminal=false
+Actions=new-window;private-window;
+
+[Desktop Action new-window]
+Name=New Window
+Exec=/home/chrisf/.local/bin/hyprvibe-launch-zen about:blank
+
+[Desktop Action private-window]
+Name=New Private Window
+Exec=/home/chrisf/.local/bin/hyprvibe-launch-zen --private-window
