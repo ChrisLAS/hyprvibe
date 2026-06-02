@@ -1171,6 +1171,36 @@ in
   # Enable/Disable automatic login for the user - PRESERVING YOUR EXISTING CONFIG
   services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = "chrisf";
+  services.displayManager.defaultSession = "hyprland";
+
+  system.activationScripts.nixstationAccountsServiceSession = lib.mkAfter ''
+    accounts_file=/var/lib/AccountsService/users/chrisf
+    mkdir -p /var/lib/AccountsService/users
+
+    if [ ! -f "$accounts_file" ]; then
+      printf '[User]\n' > "$accounts_file"
+    elif ! grep -q '^\[User\]' "$accounts_file"; then
+      tmp_file="$(mktemp)"
+      {
+        printf '[User]\n'
+        cat "$accounts_file"
+      } > "$tmp_file"
+      cat "$tmp_file" > "$accounts_file"
+      rm -f "$tmp_file"
+    fi
+
+    if grep -q '^Session=' "$accounts_file"; then
+      sed -i 's/^Session=.*/Session=hyprland/' "$accounts_file"
+    else
+      printf 'Session=hyprland\n' >> "$accounts_file"
+    fi
+
+    if grep -q '^SessionType=' "$accounts_file"; then
+      sed -i 's/^SessionType=.*/SessionType=wayland/' "$accounts_file"
+    else
+      printf 'SessionType=wayland\n' >> "$accounts_file"
+    fi
+  '';
 
   # Workaround for GNOME autologin - PRESERVING YOUR EXISTING CONFIG
   systemd.services."getty@tty1".enable = false;
