@@ -311,42 +311,6 @@
       systemctl --user set-environment GITHUB_TOKEN="$value"
     fi
   '';
-  # Script to setup OpenCode configuration with modular MCP snippets
-  setupOpencodeConfigScript = pkgs.writeShellScript "setup-opencode-config" ''
-    set -euo pipefail
-
-    # 1. Ensure directories exist
-    mkdir -p ${homeDir}/.config/opencode
-
-    # 2. Base Configuration Template
-    BASE_CONFIG='{
-      "$schema": "https://opencode.ai/config.json",
-      "model": "anthropic/claude-sonnet-4.5",
-      "autoupdate": true,
-      "theme": "opencode",
-      "mcp": {}
-    }'
-
-    # 3. Safe Merge using jq
-    # Iterates over snippets in /etc/opencode/mcp.d and merges them into the base
-    if [ -d "/etc/opencode/mcp.d" ] && [ "$(ls -A /etc/opencode/mcp.d/*.json 2>/dev/null)" ]; then
-      MERGED_MCP=$(${pkgs.jq}/bin/jq -s 'reduce .[] as $item ({}; . * $item)' /etc/opencode/mcp.d/*.json)
-      FINAL_JSON=$(echo "$BASE_CONFIG" | ${pkgs.jq}/bin/jq --argjson mcp "$MERGED_MCP" '.mcp = $mcp')
-    else
-      FINAL_JSON="$BASE_CONFIG"
-    fi
-
-    # 4. Atomic Deployment
-    echo "$FINAL_JSON" > ${homeDir}/.config/opencode/opencode.json.tmp
-    if ${pkgs.jq}/bin/jq . ${homeDir}/.config/opencode/opencode.json.tmp > /dev/null 2>&1; then
-      mv ${homeDir}/.config/opencode/opencode.json.tmp ${homeDir}/.config/opencode/opencode.json
-      chown ${userName}:${userGroup} ${homeDir}/.config/opencode/opencode.json
-    else
-      echo "ERROR: Generated JSON is invalid. Aborting update to prevent breakage."
-      exit 1
-    fi
-  '';
-
   # Script to setup SSH config for remote host management
   setupSshConfigScript = pkgs.writeShellScript "setup-ssh-config" ''
         set -euo pipefail
@@ -959,18 +923,6 @@ in {
         Type = "oneshot";
         RemainAfterExit = true;
         ExecStart = "${setGithubTokenScript}";
-      };
-    };
-
-    # Setup OpenCode configuration with MCP servers
-    user.services.setup-opencode-config = {
-      description = "Setup OpenCode configuration with MCP servers";
-      after = ["default.target"];
-      wantedBy = ["default.target"];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        ExecStart = "${setupOpencodeConfigScript}";
       };
     };
 

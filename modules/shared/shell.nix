@@ -122,6 +122,17 @@ in
             end
             EOF
           ''}
+                    cat > ${userHome}/.config/fish/conf.d/hermes_api_keys.fish << 'EOF'
+          if test -r ~/.config/secrets/hermes_lore_api_server_key
+            set -gx HERMES_LORE_API_KEY (string trim (cat ~/.config/secrets/hermes_lore_api_server_key))
+          end
+          if test -r ~/.config/secrets/hermes_data_api_server_key
+            set -gx HERMES_DATA_API_KEY (string trim (cat ~/.config/secrets/hermes_data_api_server_key))
+          end
+          if test -r ~/.config/secrets/hermes_number_one_api_server_key
+            set -gx HERMES_NUMBER_ONE_API_KEY (string trim (cat ~/.config/secrets/hermes_number_one_api_server_key))
+          end
+          EOF
           ${lib.optionalString ((cfg.kittyIntegration.enable or false) || (cfg.kittyAsDefault or false)) ''
                           cat > ${userHome}/.config/fish/conf.d/kitty-integration.fish << 'EOF'
             if test "$TERM" = "xterm-kitty"

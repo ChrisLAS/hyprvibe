@@ -304,21 +304,6 @@ let
       systemctl --user set-environment GITHUB_TOKEN="$value"
     fi
   '';
-  # Script to setup OpenCode configuration with OpenRouter defaults
-  setupOpencodeConfigScript = pkgs.writeShellScript "setup-opencode-config" ''
-    set -euo pipefail
-    mkdir -p ${homeDir}/.config/opencode
-    cat > ${homeDir}/.config/opencode/opencode.json << 'EOF'
-    {
-      "$schema": "https://opencode.ai/config.json",
-      "model": "anthropic/claude-sonnet-4.5",
-      "autoupdate": true,
-      "theme": "opencode"
-    }
-    EOF
-    chown ${userName}:${userGroup} ${homeDir}/.config/opencode/opencode.json
-  '';
-
   # Script to setup R2 credentials template
   setupR2CredentialsScript = pkgs.writeShellScript "setup-r2-credentials" ''
         set -euo pipefail
@@ -1014,18 +999,6 @@ in
       Type = "oneshot";
       RemainAfterExit = true;
       ExecStart = "${setGithubTokenScript}";
-    };
-  };
-
-  # Setup OpenCode configuration with OpenRouter defaults
-  systemd.user.services.setup-opencode-config = {
-    description = "Setup OpenCode configuration with OpenRouter defaults";
-    after = [ "default.target" ];
-    wantedBy = [ "default.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = "${setupOpencodeConfigScript}";
     };
   };
 

@@ -18,6 +18,7 @@ in
     ./nebula.nix
     ./syncthing.nix
     ./agent-configs.nix
+    ./opencode.nix
   ];
 
   config = lib.mkIf cfg.enable {
@@ -35,6 +36,7 @@ in
       openssh.enable = true;
     };
     hyprvibe.system.enable = true;
+    hyprvibe.opencode.enable = true;
     hyprvibe.packages = {
       enable = true;
       base.enable = true;
