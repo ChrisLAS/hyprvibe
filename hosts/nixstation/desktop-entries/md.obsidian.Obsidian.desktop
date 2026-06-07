@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Obsidian
+GenericName=Notes
+Comment=Launch Obsidian through the Hyprvibe Flatpak wrapper
+Exec=/home/chrisf/.local/bin/hyprvibe-launch-obsidian %U
+Icon=md.obsidian.Obsidian
+Type=Application
+MimeType=x-scheme-handler/obsidian;
+Categories=Office;
+StartupNotify=true
+StartupWMClass=obsidian
+Terminal=false
