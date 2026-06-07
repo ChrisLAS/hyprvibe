@@ -5,4 +5,4 @@ if [ "$#" -eq 0 ]; then
   set -- about:blank
 fi
 
-exec flatpak run app.zen_browser.zen "$@"
+exec /run/current-system/sw/bin/flatpak run app.zen_browser.zen "$@"
