@@ -32,13 +32,16 @@ adjust_ddc() {
 }
 
 current="$(get_percent || echo "?")"
-if ! command -v vicinae >/dev/null 2>&1; then
+VICINAE_BIN="${HOME}/.local/bin/vicinae-safe"
+if [ ! -x "$VICINAE_BIN" ]; then
+  VICINAE_BIN=vicinae
+fi
+if ! command -v "$VICINAE_BIN" >/dev/null 2>&1 && [ "$VICINAE_BIN" = "vicinae" ]; then
   printf '%s\n' "vicinae not found" >&2
   exit 1
 fi
 
-choice=$(printf "%s\n" "+5%" "-5%" "25%" "50%" "75%" "100%" | vicinae dmenu -p "Brightness (${current}% )")
+choice=$(printf "%s\n" "+5%" "-5%" "25%" "50%" "75%" "100%" | "$VICINAE_BIN" dmenu -p "Brightness (${current}% )")
 if [ -n "${choice:-}" ]; then
   if has_kernel_backlight; then adjust_kernel "$choice"; else adjust_ddc "${choice%%%}"; fi
 fi
-

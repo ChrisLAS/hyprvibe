@@ -1179,6 +1179,7 @@ in
     install -Dm0755 ${./scripts/hyprvibe-launch-chrome.sh} ${homeDir}/.local/bin/hyprvibe-launch-chrome
     install -Dm0755 ${./scripts/hyprvibe-launch-zen.sh} ${homeDir}/.local/bin/hyprvibe-launch-zen
     install -Dm0755 ${./scripts/hyprvibe-launch-obsidian.sh} ${homeDir}/.local/bin/hyprvibe-launch-obsidian
+    install -Dm0755 ${./scripts/vicinae-launch.sh} ${homeDir}/.local/bin/vicinae-safe
     install -Dm0644 ${./desktop-entries/com.google.Chrome.desktop} ${homeDir}/.local/share/applications/com.google.Chrome.desktop
     install -Dm0644 ${./desktop-entries/app.zen_browser.zen.desktop} ${homeDir}/.local/share/applications/app.zen_browser.zen.desktop
     install -Dm0644 ${./desktop-entries/md.obsidian.Obsidian.desktop} ${homeDir}/.local/share/applications/md.obsidian.Obsidian.desktop
@@ -1186,6 +1187,7 @@ in
       ${homeDir}/.local/bin/hyprvibe-launch-chrome \
       ${homeDir}/.local/bin/hyprvibe-launch-zen \
       ${homeDir}/.local/bin/hyprvibe-launch-obsidian \
+      ${homeDir}/.local/bin/vicinae-safe \
       ${homeDir}/.local/share/applications/com.google.Chrome.desktop \
       ${homeDir}/.local/share/applications/app.zen_browser.zen.desktop \
       ${homeDir}/.local/share/applications/md.obsidian.Obsidian.desktop
