@@ -61,6 +61,7 @@ let
     lshw
     jack2
     obs-studio
+    (callPackage ../../pkgs/obs-replay-clips.nix { })
     obs-studio-plugins.wlrobs
     obs-studio-plugins.waveform
     obs-studio-plugins.obs-pipewire-audio-capture
