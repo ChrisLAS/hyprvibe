@@ -34,10 +34,7 @@ let
     comment = "Launch Hermes Desktop connected to the nomad remote gateway";
     exec = "hermes-desktop-nomad";
     terminal = false;
-    categories = [
-      "Development"
-      "Utility"
-    ];
+    categories = [ "Utility" ];
     icon = "agentdesktop";
     type = "Application";
   };
