@@ -12,6 +12,36 @@ let
   homeDir = config.hyprvibe.user.home;
 
   # Package groups - preserving your existing packages
+  hermesDesktopNomad = pkgs.writeShellScriptBin "hermes-desktop-nomad" ''
+    set -euo pipefail
+
+    token_file="$HOME/.config/secrets/hermes_dashboard_session_token"
+    if [ ! -r "$token_file" ]; then
+      echo "Hermes Desktop remote token not found: $token_file" >&2
+      echo "Copy it from nomad: ssh nomad 'cat ~/.config/secrets/hermes_dashboard_session_token' > $token_file" >&2
+      exit 1
+    fi
+
+    export HERMES_DESKTOP_REMOTE_URL="http://nomad.coin-noodlefish.ts.net:9119"
+    export HERMES_DESKTOP_REMOTE_TOKEN="$(${pkgs.coreutils}/bin/tr -d '\n' < "$token_file")"
+
+    exec ${config.nix.package}/bin/nix run github:NousResearch/hermes-agent#desktop -- "$@"
+  '';
+
+  hermesDesktopNomadEntry = pkgs.makeDesktopItem {
+    name = "hermes-desktop-nomad";
+    desktopName = "Hermes Desktop (Nomad)";
+    comment = "Launch Hermes Desktop connected to the nomad remote gateway";
+    exec = "hermes-desktop-nomad";
+    terminal = false;
+    categories = [
+      "Development"
+      "Utility"
+    ];
+    icon = "agentdesktop";
+    type = "Application";
+  };
+
   packages = with pkgs; [
     git
     gcc
@@ -36,6 +66,8 @@ let
     lazygit
     kitty
     oh-my-posh
+    hermesDesktopNomad
+    hermesDesktopNomadEntry
     lazydocker
     opencode
     android-tools
