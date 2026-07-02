@@ -25,14 +25,21 @@ let
     export HERMES_DESKTOP_REMOTE_URL="http://nomad.coin-noodlefish.ts.net:9119"
     export HERMES_DESKTOP_REMOTE_TOKEN="$(${pkgs.coreutils}/bin/tr -d '\n' < "$token_file")"
 
-    exec ${config.nix.package}/bin/nix run github:NousResearch/hermes-agent#desktop -- "$@"
+    log_dir="$HOME/.cache/hermes-desktop-nomad"
+    ${pkgs.coreutils}/bin/mkdir -p "$log_dir"
+    log_file="$log_dir/launcher.log"
+
+    {
+      ${pkgs.coreutils}/bin/printf '\n[%s] launching Hermes Desktop (Nomad)\n' "$(${pkgs.coreutils}/bin/date --iso-8601=seconds)"
+      exec ${config.nix.package}/bin/nix run github:NousResearch/hermes-agent#desktop -- "$@"
+    } >>"$log_file" 2>&1
   '';
 
   hermesDesktopNomadEntry = pkgs.makeDesktopItem {
     name = "hermes-desktop-nomad";
     desktopName = "Hermes Desktop (Nomad)";
     comment = "Launch Hermes Desktop connected to the nomad remote gateway";
-    exec = "hermes-desktop-nomad";
+    exec = "${lib.getExe hermesDesktopNomad}";
     terminal = false;
     categories = [ "Utility" ];
     icon = "agentdesktop";
