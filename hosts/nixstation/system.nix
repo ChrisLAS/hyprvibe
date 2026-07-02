@@ -621,10 +621,10 @@ in
     hostName = "nixstation";
     networkmanager.enable = true;
     firewall.enable = false;
-    # Disable power management for network interface to prevent link drops
-    interfaces.eno1 = {
-      useDHCP = true;
-    };
+    # NetworkManager owns the br0 LAN bridge for VM attachment. Do not let
+    # scripted networking/dhcpcd request a second lease on the eno1 bridge slave.
+    useDHCP = false;
+    dhcpcd.enable = false;
   };
 
   # Batch 1: TCP performance tuning via sysctl (added to hardware-configuration.nix sysctl)
