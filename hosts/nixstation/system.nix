@@ -57,7 +57,11 @@ let
 
         makeWrapper ${lib.getExe pkgs.basiliskii} "$out/bin/BasiliskII" \
           --prefix XDG_DATA_DIRS : "${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}" \
-          --prefix XDG_DATA_DIRS : "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}"
+          --prefix XDG_DATA_DIRS : "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}" \
+          --prefix XDG_DATA_DIRS : "${pkgs.adwaita-icon-theme}/share" \
+          --prefix XDG_DATA_DIRS : "${pkgs.hicolor-icon-theme}/share" \
+          --prefix XDG_DATA_DIRS : "${pkgs.shared-mime-info}/share" \
+          --set GDK_PIXBUF_MODULE_FILE "${pkgs.librsvg}/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache"
       '';
 
   packages = with pkgs; [
