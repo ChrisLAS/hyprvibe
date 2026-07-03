@@ -46,6 +46,20 @@ let
     type = "Application";
   };
 
+  basiliskII =
+    pkgs.runCommand "basiliskii-wrapped-${pkgs.basiliskii.version}"
+      {
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+      }
+      ''
+        mkdir -p "$out/bin" "$out/share"
+        ln -s ${pkgs.basiliskii}/share/* "$out/share/"
+
+        makeWrapper ${lib.getExe pkgs.basiliskii} "$out/bin/BasiliskII" \
+          --prefix XDG_DATA_DIRS : "${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}" \
+          --prefix XDG_DATA_DIRS : "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}"
+      '';
+
   packages = with pkgs; [
     git
     gcc
@@ -84,6 +98,7 @@ let
     junction
     distrobox
     ispell
+    basiliskII
     gnumake
     mesa-demos
     roc-toolkit
