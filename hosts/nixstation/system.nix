@@ -64,6 +64,45 @@ let
           --set GDK_PIXBUF_MODULE_FILE "${pkgs.librsvg}/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache"
       '';
 
+  basiliskIIBridgeTap = pkgs.writeShellScriptBin "basilisk-ii-bridge-tap" ''
+    set -euo pipefail
+
+    if [ "$#" -ne 2 ]; then
+      echo "Usage: $0 IFACE up|down" >&2
+      exit 2
+    fi
+
+    iface="$1"
+    action="$2"
+    bridge="br0"
+    ip="${pkgs.iproute2}/bin/ip"
+    sudo="/run/wrappers/bin/sudo"
+
+    run() {
+      if [ "$(${pkgs.coreutils}/bin/id -u)" -eq 0 ]; then
+        "$@"
+      else
+        "$sudo" "$@"
+      fi
+    }
+
+    case "$action" in
+      up)
+        "$ip" link show dev "$bridge" >/dev/null
+        run "$ip" link set dev "$iface" up
+        run "$ip" link set dev "$iface" master "$bridge"
+        ;;
+      down)
+        run "$ip" link set dev "$iface" nomaster 2>/dev/null || true
+        run "$ip" link set dev "$iface" down 2>/dev/null || true
+        ;;
+      *)
+        echo "Unknown action: $action" >&2
+        exit 2
+        ;;
+    esac
+  '';
+
   packages = with pkgs; [
     git
     gcc
@@ -103,6 +142,7 @@ let
     distrobox
     ispell
     basiliskII
+    basiliskIIBridgeTap
     gnumake
     mesa-demos
     roc-toolkit
