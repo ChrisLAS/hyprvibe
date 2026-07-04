@@ -77,22 +77,37 @@ let
     bridge="br0"
     ip="${pkgs.iproute2}/bin/ip"
     sudo="/run/wrappers/bin/sudo"
+    log_dir="''${XDG_CACHE_HOME:-$HOME/.cache}/basiliskii"
+    log_file="$log_dir/bridge-tap.log"
+
+    ${pkgs.coreutils}/bin/mkdir -p "$log_dir"
+
+    log() {
+      ${pkgs.coreutils}/bin/printf '[%s] %s\n' "$(${pkgs.coreutils}/bin/date --iso-8601=seconds)" "$*" >>"$log_file"
+    }
 
     run() {
       if [ "$(${pkgs.coreutils}/bin/id -u)" -eq 0 ]; then
-        "$@"
+        log "run as root: $*"
+        "$@" >>"$log_file" 2>&1
       else
-        "$sudo" "$@"
+        log "run direct: $*"
+        "$@" >>"$log_file" 2>&1 || {
+          log "direct failed; retry with sudo: $*"
+          "$sudo" "$@" >>"$log_file" 2>&1
+        }
       fi
     }
 
     case "$action" in
       up)
+        log "up $iface -> $bridge"
         "$ip" link show dev "$bridge" >/dev/null
         run "$ip" link set dev "$iface" up
         run "$ip" link set dev "$iface" master "$bridge"
         ;;
       down)
+        log "down $iface"
         run "$ip" link set dev "$iface" nomaster 2>/dev/null || true
         run "$ip" link set dev "$iface" down 2>/dev/null || true
         ;;
