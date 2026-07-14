@@ -345,7 +345,6 @@ let
     solaar
     gtop
     wine-wayland
-    bottles-unwrapped
     pwvucontrol
     wireplumber
     qownnotes
