@@ -36,6 +36,7 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
   - `hyprlock` with PAM enabled (`security.pam.services.hyprlock = { };`)
   - `hypridle` handles lock-before-sleep; displays are only powered off by explicit keybindings/session lock
   - Wallpaper templated into `hyprpaper` and `hyprlock` via activation script
+  - See [Nixstation Display Recovery](NIXSTATION_DISPLAY_RECOVERY.md) for safe runtime checks and the known `DP-3` black-after-wake failure
 
 - **Waybar + desktop helpers**
   - Waybar modules for Hyprland workspaces/window, audio, network, CPU/Mem, brightness, AMD GPU, weather, BTC price, public IP, clock, tray
