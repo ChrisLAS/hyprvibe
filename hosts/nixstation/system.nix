@@ -228,7 +228,6 @@ let
     libarchive
     libzip
     unrar
-    pzip
     lrzip
     kdePackages.ark
 
@@ -307,7 +306,6 @@ let
     usbmuxd
     magic-wormhole
     adb-sync
-    jmtpfs
     nextcloud-client
     gnome-firmware
     usbutils
