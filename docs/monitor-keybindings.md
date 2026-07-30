@@ -51,18 +51,17 @@ This document describes the custom keybindings for launching applications on spe
 
 To add new monitor-specific keybindings:
 
-1. **Edit the monitor config**: `hyprvibe/configs/hyprland-monitors-nixstation.conf`
+1. **Edit the monitor config**: `hyprvibe/configs/hyprland-monitors-nixstation.lua`
 2. **Add your keybinding**: Follow the pattern:
-   ```bash
-   # SUPER + [KEY]: Description
-   bind = SUPER, [KEY], exec, your-command-here
+   ```lua
+   hl.bind("SUPER + [KEY]", hl.dsp.exec_cmd("your-command-here"))
    ```
-3. **Copy to system**: `cp configs/hyprland-monitors-nixstation.conf ~/.config/hypr/`
-4. **Reload Hyprland**: `hyprctl reload`
+3. **Validate and stage it**: `sudo nixos-rebuild boot --flake .#nixstation`
+4. **Reboot** to activate the staged desktop safely.
 
 ## Important Notes
 
-- **Avoid conflicts**: Check that your new keybinding doesn't conflict with existing bindings in `hyprland-base.conf`
+- **Avoid conflicts**: Check that your new keybinding doesn't conflict with existing bindings in `hyprland-base.lua`
 - **Monitor names**: Use the exact monitor names (DP-1, DP-2, DP-3, HDMI-A-1)
-- **Positioning**: Use `hyprctl dispatch movewindow exact X Y` for precise positioning
-- **Focus management**: Use `hyprctl dispatch focusmonitor` to ensure apps open on the correct monitor
+- **Positioning**: Use `hyprctl dispatch 'hl.dsp.window.move({ x = X, y = Y })'` for precise positioning
+- **Focus management**: Use `hyprctl dispatch 'hl.dsp.focus({ monitor = "DP-1" })'` to focus a monitor

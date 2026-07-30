@@ -5,7 +5,7 @@ set -euo pipefail
 # Slack on top half, Telegram on bottom half
 
 # Focus the right vertical monitor (HDMI-A-1)
-hyprctl dispatch focusmonitor HDMI-A-1
+hyprctl dispatch 'hl.dsp.focus({ monitor = "HDMI-A-1" })'
 
 # Launch Slack first
 flatpak run com.slack.Slack &

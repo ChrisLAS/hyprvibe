@@ -8,8 +8,8 @@ Successfully configured Kitty as the default terminal emulator across both NIXST
 
 ### 1. **Hyprland Configuration Updates**
 
-#### **Base Configuration (`hyprvibe/configs/hyprland-base.conf`)**
-- ✅ Changed `$terminal = alacritty` to `$terminal = kitty`
+#### **Base Configuration (`hyprvibe/configs/hyprland-base.lua`)**
+- ✅ Changed the shared `terminal` Lua variable from Alacritty to Kitty
 - ✅ This affects the Super+Return keybinding that opens the terminal
 
 ### 2. **System Package Management**
@@ -41,9 +41,10 @@ Successfully configured Kitty as the default terminal emulator across both NIXST
 ## Configuration Details
 
 ### **Hyprland Keybinding**
-```bash
+```lua
 # Super+Return now opens Kitty instead of Alacritty
-bind = SUPER, RETURN, exec, $terminal  # $terminal = kitty
+local terminal = "kitty"
+hl.bind("SUPER + RETURN", hl.dsp.exec_cmd(terminal))
 ```
 
 ### **Environment Variables**

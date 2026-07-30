@@ -16,7 +16,7 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
 │   └── rvbee/
 │       ├── system.nix           # Main system configuration
 │       ├── hardware-configuration.nix  # Hardware-specific config
-│       ├── hyprland.conf        # Hyprland window manager config
+│       ├── hyprland.lua         # Hyprland window manager config
 │       └── waybar.json          # Waybar status bar config
 └── README.md                    # This file
 ```
@@ -158,7 +158,7 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
 | Special ws | SUPER+SHIFT+S | Move to special | `movetoworkspace special:magic` |
 | Mouse | SUPER + LMB drag | Move window | `bindm … movewindow` |
 | Mouse | SUPER + RMB drag | Resize window | `bindm … resizewindow` |
-| Display power | SUPER+SHIFT+L | Screen off (DPMS) | `hyprctl dispatch dpms off` |
+| Display power | SUPER+SHIFT+L | Screen off (DPMS) | `hyprctl dispatch 'hl.dsp.dpms({ action = "off" })'` |
 | Display power | SUPER+ALT+L | Wake monitors | `~/.config/hypr/scripts/wake-monitors.sh` |
 | Screenshot | Print | Region to clipboard | `grim -g "$(slurp)" - | wl-copy` |
 | Screenshot | SHIFT+Print | Region to file | `grim -g "$(slurp)" ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png` |

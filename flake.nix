@@ -10,9 +10,7 @@
     prettyswitch.url = "github:noblepayne/pretty-switch";
     prettyswitch.inputs.nixpkgs.follows = "nixpkgs";
 
-    # Hyprland 0.56 removed the legacy Hyprlang config parser. Keep the last
-    # known-working 0.55 revision until our .conf files are migrated to Lua.
-    hyprland.url = "github:hyprwm/Hyprland/6984188eb0c004c9c813b0ed8ff3bd2051370726";
+    hyprland.url = "github:hyprwm/Hyprland";
     hyprland.inputs.nixpkgs.follows = "nixpkgs";
 
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";

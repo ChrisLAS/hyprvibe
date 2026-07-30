@@ -22,11 +22,11 @@ detect_monitors() {
 # Function to generate monitor configuration
 generate_monitor_config() {
     local host=$1
-    local config_file="$CONFIG_DIR/hyprland-monitors-$host.conf"
+    local config_file="$CONFIG_DIR/hyprland-monitors-$host.lua"
     
     echo "Generating monitor configuration for $host..."
-    echo "# Auto-generated monitor configuration for $host" > "$config_file"
-    echo "# Generated on $(date)" >> "$config_file"
+    echo "-- Auto-generated monitor configuration for $host" > "$config_file"
+    echo "-- Generated on $(date)" >> "$config_file"
     echo "" >> "$config_file"
     
     # Get monitor information
@@ -34,16 +34,15 @@ generate_monitor_config() {
         if [[ $line =~ ^Monitor\ ([^:]+): ]]; then
             monitor_name="${BASH_REMATCH[1]}"
             echo "Found monitor: $monitor_name"
-            echo "# monitor=$monitor_name,resolution@refresh,x,y,scale" >> "$config_file"
+            echo "-- hl.monitor({ output = \"$monitor_name\", mode = \"resolution@refresh\", position = \"x,y\", scale = 1 })" >> "$config_file"
         fi
     done
     
     echo "" >> "$config_file"
-    echo "# Example configuration (uncomment and modify as needed):" >> "$config_file"
-    echo "# monitor=DP-1,2560x1440@144,0x0,1" >> "$config_file"
-    echo "# monitor=DP-2,2560x1440@144,2560x0,1" >> "$config_file"
-    echo "# monitor=HDMI-A-1,1920x1080@60,5120x0,1" >> "$config_file"
-    echo "# monitor=HDMI-A-2,1920x1080@60,5120x1080,1" >> "$config_file"
+    echo "-- Example configuration (uncomment and modify as needed):" >> "$config_file"
+    echo '-- hl.monitor({ output = "DP-1", mode = "2560x1440@144", position = "0x0", scale = 1 })' >> "$config_file"
+    echo '-- hl.monitor({ output = "DP-2", mode = "2560x1440@144", position = "2560x0", scale = 1 })' >> "$config_file"
+    echo '-- hl.monitor({ output = "HDMI-A-1", mode = "1920x1080@60", position = "5120x0", scale = 1 })' >> "$config_file"
     
     echo "Configuration written to $config_file"
     echo "Please edit this file with your actual monitor settings."
@@ -52,7 +51,7 @@ generate_monitor_config() {
 # Function to apply monitor configuration
 apply_monitor_config() {
     local host=$1
-    local config_file="$CONFIG_DIR/hyprland-monitors-$host.conf"
+    local config_file="$CONFIG_DIR/hyprland-monitors-$host.lua"
     
     if [[ ! -f "$config_file" ]]; then
         echo "Error: Monitor configuration file not found: $config_file"
@@ -61,18 +60,13 @@ apply_monitor_config() {
     
     echo "Applying monitor configuration from $config_file..."
     
-    # Extract monitor lines and apply them
-    grep "^monitor=" "$config_file" | while read -r line; do
-        if [[ $line =~ ^monitor=([^,]+),([^,]+),([^,]+),([^,]+)$ ]]; then
-            monitor="${BASH_REMATCH[1]}"
-            resolution="${BASH_REMATCH[2]}"
-            position="${BASH_REMATCH[3]}"
-            scale="${BASH_REMATCH[4]}"
-            
-            echo "Applying: $monitor -> $resolution at $position with scale $scale"
-            hyprctl keyword monitor "$monitor,$resolution,$position,$scale"
+    # Evaluate each active hl.monitor declaration.
+    while IFS= read -r line; do
+        if [[ $line =~ ^[[:space:]]*hl\.monitor\( ]]; then
+            echo "Applying: $line"
+            hyprctl eval "$line"
         fi
-    done
+    done < "$config_file"
     
     echo "Monitor configuration applied!"
 }
@@ -81,9 +75,6 @@ apply_monitor_config() {
 show_status() {
     echo "Current monitor configuration:"
     hyprctl monitors
-    echo ""
-    echo "Current monitor keywords:"
-    hyprctl getoption monitor | grep -v "Option" | sed 's/^/  /'
 }
 
 # Main script logic
@@ -120,7 +111,7 @@ case "${1:-help}" in
         generate_monitor_config "$2"
         echo ""
         echo "Next steps:"
-        echo "1. Edit $CONFIG_DIR/hyprland-monitors-$2.conf with your monitor settings"
+        echo "1. Edit $CONFIG_DIR/hyprland-monitors-$2.lua with your monitor settings"
         echo "2. Run: $0 apply $2"
         ;;
     "help"|*)

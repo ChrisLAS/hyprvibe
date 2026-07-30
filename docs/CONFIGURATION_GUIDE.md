@@ -1,204 +1,118 @@
 # Hyprland Configuration Guide
 
-This guide explains the modular configuration structure for managing Hyprland settings across multiple hosts.
+Hyprvibe uses Hyprland's Lua configuration API across every host. The shared
+module installs a host composition as `~/.config/hypr/hyprland.lua` and sets
+`HYPRLAND_CONFIG` to that path.
 
-## Overview
+## File structure
 
-The configuration is split into modular components to allow for:
-- **Shared base configuration** across all hosts
-- **Host-specific monitor configurations** for different setups
-- **Easy maintenance** and updates
-- **Scalability** for future hosts
-
-## File Structure
-
-```
-hyprvibe/
-├── configs/
-│   ├── hyprland-base.conf              # Shared base configuration
-│   ├── hyprland-monitors-nixstation.conf  # Nixstation monitor config
-│   └── hyprland-monitors-rvbee.conf    # Rvbee monitor config
-├── hosts/
-│   ├── nixstation/
-│   │   └── hyprland.conf               # Nixstation main config (sources others)
-│   └── rvbee/
-│       └── hyprland.conf               # Rvbee main config (sources others)
-└── scripts/
-    └── setup-monitors.sh               # Monitor setup helper script
+```text
+configs/
+├── hyprland-base.lua
+├── hyprland-default.lua
+├── hyprland-monitors-nixbook.lua
+├── hyprland-monitors-nixstation.lua
+├── hyprland-monitors-rvbee.lua
+└── hyprland-monitors-rvbee-120hz.lua
+hosts/
+├── nixbook/hyprland.lua
+├── nixstation/hyprland.lua
+└── rvbee/hyprland.lua
 ```
 
-## Configuration Components
+`configs/hyprland-base.lua` contains shared appearance, input, animations,
+gestures, autostart, and keybindings. Each host composition requires the shared
+base, the generic deployed `hyprland-monitors.lua` module, and the generated
+`hyprland-local.lua` overrides:
 
-### 1. Base Configuration (`configs/hyprland-base.conf`)
+```lua
+require("hyprland-base")
+require("hyprland-monitors")
+require("hyprland-local")
+```
 
-Contains all shared settings:
-- Keybindings
-- General appearance settings
-- Input configuration
-- Animations
-- Window rules
-- Application launchers
+The Nix module maps each host's selected monitor source to the generic deployed
+module name, so the composition stays identical between hosts.
 
-### 2. Monitor Configurations
+## Lua API patterns
 
-#### Nixstation (`configs/hyprland-monitors-nixstation.conf`)
-- 4-monitor setup
-- Workspace assignments per monitor
-- Multi-monitor specific settings
+Use the supported `hl.*` API rather than the removed Hyprlang assignment syntax:
 
-#### Rvbee (`configs/hyprland-monitors-rvbee.conf`)
-- Single monitor setup
-- Simplified configuration
+```lua
+hl.config({
+    general = {
+        gaps_in = 5,
+        layout = "dwindle",
+    },
+})
 
-### 3. Host-Specific Configurations
+hl.monitor({
+    output = "DP-1",
+    mode = "2560x1440@144",
+    position = "0x0",
+    scale = 1,
+})
 
-Each host has a main configuration file that sources the appropriate components:
+hl.bind("SUPER + RETURN", hl.dsp.exec_cmd("kitty"))
+hl.bind("SUPER + left", hl.dsp.focus({ direction = "left" }))
+```
+
+Runtime dispatcher calls also take Lua expressions:
 
 ```bash
-# Source shared base configuration
-source = ~/.config/hypr/hyprland-base.conf
-
-# Source host-specific monitor configuration
-source = ~/.config/hypr/hyprland-monitors-{hostname}.conf
-
-# Host-specific overrides and additions
+hyprctl dispatch 'hl.dsp.focus({ monitor = "DP-1" })'
+hyprctl dispatch 'hl.dsp.dpms({ action = "on", monitor = "DP-1" })'
+hyprctl eval 'hl.monitor({ output = "DP-1", mode = "preferred", position = "0x0", scale = 1 })'
 ```
 
-## Setting Up Monitors
+## Monitor setup
 
-### Using the Helper Script
-
-The `setup-monitors` script makes it easy to configure monitors:
+The helper can inspect outputs, generate a Lua template, and evaluate active
+one-line `hl.monitor(...)` declarations:
 
 ```bash
-# Full setup process for nixstation
-setup-monitors setup nixstation
-
-# Just detect current monitors
 setup-monitors detect
-
-# Apply existing configuration
+setup-monitors setup nixstation
 setup-monitors apply nixstation
-
-# Show current status
 setup-monitors status
 ```
 
-### Manual Monitor Configuration
+For declarative changes, edit the appropriate tracked monitor module and rebuild:
 
-1. **Detect your monitors:**
-   ```bash
-   hyprctl monitors
-   ```
+- `configs/hyprland-monitors-nixstation.lua`
+- `configs/hyprland-monitors-nixbook.lua`
+- `configs/hyprland-monitors-rvbee-120hz.lua`
 
-2. **Edit the monitor configuration file:**
-   ```bash
-   nano ~/.config/hypr/hyprland-monitors-nixstation.conf
-   ```
+## Adding a host
 
-3. **Example configuration for 4 monitors:**
-   ```bash
-   monitor=DP-1,2560x1440@144,0x0,1
-   monitor=DP-2,2560x1440@144,2560x0,1
-   monitor=HDMI-A-1,1920x1080@60,5120x0,1
-   monitor=HDMI-A-2,1920x1080@60,5120x1080,1
-   ```
+1. Copy the closest monitor module and host composition.
+2. Add the host to `flake.nix` if it is not already declared.
+3. Set `hyprvibe.hyprland.monitorsFile` and `mainConfig` in its `system.nix`.
+4. Evaluate the host and verify its composed config before boot activation.
 
-4. **Apply the configuration:**
-   ```bash
-   setup-monitors apply nixstation
-   ```
+Example Nix wiring:
 
-## Adding a New Host
-
-1. **Create monitor configuration:**
-   ```bash
-   cp configs/hyprland-monitors-rvbee.conf configs/hyprland-monitors-newhost.conf
-   ```
-
-2. **Create host configuration:**
-   ```bash
-   cp hosts/rvbee/hyprland.conf hosts/newhost/hyprland.conf
-   ```
-
-3. **Update the host configuration:**
-   ```bash
-   # Edit hosts/newhost/hyprland.conf
-   source = ~/.config/hypr/hyprland-monitors-newhost.conf
-   ```
-
-4. **Update system.nix:**
-   - Add the new host to the flake.nix
-   - Copy configuration files in the activation script
-
-## Making Changes
-
-### Global Changes (affects all hosts)
-Edit `configs/hyprland-base.conf` and rebuild all hosts.
-
-### Host-Specific Changes
-Edit the appropriate host configuration file:
-- `hosts/nixstation/hyprland.conf` for nixstation
-- `hosts/rvbee/hyprland.conf` for rvbee
-
-### Monitor-Specific Changes
-Edit the appropriate monitor configuration:
-- `configs/hyprland-monitors-nixstation.conf` for nixstation
-- `configs/hyprland-monitors-rvbee.conf` for rvbee
-
-## Rebuilding Configuration
-
-After making changes, rebuild the system:
-
-```bash
-# For nixstation
-sudo nixos-rebuild switch --flake /home/chrisf/build/config/hyprvibe#nixstation
-
-# For rvbee
-sudo nixos-rebuild switch --flake /home/chrisf/build/config/hyprvibe#rvbee
+```nix
+hyprvibe.hyprland.monitorsFile = ../../configs/hyprland-monitors-newhost.lua;
+hyprvibe.hyprland.mainConfig = ./hyprland.lua;
 ```
 
-## Troubleshooting
+## Validation and rebuilding
 
-### Configuration Not Loading
-1. Check that all source files exist:
-   ```bash
-   ls -la ~/.config/hypr/
-   ```
+Run the shared checks before staging a host:
 
-2. Check Hyprland logs:
-   ```bash
-   journalctl --user -u hyprland --since "5 minutes ago"
-   ```
+```bash
+nix flake check
+sudo nixos-rebuild boot --flake .#nixstation
+```
 
-### Monitor Issues
-1. Verify monitor detection:
-   ```bash
-   setup-monitors detect
-   ```
+On nixstation, use `boot` unless live activation has been explicitly approved.
+After reboot, check the compositor configuration directly:
 
-2. Check current configuration:
-   ```bash
-   setup-monitors status
-   ```
+```bash
+hyprctl version
+hyprctl configerrors
+```
 
-3. Test monitor configuration:
-   ```bash
-   hyprctl keyword monitor "DP-1,2560x1440@144,0x0,1"
-   ```
-
-## Best Practices
-
-1. **Always test changes** on one host before applying to others
-2. **Use the helper script** for monitor configuration
-3. **Keep monitor configurations simple** and well-documented
-4. **Document host-specific requirements** in the configuration files
-5. **Use version control** to track changes across hosts
-
-## Future Enhancements
-
-Potential improvements to consider:
-- **Dynamic monitor detection** and configuration
-- **Per-monitor workspace assignments** based on monitor count
-- **Performance optimizations** for multi-monitor setups
-- **Backup and restore** functionality for monitor configurations
+For an offline host, the flake evaluation confirms its Nix wiring. Perform its
+real build and boot activation when the machine is next available.

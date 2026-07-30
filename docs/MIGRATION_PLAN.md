@@ -52,7 +52,7 @@ Since you're switching from Plasma 6 to Hyprland, you'll need to:
 
 ### Step 4: Post-Migration Tasks
 1. **Wallpaper**: Replace the placeholder wallpaper with your preferred image
-2. **Hyprland Configuration**: Customize `hosts/nixstation/hyprland.conf` as needed
+2. **Hyprland Configuration**: Customize `hosts/nixstation/hyprland.lua` as needed
 3. **Waybar**: Customize `hosts/nixstation/waybar.json` and `waybar.css` if desired
 4. **User Scripts**: Any custom scripts in your home directory will need to be adapted for Hyprland
 
@@ -145,4 +145,4 @@ If you encounter issues during migration:
 
 **Migration Status**: Configuration files created and ready for testing
 **Next Action**: Test build and apply configuration
-**Risk Level**: Medium (major desktop environment change) 
+**Risk Level**: Medium (major desktop environment change)

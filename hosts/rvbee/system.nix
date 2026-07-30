@@ -669,8 +669,8 @@ in {
   };
   hyprvibe.hyprland.enable = true;
   # Provide per-host monitors and wallpaper paths to shared module
-  hyprvibe.hyprland.monitorsFile = ../../configs/hyprland-monitors-rvbee-120hz.conf;
-  hyprvibe.hyprland.mainConfig = ./hyprland.conf;
+  hyprvibe.hyprland.monitorsFile = ../../configs/hyprland-monitors-rvbee-120hz.lua;
+  hyprvibe.hyprland.mainConfig = ./hyprland.lua;
   hyprvibe.hyprland.wallpaper = wallpaperPath;
   hyprvibe.hyprland.hyprpaperTemplate = ./hyprpaper.conf;
   hyprvibe.hyprland.hyprlockTemplate = ./hyprlock.conf;

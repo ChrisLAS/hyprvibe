@@ -53,7 +53,7 @@ These checks distinguish three different failures:
 An explicit wake does not restart the desktop session:
 
 ```bash
-hyprctl dispatch dpms on DP-3
+hyprctl dispatch 'hl.dsp.dpms({ action = "on", monitor = "DP-3" })'
 ```
 
 The configured recovery script is more aggressive and visibly cycles the
