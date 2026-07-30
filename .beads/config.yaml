@@ -22,3 +22,5 @@
 # `bd dolt push`. The legacy beads-sync Git branch is retained as an archive.
 sync.remote: "https://github.com/ChrisLAS/hyprvibe.git"
 federation.remote: "git+https://github.com/ChrisLAS/hyprvibe.git"
+
+export.git-add: false
