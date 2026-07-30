@@ -1,6 +1,7 @@
 # Agent Instructions
 
-This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
+This project uses **bd** (beads) for issue tracking. In a fresh clone, run
+`chmod 700 .beads && bd bootstrap` before `bd onboard`.
 
 ## Quick Reference
 

@@ -12,6 +12,16 @@ Beads is issue tracking that lives in your repo, making it perfect for AI coding
 
 ## Quick Start
 
+After cloning this repository for the first time, restore its Dolt database:
+
+```bash
+chmod 700 .beads
+bd bootstrap
+```
+
+For an already-bootstrapped checkout, use `bd dolt pull` to retrieve shared
+issue history.
+
 ### Essential Commands
 
 ```bash
