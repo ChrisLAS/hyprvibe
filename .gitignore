@@ -3,3 +3,7 @@ result-*
 .beads/bd.sock
 __pycache__/
 *.py[cod]
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+.beads-credential-key
