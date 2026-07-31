@@ -345,6 +345,7 @@ in
   hyprvibe.waybar.stylePath = ./waybar.css;
   hyprvibe.waybar.scriptsDir = ./scripts;
   hyprvibe.system.enable = true;
+  hyprvibe.opencode.enable = true;
   # Power management: Performance-biased with manual low-power mode
   hyprvibe.power = {
     enable = true;

@@ -38,7 +38,7 @@ window#waybar {
   font-size: 14pt;
 }
 
-#clock, #memory, #cpu, #tray, #network, #pulseaudio, #custom-public_ip, #custom-amd_gpu, #custom-openrouter, #window, #battery {
+#clock, #tray, #network, #pulseaudio, #custom-public_ip, #custom-amd_gpu, #window, #battery {
   padding: 0 10px;
 }
 
@@ -60,10 +60,6 @@ window#waybar {
 
 #custom-btc {
   color: #F7931A; /* BTC orange */
-}
-
-#custom-openrouter {
-  color: #7ad1ff; /* cyan */
 }
 
 #window {
@@ -97,8 +93,6 @@ tooltip {
 }
 
 /* Fix widths for metrics to reduce layout shift */
-#cpu { min-width: 8em; }
-#memory { min-width: 8em; }
 #network { min-width: 14em; }
 #pulseaudio { min-width: 8em; }
 #battery { min-width: 5em; }

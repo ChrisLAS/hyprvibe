@@ -15,11 +15,8 @@
     
     "network",
     "custom/public_ip",
-    "cpu",
-    "memory",
     "custom/battery",
     "gamemode",
-    "custom/openrouter",
     "tray",
     "bluetooth",
     "idle_inhibitor",
@@ -90,14 +87,6 @@
     "tooltip": true,
     "format": "🌍 {}"
   },
-  "cpu": {
-    "format": "🖥️ {usage}% ",
-    "tooltip": false
-  },
-  "memory": {
-    "format": "🤖 {percentage}% ",
-    "tooltip": false
-  },
   "custom/battery": {
     "return-type": "json",
     "exec": "/home/chrisf/.config/waybar/scripts/waybar-battery.sh",
@@ -114,13 +103,6 @@
   },
   "gamemode": {
     "format": "GM {count}"
-  },
-  "custom/openrouter": {
-    "return-type": "json",
-    "exec": "/home/chrisf/.config/waybar/scripts/waybar-openrouter.sh",
-    "interval": 300,
-    "tooltip": true,
-    "format": "{}"
   },
   "clock": {
     "format": "🕒 {:%I:%M %p}",
