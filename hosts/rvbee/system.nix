@@ -279,7 +279,6 @@
     tumbler
     gvfs
     # Theming packages
-    tokyonight-gtk-theme
     papirus-icon-theme
     bibata-cursors
     # Document viewer

@@ -272,7 +272,6 @@ let
     tumbler
     gvfs
     # Theming packages
-    tokyonight-gtk-theme
     papirus-icon-theme
     bibata-cursors
     # Document viewer
@@ -401,10 +400,6 @@ in
       enable = true;
       agentConfigs.enable = true;
     };
-    nebula = {
-      enable = true;
-      nebulaIp = "192.168.100.12/24";
-    };
   };
   hyprvibe.agentConfigs = {
     enable = true;
@@ -456,7 +451,7 @@ in
       app_id="''${pkg#*:}"
       if ! ${pkgs.flatpak}/bin/flatpak list --system --columns=application 2>/dev/null | grep -q "^''${app_id}$"; then
         echo "Installing flatpak: ''${pkg}"
-        ${pkgs.flatpak}/bin/flatpak install --system --noninteractive --assumeyes "''${pkg}" || true
+        ${pkgs.flatpak}/bin/flatpak install --system --noninteractive --assumeyes "''${pkg%%:*}" "''${pkg#*:}" || true
       else
         echo "Flatpak already installed: ''${app_id}"
       fi

@@ -71,6 +71,9 @@ in {
     userHome = cfg.home;
     userIcon = cfg.icon;
   in {
+    # Required by the shared primary-user group list and nixbook's ADB udev rule.
+    users.groups.adbusers = {};
+
     users.users."${cfg.name}" = {
       isNormalUser = true;
       shell = pkgs.fish;
