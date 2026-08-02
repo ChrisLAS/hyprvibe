@@ -11,6 +11,76 @@ let
   userName = config.hyprvibe.user.name;
   userGroup = config.hyprvibe.user.group;
   homeDir = config.hyprvibe.user.home;
+  companionSatellite = pkgs.stdenvNoCC.mkDerivation {
+    pname = "companion-satellite";
+    version = "3.3.1";
+    src = pkgs.fetchurl {
+      url = "https://cf-pub.bitfocus.io/companion/companion-satellite/companion-satellite-x64-701-effd351.tar.gz";
+      hash = "sha256-58KqOETiCCefNsLUj3xq0SeJ1XyNrxo+6NMMg21Jjwo=";
+    };
+    sourceRoot = "companion-satellite-x64";
+    nativeBuildInputs = [
+      pkgs.asar
+      pkgs.autoPatchelfHook
+    ];
+    buildInputs = with pkgs; [
+      alsa-lib
+      at-spi2-atk
+      at-spi2-core
+      atk
+      cairo
+      cups
+      dbus
+      expat
+      glib
+      gtk3
+      libX11
+      libXcomposite
+      libXdamage
+      libXext
+      libXfixes
+      libXrandr
+      libgbm
+      libusb1
+      libxcb
+      libxkbcommon
+      nspr
+      nss
+      pango
+      systemd
+    ];
+    autoPatchelfIgnoreMissingDeps = [ "libc.musl-x86_64.so.1" ];
+    unpackPhase = ''
+      tar -xzf "$src"
+    '';
+    installPhase = ''
+      mkdir -p "$out/libexec"
+      cp -a . "$out/libexec/companion-satellite"
+      asar extract resources/app.asar "$out/libexec/companion-satellite/app"
+      cp -a resources/webui "$out/libexec/companion-satellite/webui"
+      cp -a resources/assets "$out/libexec/companion-satellite/assets"
+      cp -a resources/modules "$out/libexec/companion-satellite/modules"
+      cp -a resources/node-runtimes "$out/libexec/companion-satellite/node-runtimes"
+      rm -f "$out/libexec/companion-satellite/resources/node-runtimes/node22/bin/npm"
+      rm -f "$out/libexec/companion-satellite/resources/node-runtimes/node22/bin/npx"
+      rm -f "$out/libexec/companion-satellite/node-runtimes/node22/bin/npm"
+      rm -f "$out/libexec/companion-satellite/node-runtimes/node22/bin/npx"
+    '';
+  };
+  companionSatelliteInitialConfig = pkgs.writeText "companion-satellite-config.json" (
+    builtins.toJSON {
+      remoteProtocol = "tcp";
+      remoteIp = "100.86.227.66";
+      remotePort = 16622;
+      installationName = "nixbook Stream Deck XL";
+      restEnabled = true;
+      restPort = 9999;
+      mdnsEnabled = false;
+      surfacePluginsEnabled = {
+        elgato-stream-deck = true;
+      };
+    }
+  );
   # Package groups
   devTools = with pkgs; [
     git
@@ -406,57 +476,63 @@ in
     codex.enable = true;
   };
 
-  # Add Flathub remote system-wide if it doesn't exist (Flatpak is enabled via hyprvibe.services)
-  system.activationScripts.addFlathubRemote = ''
-    if ! ${pkgs.flatpak}/bin/flatpak remote-list --system 2>/dev/null | grep -q "^flathub"; then
-      ${pkgs.flatpak}/bin/flatpak remote-add --if-not-exists --system flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-    fi
-  '';
+  # Keep declared system Flatpaks reconciled after the network is online.  This
+  # is intentionally a service, not an activation script: failure is visible in
+  # `systemctl status nixbook-flatpak-declared-apps` and journalctl without
+  # turning a NixOS rebuild into a partially-applied failure.
+  systemd.services.nixbook-flatpak-declared-apps = {
+    description = "Reconcile nixbook declared Flatpak applications";
+    wantedBy = [ "multi-user.target" ];
+    wants = [ "network-online.target" ];
+    after = [ "network-online.target" "flatpak-system-helper.service" ];
+    unitConfig = {
+      StartLimitIntervalSec = "1h";
+      StartLimitBurst = 3;
+    };
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      Restart = "on-failure";
+      RestartSec = "5min";
+    };
+    path = [ pkgs.flatpak pkgs.gnugrep ];
+    script = ''
+      set -euo pipefail
 
-  # Declaratively install Flatpak applications
-  system.activationScripts.installFlatpaks = ''
-    # Ensure Flathub remote exists before installing packages
-    if ! ${pkgs.flatpak}/bin/flatpak remote-list --system 2>/dev/null | grep -q "^flathub"; then
-      ${pkgs.flatpak}/bin/flatpak remote-add --if-not-exists --system flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-    fi
+      flatpak remote-add --if-not-exists --system flathub \
+        https://dl.flathub.org/repo/flathub.flatpakrepo
+      flatpak update --appstream --system flathub
 
-    # Update Flathub remote to ensure we have latest package information
-    ${pkgs.flatpak}/bin/flatpak update --appstream --system flathub 2>/dev/null || true
+      flatpaks=(
+        "flathub:org.telegram.desktop"
+        "flathub:org.kde.haruna"
+        "flathub:com.github.tchx84.Flatseal"
+        "flathub:md.obsidian.Obsidian"
+        "flathub:app.zen_browser.zen"
+        "flathub:com.github.wwmm.easyeffects"
+        "flathub:com.rustdesk.RustDesk"
+        "flathub:org.flameshot.Flameshot"
+        "flathub:org.filezillaproject.Filezilla"
+        "flathub:com.slack.Slack"
+        "flathub:org.gnome.baobab"
+        "flathub:com.transmissionbt.Transmission"
+        "flathub:io.github.giantpinkrobots.flatsweep"
+        "flathub:dev.fredol.open-tv"
+        "flathub:im.riot.Riot"
+        "flathub:io.gitlab.adhami3310.Converter"
+        "flathub:io.github.xyproto.zsnes"
+      )
 
-    # List of flatpak applications to install
-    FLATPAKS=(
-      # "flathub:com.usebottles.bottles"  # Wine prefix manager - commented out with Wine removal
-      "flathub:org.telegram.desktop"
-      "flathub:org.kde.haruna"
-      "flathub:com.github.tchx84.Flatseal"
-      "flathub:md.obsidian.Obsidian"
-      "flathub:app.zen_browser.zen"
-      "flathub:com.github.wwmm.easyeffects"
-      "flathub:com.rustdesk.RustDesk"
-      "flathub:org.flameshot.Flameshot"
-      "flathub:org.filezillaproject.Filezilla"
-      "flathub:com.slack.Slack"
-      "flathub:org.gnome.baobab"
-      "flathub:com.transmissionbt.Transmission"
-      "flathub:io.github.giantpinkrobots.flatsweep"
-      "flathub:dev.fredol.open-tv"
-      "flathub:im.riot.Riot"
-      "flathub:io.gitlab.adhami3310.Converter"
-      "flathub:io.github.xyproto.zsnes"
-    )
-
-    # Install each flatpak if not already installed
-    for pkg in "''${FLATPAKS[@]}"; do
-      # Extract the app ID from the package string (e.g., "flathub:com.usebottles.bottles" -> "com.usebottles.bottles")
-      app_id="''${pkg#*:}"
-      if ! ${pkgs.flatpak}/bin/flatpak list --system --columns=application 2>/dev/null | grep -q "^''${app_id}$"; then
-        echo "Installing flatpak: ''${pkg}"
-        ${pkgs.flatpak}/bin/flatpak install --system --noninteractive --assumeyes "''${pkg%%:*}" "''${pkg#*:}" || true
-      else
-        echo "Flatpak already installed: ''${app_id}"
-      fi
-    done
-  '';
+      for flatpak_ref in "''${flatpaks[@]}"; do
+        remote="''${flatpak_ref%%:*}"
+        app_id="''${flatpak_ref#*:}"
+        if ! flatpak list --system --columns=application | grep -qx "''${app_id}"; then
+          echo "Installing declared Flatpak: ''${app_id}" >&2
+          flatpak install --system --noninteractive --assumeyes "''${remote}" "''${app_id}"
+        fi
+      done
+    '';
+  };
 
   # Android ADB udev support now handled automatically by systemd 258+ uaccess rules
   services.udev.packages = [ pkgs.brightnessctl ];
@@ -844,44 +920,46 @@ in
 
   # User configuration handled by hyprvibe.user
 
-  # Podman + declarative Companion container
+  # Podman remains available for other local workloads.
   virtualisation.podman.enable = true;
-  virtualisation.oci-containers.backend = "podman";
-  virtualisation.oci-containers.containers.companion = {
-    image = "ghcr.io/bitfocus/companion/companion:latest";
-    autoStart = true;
-    # Note: image defaults to user "companion"; override via extraOptions
-    ports = [
-      "8000:8000"
-      "51234:51234"
-    ];
-    volumes = [
-      "/var/lib/companion:/companion"
-      "/run/udev:/run/udev:ro"
-      "/dev/bus/usb:/dev/bus/usb"
-    ];
-    extraOptions = [
-      "--privileged"
-      "--user=0:0"
-    ];
-    labels = {
-      "io.containers.autoupdate" = "registry";
-    };
+  users.groups.companion-satellite = { };
+  users.users.companion-satellite = {
+    isSystemUser = true;
+    group = "companion-satellite";
+    extraGroups = [ "plugdev" ];
   };
 
-  # Ensure persistent data directory exists
-  systemd.tmpfiles.rules = [
-    "d /var/lib/companion 0777 root root -"
-  ];
-
-  # Open firewall for Companion
-  networking.firewall.allowedTCPPorts = (config.networking.firewall.allowedTCPPorts or [ ]) ++ [
-    8000
-    51234
-  ];
-  networking.firewall.allowedUDPPorts = (config.networking.firewall.allowedUDPPorts or [ ]) ++ [
-    51234
-  ];
+  # A local USB surface connects to the Companion server's satellite API, rather
+  # than running a second Companion server on nixbook.
+  systemd.services.companion-satellite = {
+    description = "Bitfocus Companion Satellite for nixbook Stream Deck XL";
+    wantedBy = [ "multi-user.target" ];
+    wants = [ "network-online.target" ];
+    after = [ "network-online.target" ];
+    environment = {
+      HOME = "/var/lib/companion-satellite";
+      XDG_CONFIG_HOME = "/var/lib/companion-satellite";
+    };
+    preStart = ''
+      if [ ! -e /var/lib/companion-satellite/config.json ]; then
+        install -m 0640 -o companion-satellite -g companion-satellite \
+          ${companionSatelliteInitialConfig} /var/lib/companion-satellite/config.json
+      fi
+      chmod 0640 /var/lib/companion-satellite/config.json
+    '';
+    serviceConfig = {
+      User = "companion-satellite";
+      Group = "companion-satellite";
+      WorkingDirectory = "/var/lib/companion-satellite";
+      StateDirectory = "companion-satellite";
+      StateDirectoryMode = "0750";
+      UMask = "0027";
+      ExecStart = "${companionSatellite}/libexec/companion-satellite/resources/node-runtimes/node22/bin/node ${companionSatellite}/libexec/companion-satellite/app/dist/main.js /var/lib/companion-satellite/config.json";
+      Restart = "on-failure";
+      RestartSec = "5s";
+      NoNewPrivileges = true;
+    };
+  };
 
   # Removed stale nixbook-specific activation script body.
   # Shared hyprvibe modules now manage Hyprland, shell, and related desktop files.
