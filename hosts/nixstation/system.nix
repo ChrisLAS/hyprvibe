@@ -335,7 +335,6 @@ let
     fuse
     fuse3
     appimage-run
-    pop-gtk-theme
     cool-retro-term
     vscode-fhs
     logitech-udev-rules
