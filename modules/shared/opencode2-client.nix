@@ -1,0 +1,67 @@
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
+  cfg = config.hyprvibe.opencode2Client;
+  opencode2 = pkgs.callPackage ../../pkgs/opencode2-beta {};
+
+  credentialSetup = ''
+    secret_file=${lib.escapeShellArg cfg.secretFile}
+    if [ ! -r "$secret_file" ]; then
+      echo "OpenCode 2 server credential is not readable: $secret_file" >&2
+      exit 1
+    fi
+
+    password_lines="$(${pkgs.gnugrep}/bin/grep -c '^OPENCODE_PASSWORD=' "$secret_file" || true)"
+    if [ "$password_lines" -ne 1 ]; then
+      echo "OpenCode 2 server credential must contain exactly one OPENCODE_PASSWORD entry" >&2
+      exit 1
+    fi
+
+    OPENCODE_PASSWORD="$(${pkgs.gnused}/bin/sed -n 's/^OPENCODE_PASSWORD=//p' "$secret_file")"
+    if ! ${pkgs.coreutils}/bin/printf '%s\n' "$OPENCODE_PASSWORD" \
+      | ${pkgs.gnugrep}/bin/grep -Eq '^[[:xdigit:]]{32,}$'; then
+      echo "OpenCode 2 server credential has an unexpected format" >&2
+      exit 1
+    fi
+    export OPENCODE_PASSWORD
+  '';
+
+  opencode2Nomad = pkgs.writeShellScriptBin "opencode2-nomad" ''
+    set -euo pipefail
+    ${credentialSetup}
+    exec ${lib.getExe opencode2} --server ${lib.escapeShellArg cfg.serverUrl} "$@"
+  '';
+
+  opencode2NomadStatus = pkgs.writeShellScriptBin "opencode2-nomad-status" ''
+    set -euo pipefail
+    ${credentialSetup}
+    exec ${lib.getExe opencode2} api --server ${lib.escapeShellArg cfg.serverUrl} get /api/health
+  '';
+in {
+  options.hyprvibe.opencode2Client = {
+    enable = lib.mkEnableOption "OpenCode 2 beta client for the Nomad server";
+
+    serverUrl = lib.mkOption {
+      type = lib.types.str;
+      default = "http://100.102.96.14:4097";
+      description = "Tailnet URL of the OpenCode 2 server";
+    };
+
+    secretFile = lib.mkOption {
+      type = lib.types.str;
+      default = "${config.hyprvibe.user.home}/.config/secrets/opencode2-server.env";
+      description = "Local environment file containing OPENCODE_PASSWORD";
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
+    environment.systemPackages = [
+      opencode2
+      opencode2Nomad
+      opencode2NomadStatus
+    ];
+  };
+}

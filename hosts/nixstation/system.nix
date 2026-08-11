@@ -535,6 +535,8 @@ let
   '';
 in
 {
+  hyprvibe.opencode2Client.enable = true;
+
   imports = [
     # Import the Hyprland flake module
     hyprland.nixosModules.default

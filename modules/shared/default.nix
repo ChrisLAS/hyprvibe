@@ -19,6 +19,7 @@ in
     ./syncthing.nix
     ./agent-configs.nix
     ./opencode.nix
+    ./opencode2-client.nix
   ];
 
   config = lib.mkIf cfg.enable {
