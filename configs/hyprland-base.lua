@@ -11,11 +11,17 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("systemctl --user set-environment XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_DESKTOP=hyprland XDG_SESSION_TYPE=wayland")
     hl.exec_cmd("systemctl --user import-environment DISPLAY WAYLAND_DISPLAY XAUTHORITY HYPRLAND_INSTANCE_SIGNATURE")
     hl.exec_cmd("dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY XAUTHORITY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_DESKTOP=hyprland XDG_SESSION_TYPE=wayland")
+    -- Portals require an active graphical session target as of xdg-desktop-portal 1.22.
+    hl.exec_cmd("systemctl --user start nixos-fake-graphical-session.target")
     -- Hyprpaper is managed by hyprvibe-hyprpaper.service.
     hl.exec_cmd("hypridle")
     hl.exec_cmd("blueman-applet")
     hl.exec_cmd("nm-applet --indicator")
     hl.exec_cmd("playerctld daemon")
+end)
+
+hl.on("hyprland.shutdown", function()
+    hl.exec_cmd("systemctl --user stop nixos-fake-graphical-session.target")
 end)
 
 hl.env("XCURSOR_SIZE", "24")
