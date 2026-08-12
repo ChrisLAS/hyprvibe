@@ -16,6 +16,13 @@
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
     codex-cli-nix.inputs.nixpkgs.follows = "nixpkgs";
 
+    # OpenAI's stable Linux package index. Keeping this as a locked file input
+    # lets `nix flake update` advance ChatGPT with the rest of the system.
+    chatgpt-linux-metadata = {
+      url = "file+https://persistent.oaistatic.com/codex-app-prod/linux/deb/dists/stable/main/binary-amd64/Packages";
+      flake = false;
+    };
+
     freshrss-mcp.url = "github:ChrisLAS/freshrss-mcp";
     freshrss-mcp.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -37,6 +44,7 @@
     prettyswitch,
     hyprland,
     codex-cli-nix,
+    chatgpt-linux-metadata,
     freshrss-mcp,
     sops-nix,
     googleworkspace-cli,
@@ -56,6 +64,7 @@
     packages.x86_64-linux = let
       pkgs = import nixpkgs {
         system = "x86_64-linux";
+        config.allowUnfree = true;
         overlays = [
           (import ./overlays/gogcli.nix gogcli-src)
           (final: prev: {
@@ -69,6 +78,9 @@
     in {
       gogcli = pkgs.gogcli;
       gws = pkgs.gws;
+      chatgpt-desktop = pkgs.callPackage ./pkgs/chatgpt-desktop.nix {
+        repositoryMetadata = chatgpt-linux-metadata;
+      };
     };
 
     nixosModules = {
@@ -124,6 +136,9 @@
                   codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
                   codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
                   codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
+                  chatgpt-desktop = final.callPackage ./pkgs/chatgpt-desktop.nix {
+                    repositoryMetadata = chatgpt-linux-metadata;
+                  };
                 })
               ];
             }

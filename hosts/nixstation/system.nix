@@ -358,6 +358,7 @@ let
     libation
     audible-cli
     chromium
+    chatgpt-desktop
     gnome-calculator
     gnome-keyring
     xournalpp
