@@ -32,6 +32,17 @@
   opencode2Nomad = pkgs.writeShellScriptBin "opencode2-nomad" ''
     set -euo pipefail
     ${credentialSetup}
+
+    project_root=${lib.escapeShellArg cfg.projectRoot}
+    if [ "$#" -eq 0 ]; then
+      if [ ! -d "$project_root" ]; then
+        echo "OpenCode 2 requires the server project path to exist on the TUI client: $project_root" >&2
+        echo "Create an empty local path mirror; filesystem tools still run on Nomad." >&2
+        exit 1
+      fi
+      set -- "$project_root"
+    fi
+
     exec ${lib.getExe opencode2} --server ${lib.escapeShellArg cfg.serverUrl} "$@"
   '';
 
@@ -48,6 +59,12 @@ in {
       type = lib.types.str;
       default = "http://100.102.96.14:4097";
       description = "Tailnet URL of the OpenCode 2 server";
+    };
+
+    projectRoot = lib.mkOption {
+      type = lib.types.str;
+      default = "/home/chrisf/build/nomad-nixos";
+      description = "Nomad-side project selected by a no-argument remote TUI";
     };
 
     secretFile = lib.mkOption {
