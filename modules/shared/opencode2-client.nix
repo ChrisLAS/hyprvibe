@@ -57,7 +57,7 @@ in {
 
     serverUrl = lib.mkOption {
       type = lib.types.str;
-      default = "http://100.102.96.14:4097";
+      default = "https://nomad.coin-noodlefish.ts.net:8444";
       description = "Tailnet URL of the OpenCode 2 server";
     };
 
