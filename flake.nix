@@ -16,6 +16,11 @@
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
     codex-cli-nix.inputs.nixpkgs.follows = "nixpkgs";
 
+    # Qwen3.8 GGUFs were produced with llama.cpp b10430. Pin the matching
+    # upstream Vulkan build until support has reached the nixpkgs package.
+    llama-cpp.url = "github:ggml-org/llama.cpp/b10430";
+    llama-cpp.inputs.nixpkgs.follows = "nixpkgs";
+
     # OpenAI's stable Linux package index. Keeping this as a locked file input
     # lets `nix flake update` advance ChatGPT with the rest of the system.
     chatgpt-linux-metadata = {

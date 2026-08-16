@@ -535,6 +535,7 @@ let
   '';
 in
 {
+  hyprvibe.opencode.enable = true;
   hyprvibe.opencode2Client.enable = true;
 
   imports = [
@@ -546,6 +547,8 @@ in
     ../../modules/shared
     # AI/LLM stack (Ollama + LobeHub)
     ./ai-memory-stack.nix
+    # Tailnet-only OpenAI-compatible Qwen3.8 GGUF server
+    ./qwen38-server.nix
   ];
 
   # Enable hyprvibe module toggles

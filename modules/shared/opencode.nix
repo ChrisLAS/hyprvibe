@@ -51,6 +51,32 @@
           tool_call = false;
         };
       };
+      "nixstation-qwen" = {
+        npm = "@ai-sdk/openai-compatible";
+        name = "Nixstation Qwen";
+        options = {
+          baseURL = "https://nixstation.coin-noodlefish.ts.net/v1";
+          apiKey = "{file:~/.config/secrets/nixstation_qwen_api_key}";
+        };
+        models = {
+          "qwen3.8-27b" = {
+            name = "Qwen3.8 27B Q4_K_M";
+            tool_call = true;
+            limit = {
+              context = 16384;
+              output = 8192;
+            };
+          };
+          "qwen3.8-27b-abliterated" = {
+            name = "Qwen3.8 27B Abliterated Q4_K_S";
+            tool_call = true;
+            limit = {
+              context = 16384;
+              output = 8192;
+            };
+          };
+        };
+      };
     };
   };
 in {

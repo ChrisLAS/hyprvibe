@@ -82,6 +82,24 @@
         "type": "github"
       }
     },
+    "flake-parts": {
+      "inputs": {
+        "nixpkgs-lib": "nixpkgs-lib"
+      },
+      "locked": {
+        "lastModified": 1785627969,
+        "narHash": "sha256-4dtXQk/NMePegK/nWp5NSeuZKLATItOq61lpEvmXqGw=",
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "rev": "427bf4bd9435fdf21321c8cc628c24efc14c0f7a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -516,6 +534,28 @@
         "type": "github"
       }
     },
+    "llama-cpp": {
+      "inputs": {
+        "flake-parts": "flake-parts",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786709659,
+        "narHash": "sha256-pwchXHfxQngbckP3VC2Nv2w3dQXukmMaVqweUlbMEaI=",
+        "owner": "ggml-org",
+        "repo": "llama.cpp",
+        "rev": "4c1a0af40d88c7fbb3b15c85bf2e8016d1d5b64c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ggml-org",
+        "ref": "b10430",
+        "repo": "llama.cpp",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1786384358,
@@ -529,6 +569,21 @@
         "owner": "nixos",
         "ref": "nixos-unstable",
         "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-lib": {
+      "locked": {
+        "lastModified": 1785031560,
+        "narHash": "sha256-OmshNvn2vupOFpYinLUu+1Dnpu4n7Q5N3ggGVNHpkUI=",
+        "owner": "nix-community",
+        "repo": "nixpkgs.lib",
+        "rev": "0e79af5e3d4dcfcd676ab5ba3f95d2e3352e078c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "nixpkgs.lib",
         "type": "github"
       }
     },
@@ -598,6 +653,7 @@
         "gogcli-src": "gogcli-src",
         "googleworkspace-cli": "googleworkspace-cli",
         "hyprland": "hyprland",
+        "llama-cpp": "llama-cpp",
         "nixpkgs": "nixpkgs",
         "nixpkgsPgsearch": "nixpkgsPgsearch",
         "prettyswitch": "prettyswitch",
