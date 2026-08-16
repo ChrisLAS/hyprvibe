@@ -57,6 +57,22 @@
     check_model ${lib.escapeShellArg officialModel} 16810714336
     check_model ${lib.escapeShellArg abliteratedModel} 15825300704
   '';
+
+  waitForTailscale = pkgs.writeShellScript "wait-for-tailscale" ''
+    set -euo pipefail
+
+    for _attempt in $(${pkgs.coreutils}/bin/seq 1 60); do
+      state="$(${pkgs.tailscale}/bin/tailscale status --json 2>/dev/null \
+        | ${pkgs.jq}/bin/jq -r '.BackendState // empty' 2>/dev/null || true)"
+      if [ "$state" = "Running" ]; then
+        exit 0
+      fi
+      ${pkgs.coreutils}/bin/sleep 1
+    done
+
+    echo "Tailscale did not reach the Running state within 60 seconds" >&2
+    exit 1
+  '';
 in {
   environment.systemPackages = [llamaCpp];
 
@@ -120,13 +136,24 @@ in {
   systemd.services.qwen38-tailscale-serve = {
     description = "Tailnet HTTPS proxy for the Qwen3.8 API";
     wantedBy = ["multi-user.target"];
-    after = ["tailscaled.service"];
-    wants = ["tailscaled.service"];
+    after = [
+      "network-online.target"
+      "qwen38-llama-server.service"
+      "tailscaled.service"
+    ];
+    wants = [
+      "network-online.target"
+      "qwen38-llama-server.service"
+      "tailscaled.service"
+    ];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
+      ExecStartPre = waitForTailscale;
       ExecStart = "${pkgs.tailscale}/bin/tailscale serve --yes --bg --https=443 http://127.0.0.1:11435";
       ExecStop = "-${pkgs.tailscale}/bin/tailscale serve --yes --https=443 off";
+      Restart = "on-failure";
+      RestartSec = "10s";
     };
   };
 }
