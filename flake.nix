@@ -90,6 +90,7 @@
       chatgpt-desktop = pkgs.callPackage ./pkgs/chatgpt-desktop.nix {
         repositoryMetadata = chatgpt-linux-metadata;
       };
+      voice-pe-firmware-tools = pkgs.callPackage ./pkgs/voice-pe-firmware-tools.nix {};
     };
 
     nixosModules = {

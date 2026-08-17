@@ -64,6 +64,8 @@ let
           --set GDK_PIXBUF_MODULE_FILE "${pkgs.librsvg}/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache"
       '';
 
+  voicePeFirmwareTools = pkgs.callPackage ../../pkgs/voice-pe-firmware-tools.nix { };
+
   basiliskIIBridgeTap = pkgs.writeShellScriptBin "basilisk-ii-bridge-tap" ''
     set -euo pipefail
 
@@ -144,6 +146,7 @@ let
     oh-my-posh
     hermesDesktopNomad
     hermesDesktopNomadEntry
+    voicePeFirmwareTools
     lazydocker
     opencode
     android-tools

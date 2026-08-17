@@ -1,0 +1,20 @@
+packages:
+  voice_pe: !include home-assistant-voice.yaml
+
+esphome:
+  name: lore-voice-pe
+  friendly_name: Lore Voice PE
+  name_add_mac_suffix: false
+  project:
+    name: ChrisFisher.Lore Voice PE
+    version: "0.1.0"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+improv_serial:

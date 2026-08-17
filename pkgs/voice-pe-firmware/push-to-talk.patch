@@ -1,0 +1,88 @@
+diff --git a/home-assistant-voice.yaml b/home-assistant-voice.yaml
+index 5a000a7..d13f6d2 100644
+--- a/home-assistant-voice.yaml
++++ b/home-assistant-voice.yaml
+@@ -298,7 +298,38 @@ binary_sensor:
+             switch.is_off: disable_buttons
+           then:
+             - script.execute: control_leds
++      - if:
++          condition:
++            and:
++              - lambda: return !id(init_in_progress) && !id(disable_buttons).state;
++              - switch.is_off: master_mute_switch
++          then:
++            - if:
++                condition:
++                  media_player.is_announcing:
++                    id: external_media_player
++                then:
++                  - media_player.stop:
++                      announcement: true
++                      id: external_media_player
++            - if:
++                condition:
++                  voice_assistant.is_running:
++                then:
++                  - voice_assistant.stop:
++            - script.execute:
++                id: play_sound
++                priority: true
++                sound_file: "center_button_press_sound"
++            - delay: 300ms
++            - voice_assistant.start:
++                silence_detection: false
+     on_release:
++      - if:
++          condition:
++            voice_assistant.is_running:
++          then:
++            - voice_assistant.stop:
+       - if:
+           condition:
+             switch.is_off: disable_buttons
+@@ -324,7 +355,7 @@ binary_sensor:
+         then:
+           - if:
+               condition:
+-                lambda: return !id(init_in_progress) && !id(color_changed) && !id(group_volume_changed) && !id(disable_buttons).state;
++                lambda: return false;  // Simple click is replaced by press-and-hold PTT.
+               then:
+                 - if:
+                     condition:
+@@ -377,7 +408,7 @@ binary_sensor:
+         then:
+           - if:
+               condition:
+-                lambda: return !id(init_in_progress) && !id(color_changed) && !id(group_volume_changed) && !id(disable_buttons).state;
++                lambda: return false;  // PTT owns short center-button gestures.
+               then:
+                 - script.execute:
+                     id: play_sound
+@@ -398,7 +429,7 @@ binary_sensor:
+         then:
+           - if:
+               condition:
+-                lambda: return !id(init_in_progress) && !id(color_changed) && !id(group_volume_changed) && !id(disable_buttons).state;
++                lambda: return false;  // PTT owns short center-button gestures.
+               then:
+                 - script.execute:
+                     id: play_sound
+@@ -414,7 +445,7 @@ binary_sensor:
+         then:
+           - if:
+               condition:
+-                lambda: return !id(init_in_progress) && !id(color_changed) && !id(group_volume_changed) && !id(disable_buttons).state;
++                lambda: return false;  // PTT owns long-press gestures.
+               then:
+                 - script.execute:
+                     id: play_sound
+@@ -468,7 +499,7 @@ binary_sensor:
+       # Factory Reset Warning
+       #  . Audible and Visible warning.
+       - timing:
+-          - ON for at least 10s
++          - ON for at least 60s
+         then:
+           - if:
+               condition:
