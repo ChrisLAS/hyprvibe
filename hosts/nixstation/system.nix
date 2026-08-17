@@ -254,6 +254,8 @@ let
     lm_sensors
     tor-browser
     wmctrl
+    codex
+    codexbar
     waybar
     wl-clipboard
     grim

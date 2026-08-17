@@ -65,6 +65,31 @@ window#waybar {
 #bluetooth { color: #7ad1ff; }
 #pulseaudio.muted { color: #888888; }
 
+#custom-codexbar {
+  padding: 0 10px;
+}
+
+#custom-codexbar:hover {
+  background: rgba(0, 255, 210, 0.08);
+}
+
+#custom-codexbar.low {
+  color: #98c379;
+}
+
+#custom-codexbar.mid {
+  color: #e5c07b;
+}
+
+#custom-codexbar.high {
+  color: #d19a66;
+}
+
+#custom-codexbar.critical {
+  color: #ff6b8a;
+  font-weight: 700;
+}
+
 .modules-left > widget,
 .modules-center > widget,
 .modules-right > widget {

@@ -122,6 +122,7 @@
                   codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
                   codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
                   codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
+                  codexbar = final.callPackage ./pkgs/codexbar.nix {};
                 })
               ];
             }
@@ -142,15 +143,16 @@
           (
             {...}: {
               nixpkgs.overlays = [
-                (final: prev: {
-                  gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
-                  codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
-                  codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
-                  codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
-                  chatgpt-desktop = final.callPackage ./pkgs/chatgpt-desktop.nix {
-                    repositoryMetadata = chatgpt-linux-metadata;
-                  };
-                })
+            (final: prev: {
+              gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
+              codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
+              codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
+              codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
+              codexbar = final.callPackage ./pkgs/codexbar.nix {};
+              chatgpt-desktop = final.callPackage ./pkgs/chatgpt-desktop.nix {
+                repositoryMetadata = chatgpt-linux-metadata;
+              };
+            })
               ];
             }
           )
@@ -175,6 +177,7 @@
                   codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
                   codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
                   codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
+                  codexbar = final.callPackage ./pkgs/codexbar.nix {};
                 })
               ];
             }
@@ -200,6 +203,7 @@
                   codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
                   codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
                   codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
+                  codexbar = final.callPackage ./pkgs/codexbar.nix {};
                 })
               ];
             }

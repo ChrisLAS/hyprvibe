@@ -78,6 +78,8 @@ in
   hyprvibe.packages = {
     dev.enable = true;
     extraPackages = with pkgs; [
+      codex
+      codexbar
       firefox
       brave
       chromium

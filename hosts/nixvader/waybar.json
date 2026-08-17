@@ -10,6 +10,7 @@
     "cpu",
     "memory",
     "battery",
+    "custom/codexbar",
     "tray",
     "bluetooth",
     "idle_inhibitor",
@@ -69,6 +70,13 @@
     "format": "light {percent}%",
     "on-scroll-up": "brightnessctl set +5%",
     "on-scroll-down": "brightnessctl set 5%-"
+  },
+  "custom/codexbar": {
+    "return-type": "json",
+    "exec": "codexbar --format '{session_pct}% {session_pace}'",
+    "interval": 300,
+    "tooltip": true,
+    "on-click": "xdg-open https://chatgpt.com/codex/settings/usage"
   },
   "clock": {
     "format": "{:%I:%M %p}",

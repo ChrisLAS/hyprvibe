@@ -23,7 +23,7 @@
     "memory",
     "custom/amd_gpu",
     "gamemode",
-    "custom/openrouter",
+    "custom/codexbar",
     "tray",
     "bluetooth",
     "idle_inhibitor",
@@ -117,12 +117,13 @@
       "deactivated": "🌙"
     }
   },
-  "custom/openrouter": {
+  "custom/codexbar": {
     "return-type": "json",
-    "exec": "~/.config/waybar/scripts/waybar-openrouter.sh",
+    "exec": "codexbar --format '{session_pct}% {session_pace}'",
     "interval": 300,
+    "signal": 12,
     "tooltip": true,
-    "format": "{}"
+    "on-click": "xdg-open https://chatgpt.com/codex/settings/usage"
   },
   "gamemode": {
     "format": "GM {count}"
