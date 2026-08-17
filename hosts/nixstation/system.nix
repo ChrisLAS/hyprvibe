@@ -65,6 +65,7 @@ let
       '';
 
   voicePeFirmwareTools = pkgs.callPackage ../../pkgs/voice-pe-firmware-tools.nix { };
+  voicePeHermesBridge = pkgs.callPackage ../../pkgs/voice-pe-hermes-bridge.nix { };
 
   basiliskIIBridgeTap = pkgs.writeShellScriptBin "basilisk-ii-bridge-tap" ''
     set -euo pipefail
@@ -147,6 +148,7 @@ let
     hermesDesktopNomad
     hermesDesktopNomadEntry
     voicePeFirmwareTools
+    voicePeHermesBridge
     lazydocker
     opencode
     android-tools
@@ -1141,6 +1143,43 @@ in
       Restart = "on-failure";
       RestartSec = 1;
       TimeoutStopSec = 10;
+    };
+  };
+
+  # Studio Voice PE -> local STT/TTS -> Lore on Nomad.  The service reads
+  # bearer/API keys from the existing per-user secret files at runtime; no
+  # credential is copied into the Nix store or unit definition.
+  systemd.user.services.voice-pe-hermes-bridge = {
+    description = "Home Assistant Voice PE bridge for Hermes Lore";
+    after = [ "network-online.target" "tailscaled.service" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "default.target" ];
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${voicePeHermesBridge}/bin/voice-pe-hermes-bridge";
+      WorkingDirectory = homeDir;
+      Restart = "on-failure";
+      RestartSec = "5s";
+      UMask = "0077";
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = "strict";
+      ProtectHome = false;
+      ReadWritePaths = [
+        "${homeDir}/.cache"
+        "${homeDir}/.local/state"
+      ];
+    };
+    environment = {
+      VOICE_PE_DEVICE = "lore-voice-pe.local";
+      VOICE_PE_KEY_FILE = "${homeDir}/.config/secrets/home-assistant-voice-pe-noise-key";
+      VOICE_PE_HERMES_URL = "http://nomad.coin-noodlefish.ts.net:8643";
+      VOICE_PE_HERMES_KEY_FILE = "${homeDir}/.config/secrets/hermes_lore_api_server_key";
+      VOICE_PE_WHISPER_MODEL = "base";
+      VOICE_PE_TTS_COMMAND = "${voicePeHermesBridge}/bin/voice-pe-espeak-tts";
+      VOICE_PE_HTTP_BIND = "0.0.0.0";
+      VOICE_PE_HTTP_PORT = "8798";
+      VOICE_PE_HTTP_BASE = "http://192.168.7.29:8798";
     };
   };
 

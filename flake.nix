@@ -91,6 +91,7 @@
         repositoryMetadata = chatgpt-linux-metadata;
       };
       voice-pe-firmware-tools = pkgs.callPackage ./pkgs/voice-pe-firmware-tools.nix {};
+      voice-pe-hermes-bridge = pkgs.callPackage ./pkgs/voice-pe-hermes-bridge.nix {};
     };
 
     nixosModules = {
