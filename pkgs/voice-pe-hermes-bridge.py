@@ -17,12 +17,12 @@ import logging
 import os
 import re
 import shlex
-import subprocess
 import tempfile
 import uuid
 import wave
+from contextlib import suppress
 from pathlib import Path
-from typing import Any
+from typing import Any, AsyncIterator
 
 import aioesphomeapi
 import httpx
@@ -55,16 +55,34 @@ def write_pcm_wav(path: Path, pcm: bytes) -> None:
         output.writeframes(pcm)
 
 
-def run_tts(command: str, text: str, output: Path) -> None:
+async def run_command(argv: list[str], timeout: float) -> None:
+    process = await asyncio.create_subprocess_exec(
+        *argv,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    try:
+        _stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
+    except asyncio.CancelledError:
+        process.terminate()
+        with suppress(ProcessLookupError):
+            await process.wait()
+        raise
+    if process.returncode != 0:
+        detail = stderr.decode("utf-8", "replace").strip()
+        raise RuntimeError(f"command failed ({process.returncode}): {detail}")
+
+
+async def run_tts(command: str, text: str, output: Path) -> None:
     argv = [*shlex.split(command), "--output", str(output), text]
     LOG.info("synthesizing %d characters with %s", len(text), argv[0])
-    subprocess.run(argv, check=True, timeout=180)
+    await run_command(argv, timeout=180)
     if not output.is_file() or output.stat().st_size == 0:
         raise RuntimeError(f"TTS command did not create audio: {output}")
 
 
-def convert_to_flac(source: Path, output: Path) -> None:
-    subprocess.run(
+async def convert_to_flac(source: Path, output: Path) -> None:
+    await run_command(
         [
             env("VOICE_PE_FFMPEG", "ffmpeg"),
             "-nostdin",
@@ -82,7 +100,6 @@ def convert_to_flac(source: Path, output: Path) -> None:
             "flac",
             str(output),
         ],
-        check=True,
         timeout=180,
     )
 
@@ -146,9 +163,11 @@ class VoiceHermesBridge:
         self.unsubscribe: Any = None
         self.recording = bytearray()
         self.recording_lock = asyncio.Lock()
-        self.processing = asyncio.Lock()
         self.http = httpx.AsyncClient(timeout=httpx.Timeout(300.0, connect=15.0))
         self.session_id = env("VOICE_PE_HERMES_SESSION_ID", str(uuid.uuid4()))
+        self.active_turn: asyncio.Task[None] | None = None
+        self.active_run_id: str | None = None
+        self.active_run_lock = asyncio.Lock()
         self.announcement = AnnouncementServer(
             args.http_bind, args.http_port, args.http_base
         )
@@ -167,6 +186,7 @@ class VoiceHermesBridge:
         wake_word: str | None,
     ) -> int:
         del conversation_id, flags, audio_settings, wake_word
+        await self.interrupt_active_turn()
         async with self.recording_lock:
             self.recording.clear()
         self.event(VoiceAssistantEventType.VOICE_ASSISTANT_RUN_START)
@@ -187,32 +207,33 @@ class VoiceHermesBridge:
         if not pcm:
             self.fail("empty-audio")
             return
-        asyncio.create_task(self.process_recording(pcm))
+        self.active_turn = asyncio.create_task(self.process_recording(pcm))
 
     async def handle_disconnect(self, _expected: bool) -> None:
         self.disconnected.set()
 
     async def process_recording(self, pcm: bytes) -> None:
-        async with self.processing:
-            try:
-                text = await asyncio.to_thread(self.transcribe, pcm)
-                if not text:
-                    self.fail("no-speech")
-                    return
-                LOG.info("transcript: %s", text)
-                self.event(VoiceAssistantEventType.VOICE_ASSISTANT_INTENT_START)
-                reply = await self.ask_hermes(text)
-                self.event(VoiceAssistantEventType.VOICE_ASSISTANT_INTENT_END)
-                if not reply:
-                    self.fail("empty-hermes-response")
-                    return
-                await self.speak(reply)
-                self.event(VoiceAssistantEventType.VOICE_ASSISTANT_RUN_END)
-            except asyncio.CancelledError:
-                raise
-            except Exception:
-                LOG.exception("voice turn failed")
-                self.fail("bridge-error")
+        try:
+            text = await asyncio.to_thread(self.transcribe, pcm)
+            if not text:
+                self.fail("no-speech")
+                return
+            LOG.info("transcript: %s", text)
+            self.event(VoiceAssistantEventType.VOICE_ASSISTANT_INTENT_START)
+            spoken = False
+            async for sentence in self.stream_hermes(text):
+                spoken = True
+                await self.speak(sentence)
+            self.event(VoiceAssistantEventType.VOICE_ASSISTANT_INTENT_END)
+            if not spoken:
+                self.fail("empty-hermes-response")
+                return
+            self.event(VoiceAssistantEventType.VOICE_ASSISTANT_RUN_END)
+        except asyncio.CancelledError:
+            LOG.info("voice turn interrupted")
+        except Exception:
+            LOG.exception("voice turn failed")
+            self.fail("bridge-error")
 
     def transcribe(self, pcm: bytes) -> str:
         if self.whisper is None:
@@ -232,31 +253,96 @@ class VoiceHermesBridge:
             )
             return " ".join(segment.text.strip() for segment in segments).strip()
 
-    async def ask_hermes(self, text: str) -> str:
+    async def stream_hermes(self, text: str) -> AsyncIterator[str]:
         response = await self.http.post(
-            f"{self.args.hermes_url.rstrip('/')}/v1/chat/completions",
+            f"{self.args.hermes_url.rstrip('/')}/v1/runs",
             headers={
                 "Authorization": f"Bearer {self.args.hermes_key}",
                 "Content-Type": "application/json",
                 "X-Hermes-Session-Id": self.session_id,
             },
             json={
-                "model": "hermes-agent",
-                "messages": [{"role": "user", "content": text}],
-                "stream": False,
+                "input": text,
+                "session_id": self.session_id,
             },
         )
         response.raise_for_status()
-        payload = response.json()
-        return str(payload["choices"][0]["message"].get("content") or "").strip()
+        run_id = str(response.json()["run_id"])
+        async with self.active_run_lock:
+            self.active_run_id = run_id
+        LOG.info("Hermes run started: %s", run_id)
+
+        buffer = ""
+        output = ""
+        try:
+            async with self.http.stream(
+                "GET",
+                f"{self.args.hermes_url.rstrip('/')}/v1/runs/{run_id}/events",
+                headers={
+                    "Authorization": f"Bearer {self.args.hermes_key}",
+                    "Accept": "text/event-stream",
+                    "X-Hermes-Session-Id": self.session_id,
+                },
+            ) as events:
+                events.raise_for_status()
+                async for line in events.aiter_lines():
+                    if not line.startswith("data: "):
+                        continue
+                    payload = json.loads(line[6:])
+                    event = payload.get("event")
+                    if event == "message.delta":
+                        delta = str(payload.get("delta") or "")
+                        output += delta
+                        buffer += delta
+                        while match := SENTENCE_END.search(buffer):
+                            sentence, buffer = buffer[: match.start()], buffer[match.end() :]
+                            if sentence.strip():
+                                yield sentence.strip()
+                    elif event == "run.completed":
+                        completed = str(payload.get("output") or "")
+                        if completed and not output:
+                            buffer = completed
+                        break
+        finally:
+            async with self.active_run_lock:
+                if self.active_run_id == run_id:
+                    self.active_run_id = None
+        if buffer.strip():
+            yield buffer.strip()
+
+    async def interrupt_active_turn(self) -> None:
+        task = self.active_turn
+        if task is None or task.done():
+            self.active_turn = None
+            return
+        async with self.active_run_lock:
+            run_id = self.active_run_id
+        if run_id:
+            try:
+                response = await self.http.post(
+                    f"{self.args.hermes_url.rstrip('/')}/v1/runs/{run_id}/stop",
+                    headers={
+                        "Authorization": f"Bearer {self.args.hermes_key}",
+                        "X-Hermes-Session-Id": self.session_id,
+                    },
+                    timeout=httpx.Timeout(15.0, connect=5.0),
+                )
+                response.raise_for_status()
+                LOG.info("stopped Hermes run %s", run_id)
+            except Exception:
+                LOG.warning("could not stop Hermes run %s", run_id, exc_info=True)
+        task.cancel()
+        with suppress(asyncio.CancelledError):
+            await task
+        self.active_turn = None
 
     async def speak(self, text: str) -> None:
         with tempfile.TemporaryDirectory(prefix="voice-pe-tts-") as directory:
             root = Path(directory)
             wav_path = root / "reply.wav"
             flac_path = root / "reply.flac"
-            await asyncio.to_thread(run_tts, self.args.tts_command, text, wav_path)
-            await asyncio.to_thread(convert_to_flac, wav_path, flac_path)
+            await run_tts(self.args.tts_command, text, wav_path)
+            await convert_to_flac(wav_path, flac_path)
             media_path, media_url = self.announcement.add(flac_path.read_bytes())
             try:
                 LOG.info("requesting Voice PE announcement: %d bytes", flac_path.stat().st_size)
@@ -307,6 +393,7 @@ class VoiceHermesBridge:
             await asyncio.sleep(5)
 
     async def close(self) -> None:
+        await self.interrupt_active_turn()
         if self.unsubscribe is not None:
             self.unsubscribe()
         if self.client is not None:
