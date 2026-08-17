@@ -2,7 +2,7 @@ diff --git a/home-assistant-voice.yaml b/home-assistant-voice.yaml
 index 5a000a7..d13f6d2 100644
 --- a/home-assistant-voice.yaml
 +++ b/home-assistant-voice.yaml
-@@ -298,7 +298,38 @@ binary_sensor:
+@@ -298,7 +298,42 @@ binary_sensor:
              switch.is_off: disable_buttons
            then:
              - script.execute: control_leds
@@ -30,8 +30,12 @@ index 5a000a7..d13f6d2 100644
 +                priority: true
 +                sound_file: "center_button_press_sound"
 +            - delay: 300ms
-+            - voice_assistant.start:
-+                silence_detection: false
++            - if:
++                condition:
++                  binary_sensor.is_on: center_button
++                then:
++                  - voice_assistant.start:
++                      silence_detection: false
      on_release:
 +      - if:
 +          condition:
