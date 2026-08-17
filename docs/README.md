@@ -2,6 +2,10 @@
 
 A flake-based NixOS configuration with Hyprland window manager support.
 
+Host operations:
+
+- [Nixvader handoff and resume workbook](NIXVADER_HANDOFF.md)
+
 Tuned to squeeze every bit of performance out of your system. It's not in a drop-and-go state, but if you're willing to tweak a few things *(like replacing my username)*, you should be mostly set. 
 
 There are a few ways we could improve for easier sharing. I'd appreciate suggestions/PRs. 
