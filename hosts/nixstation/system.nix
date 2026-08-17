@@ -923,7 +923,7 @@ in
   documentation.man.enable = false;
 
   # User configuration handled by hyprvibe.user
-  hyprvibe.user.extraGroups = [ "disk" ];
+  hyprvibe.user.extraGroups = [ "disk" "dialout" ];
 
   # Removed stale nixstation-specific activation script body.
   # Shared hyprvibe modules now manage Hyprland, shell, and related desktop files.
