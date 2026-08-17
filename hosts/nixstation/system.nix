@@ -1146,13 +1146,52 @@ in
     };
   };
 
+  # Keep the local cloned Lore voice warm between turns.  The Python runtime,
+  # model cache, and private reference codes are provisioned in the user's
+  # state; Nix owns the launcher, service, and all paths/configuration.
+  systemd.user.services.voice-pe-neutts = {
+    description = "Local NeuTTS Lore voice server";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "default.target" ];
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${voicePeHermesBridge}/bin/voice-pe-neutts-server";
+      WorkingDirectory = homeDir;
+      Restart = "on-failure";
+      RestartSec = "5s";
+      UMask = "0077";
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = "strict";
+      ProtectHome = false;
+      ReadWritePaths = [
+        "${homeDir}/.cache"
+        "${homeDir}/.local/state"
+      ];
+    };
+    environment = {
+      VOICE_PE_NEUTTS_PYTHON = "${homeDir}/.local/share/voice-pe/neutts-venv/bin/python";
+      VOICE_PE_NEUTTS_BACKBONE = "${homeDir}/.cache/huggingface/hub/models--neuphonic--neutts-nano-q4-gguf/snapshots/8ae1694877fdf9d7c4a7bee2cc9775ba7eab3923/neutts-nano-Q4_0.gguf";
+      VOICE_PE_NEUTTS_CODEC = "${homeDir}/.cache/huggingface/hub/models--neuphonic--neucodec-onnx-decoder-int8/snapshots/706f4bd5fcc39b039c333d5407f58b0075dcee07/model.onnx";
+      VOICE_PE_NEUTTS_REFERENCE_CODES = "${homeDir}/.local/state/voice-pe/voice-reference/lore-data-log-2-0-12s-neutts-codes.pt";
+      VOICE_PE_NEUTTS_REFERENCE_TEXT = "${homeDir}/.local/state/voice-pe/voice-reference/lore-data-log-2-0-12s.txt";
+      VOICE_PE_NEUTTS_LANGUAGE = "en-us";
+      VOICE_PE_NEUTTS_BIND = "127.0.0.1";
+      VOICE_PE_NEUTTS_PORT = "8799";
+      HF_HOME = "${homeDir}/.cache/huggingface";
+      HF_HUB_OFFLINE = "1";
+    };
+  };
+
   # Studio Voice PE -> local STT/TTS -> Lore on Nomad.  The service reads
   # bearer/API keys from the existing per-user secret files at runtime; no
   # credential is copied into the Nix store or unit definition.
   systemd.user.services.voice-pe-hermes-bridge = {
     description = "Home Assistant Voice PE bridge for Hermes Lore";
-    after = [ "network-online.target" "tailscaled.service" ];
+    after = [ "network-online.target" "tailscaled.service" "voice-pe-neutts.service" ];
     wants = [ "network-online.target" ];
+    requires = [ "voice-pe-neutts.service" ];
     wantedBy = [ "default.target" ];
     serviceConfig = {
       Type = "simple";
@@ -1176,7 +1215,7 @@ in
       VOICE_PE_HERMES_URL = "http://nomad.coin-noodlefish.ts.net:8643";
       VOICE_PE_HERMES_KEY_FILE = "${homeDir}/.config/secrets/hermes_lore_api_server_key";
       VOICE_PE_WHISPER_MODEL = "base";
-      VOICE_PE_TTS_COMMAND = "${voicePeHermesBridge}/bin/voice-pe-espeak-tts";
+      VOICE_PE_TTS_COMMAND = "${voicePeHermesBridge}/bin/voice-pe-neutts-tts";
       VOICE_PE_HTTP_BIND = "0.0.0.0";
       VOICE_PE_HTTP_PORT = "8798";
       VOICE_PE_HTTP_BASE = "http://192.168.7.29:8798";
