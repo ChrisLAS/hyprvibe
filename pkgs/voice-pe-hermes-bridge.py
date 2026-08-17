@@ -251,7 +251,6 @@ class VoiceHermesBridge:
         return str(payload["choices"][0]["message"].get("content") or "").strip()
 
     async def speak(self, text: str) -> None:
-        self.event(VoiceAssistantEventType.VOICE_ASSISTANT_TTS_START)
         with tempfile.TemporaryDirectory(prefix="voice-pe-tts-") as directory:
             root = Path(directory)
             wav_path = root / "reply.wav"
@@ -260,14 +259,15 @@ class VoiceHermesBridge:
             await asyncio.to_thread(convert_to_flac, wav_path, flac_path)
             media_path, media_url = self.announcement.add(flac_path.read_bytes())
             try:
+                LOG.info("requesting Voice PE announcement: %d bytes", flac_path.stat().st_size)
                 result = await self.client.send_voice_assistant_announcement_await_response(
                     media_url, timeout=300, text=""
                 )
                 if not result.success:
                     raise RuntimeError("Voice PE reported announcement failure")
+                LOG.info("Voice PE announcement completed successfully")
             finally:
                 self.announcement.remove(media_path)
-        self.event(VoiceAssistantEventType.VOICE_ASSISTANT_TTS_END)
 
     def fail(self, reason: str) -> None:
         LOG.warning("voice turn failed: %s", reason)
