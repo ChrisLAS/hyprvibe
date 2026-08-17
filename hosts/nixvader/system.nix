@@ -112,6 +112,7 @@
     thermald.enable = true;
     hardware.bolt.enable = true;
   };
+  services.displayManager.defaultSession = "hyprland";
 
   programs = {
     dconf.enable = true;

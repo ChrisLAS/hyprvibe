@@ -17,7 +17,10 @@ let
   defaultWallpaper = ../../wallpapers/aishot-2602.jpg;
   mainConfig = if cfg.mainConfig != null then cfg.mainConfig else defaultMain;
   localConfig = pkgs.writeText "hyprland-local.lua" (
-    lib.optionalString cfg.amd.enable ''
+    lib.optionalString (cfg.monitorsFile != null) ''
+      require("hyprland-monitors")
+    ''
+    + lib.optionalString cfg.amd.enable ''
       -- AMD-specific overrides (opt-in)
       hl.env("AMD_VULKAN_ICD", "RADV")
       hl.env("MESA_LOADER_DRIVER_OVERRIDE", "radeonsi")
