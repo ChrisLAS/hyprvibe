@@ -1186,6 +1186,27 @@ in
     };
   };
 
+  # Tailscale accepts a 192.168.7.0/24 subnet route from the RV's Home
+  # Assistant subnet router.  nixstation also owns that subnet locally on
+  # br0, so prefer the local LAN before Tailscale's policy-table rule.  This
+  # keeps the Voice PE and its studio announcement URL on the same LAN.
+  systemd.services.voice-pe-local-lan-route = {
+    description = "Prefer nixstation LAN for the local Voice PE subnet";
+    wantedBy = [ "multi-user.target" ];
+    wants = [ "NetworkManager.service" "tailscaled.service" ];
+    after = [ "NetworkManager.service" "tailscaled.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStop = "${pkgs.iproute2}/bin/ip rule del priority 5200 to 192.168.7.0/24 lookup main";
+    };
+    script = ''
+      if ! ${pkgs.iproute2}/bin/ip rule show | ${pkgs.gnugrep}/bin/grep -q '5200:.*to 192\.168\.7\.0/24 lookup main'; then
+        ${pkgs.iproute2}/bin/ip rule add priority 5200 to 192.168.7.0/24 lookup main
+      fi
+    '';
+  };
+
   # Studio Voice PE -> local STT/TTS -> Lore on Nomad.  The service reads
   # bearer/API keys from the existing per-user secret files at runtime; no
   # credential is copied into the Nix store or unit definition.
