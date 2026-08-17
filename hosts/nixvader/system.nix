@@ -59,6 +59,8 @@
       intel-gpu-tools
       powertop
       fwupd
+      adwaita-icon-theme
+      papirus-icon-theme
       kdePackages.dolphin
       kdePackages.ark
       kdePackages.kate
@@ -113,6 +115,12 @@
     hardware.bolt.enable = true;
   };
   services.displayManager.defaultSession = "hyprland";
+
+  qt = {
+    enable = true;
+    platformTheme = null;
+    style = "adwaita-dark";
+  };
 
   programs = {
     dconf.enable = true;
