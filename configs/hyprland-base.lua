@@ -1,7 +1,7 @@
 -- Shared Hyprland configuration for all Hyprvibe hosts.
 
 local terminal = "kitty"
-local menu = "vicinae open"
+local menu = "vicinae-safe open"
 local browser = "junction"
 
 hl.on("hyprland.start", function()
