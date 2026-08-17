@@ -51,6 +51,7 @@ let
   desktopPackages = with pkgs; [
     xdg-utils
     wl-clipboard
+    wl-clip-persist
     grim
     slurp
     swappy
@@ -59,6 +60,9 @@ let
     brightnessctl
     playerctl
     pavucontrol
+    dunst
+    junction
+    networkmanagerapplet
     # qt6ct  # Temporarily disabled - pulls in qgnomeplatform which has build failure in current nixpkgs
     # Core desktop apps
     kitty
