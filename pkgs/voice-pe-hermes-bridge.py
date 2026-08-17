@@ -31,7 +31,12 @@ from faster_whisper import WhisperModel
 
 
 LOG = logging.getLogger("voice-pe-hermes")
-SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
+VOICE_CHUNK_MIN_CHARS = 24
+PROTECTED_DOT = "\x00"
+VOICE_ABBREVIATIONS = ("e.g.", "i.e.", "Mr.", "Mrs.", "Ms.", "Dr.")
+VOICE_BOUNDARY = re.compile(
+    rf"(?<=[.!?])\s+|(?=\n\s*\d+{re.escape(PROTECTED_DOT)}\s)"
+)
 
 
 def env(name: str, default: str) -> str:
@@ -53,6 +58,38 @@ def write_pcm_wav(path: Path, pcm: bytes) -> None:
         output.setsampwidth(2)
         output.setframerate(16_000)
         output.writeframes(pcm)
+
+
+def extract_voice_chunks(text: str, *, flush: bool = False) -> tuple[list[str], str]:
+    """Extract speakable chunks without breaking abbreviations or list markers."""
+    protected = text
+    for abbreviation in VOICE_ABBREVIATIONS:
+        protected = protected.replace(
+            abbreviation, abbreviation.replace(".", PROTECTED_DOT)
+        )
+    protected = re.sub(
+        rf"(?m)(^|\n)(\s*\d+)\.",
+        rf"\1\2{PROTECTED_DOT}",
+        protected,
+    )
+    matches = list(VOICE_BOUNDARY.finditer(protected))
+    if not matches:
+        if flush and protected.strip():
+            return [protected.replace(PROTECTED_DOT, ".").strip()], ""
+        return [], text
+
+    chunks: list[str] = []
+    start = 0
+    for match in matches:
+        chunk = protected[start : match.start()].replace(PROTECTED_DOT, ".").strip()
+        if chunk:
+            chunks.append(chunk)
+        start = match.end()
+    remainder = protected[start:].replace(PROTECTED_DOT, ".")
+    if flush and remainder.strip():
+        chunks.append(remainder.strip())
+        remainder = ""
+    return chunks, remainder
 
 
 async def run_command(argv: list[str], timeout: float) -> None:
@@ -262,7 +299,7 @@ class VoiceHermesBridge:
                 "X-Hermes-Session-Id": self.session_id,
             },
             json={
-                "input": text,
+                "input": f"{self.args.voice_instruction}\n\nUser request: {text}",
                 "session_id": self.session_id,
             },
         )
@@ -273,6 +310,7 @@ class VoiceHermesBridge:
         LOG.info("Hermes run started: %s", run_id)
 
         buffer = ""
+        pending = ""
         output = ""
         try:
             async with self.http.stream(
@@ -294,21 +332,28 @@ class VoiceHermesBridge:
                         delta = str(payload.get("delta") or "")
                         output += delta
                         buffer += delta
-                        while match := SENTENCE_END.search(buffer):
-                            sentence, buffer = buffer[: match.start()], buffer[match.end() :]
-                            if sentence.strip():
-                                yield sentence.strip()
+                        chunks, buffer = extract_voice_chunks(buffer)
+                        for chunk in chunks:
+                            pending = f"{pending} {chunk}".strip()
+                            if len(pending) >= VOICE_CHUNK_MIN_CHARS:
+                                yield pending
+                                pending = ""
                     elif event == "run.completed":
                         completed = str(payload.get("output") or "")
                         if completed and not output:
                             buffer = completed
+                        chunks, buffer = extract_voice_chunks(buffer, flush=True)
+                        for chunk in chunks:
+                            pending = f"{pending} {chunk}".strip()
                         break
         finally:
             async with self.active_run_lock:
                 if self.active_run_id == run_id:
                     self.active_run_id = None
         if buffer.strip():
-            yield buffer.strip()
+            pending = f"{pending} {buffer.strip()}".strip()
+        if pending:
+            yield pending
 
     async def interrupt_active_turn(self) -> None:
         task = self.active_turn
@@ -411,6 +456,16 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--hermes-key")
     parser.add_argument("--whisper-model", default=env("VOICE_PE_WHISPER_MODEL", "base"))
+    parser.add_argument(
+        "--voice-instruction",
+        default=env(
+            "VOICE_PE_HERMES_VOICE_INSTRUCTION",
+            "Answer for spoken playback in two or three concise sentences. "
+            "Avoid markdown, numbered lists, menus, and internal reasoning unless "
+            "the user explicitly asks for them.",
+        ),
+        help="instruction prepended to each voice request",
+    )
     parser.add_argument(
         "--tts-command",
         default=env("VOICE_PE_TTS_COMMAND", "voice-pe-espeak-tts"),
