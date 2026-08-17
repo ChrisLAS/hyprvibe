@@ -7,6 +7,7 @@
 let
   cfg = config.hyprvibe.power;
   userName = config.hyprvibe.user.name;
+  userGroup = config.hyprvibe.user.group;
   userHome = config.hyprvibe.user.home;
 in
 {
@@ -148,7 +149,7 @@ in
 
     # Power profile switching script (installed to user's local bin)
     system.activationScripts.installPowerProfileScript = ''
-      mkdir -p ${userHome}/.local/bin
+      install -d -m0755 -o ${userName} -g ${userGroup} ${userHome}/.local/bin
       cat > ${userHome}/.local/bin/power-profile << 'POWERPROFILE_EOF'
       #!/usr/bin/env bash
       set -euo pipefail
@@ -315,7 +316,7 @@ in
       esac
       POWERPROFILE_EOF
       chmod +x ${userHome}/.local/bin/power-profile
-      chown ${userName}:users ${userHome}/.local/bin/power-profile
+      chown ${userName}:${userGroup} ${userHome}/.local ${userHome}/.local/bin ${userHome}/.local/bin/power-profile
     '';
   };
 }

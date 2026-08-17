@@ -29,7 +29,9 @@ in {
       set -euo pipefail
       trap 'echo "[hyprvibe][waybar] ERROR at line $LINENO"' ERR
       echo "[hyprvibe][waybar] starting activation"
-      mkdir -p ${userHome}/.config/waybar/scripts
+      install -d -m0755 -o ${userName} -g ${userGroup} \
+        ${userHome}/.config/waybar/scripts \
+        ${userHome}/.local/bin
       # Remove existing files/symlinks before creating new ones
       rm -f ${userHome}/.config/waybar/config
       rm -f ${userHome}/.config/waybar/style.css
@@ -53,6 +55,8 @@ in {
         ln -sf ${c.source} ${userHome}/.config/waybar/${c.destName}
       '') cfg.extraConfigs)}
       chown -R ${userName}:${userGroup} ${userHome}/.config/waybar
+      chown ${userName}:${userGroup} ${userHome}/.local ${userHome}/.local/bin
+      chown ${userName}:${userGroup} ${userHome}/.local/bin/rofi-brightness 2>/dev/null || true
       echo "[hyprvibe][waybar] activation complete"
     '';
     # Move setup to systemd --user oneshot
@@ -85,4 +89,3 @@ in {
     };
   };
 }
-

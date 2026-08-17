@@ -34,6 +34,9 @@
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 
+    nixos-hardware.url = "github:NixOS/nixos-hardware";
+    nixos-hardware.inputs.nixpkgs.follows = "nixpkgs";
+
     googleworkspace-cli.url = "github:googleworkspace/cli";
     googleworkspace-cli.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -52,6 +55,7 @@
     chatgpt-linux-metadata,
     freshrss-mcp,
     sops-nix,
+    nixos-hardware,
     googleworkspace-cli,
     gogcli-src,
     ...
@@ -178,6 +182,32 @@
         ];
         specialArgs = {
           inherit hyprland;
+        };
+      };
+      nixvader = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/nixvader/system.nix
+          nixos-hardware.nixosModules.dell-latitude-7490
+          (
+            {...}: {
+              nixpkgs.overlays = [
+                (import ./overlays/gogcli.nix gogcli-src)
+                (final: prev: {
+                  gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
+                  codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
+                  codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
+                  codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
+                })
+              ];
+            }
+          )
+          prettySwitchModule
+          sops-nix.nixosModules.sops
+        ];
+        specialArgs = {
+          inherit self hyprland;
+          inputs = self.inputs;
         };
       };
     };

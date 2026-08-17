@@ -556,6 +556,26 @@
         "type": "github"
       }
     },
+    "nixos-hardware": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786867632,
+        "narHash": "sha256-ez+ubZlA1RtdjCB18a6zJ9M4u8qoPDy08EcnsW5M3Xw=",
+        "owner": "NixOS",
+        "repo": "nixos-hardware",
+        "rev": "ff17823245ab9ff7bcae6acf950bd89cba82c38c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixos-hardware",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1786384358,
@@ -654,6 +674,7 @@
         "googleworkspace-cli": "googleworkspace-cli",
         "hyprland": "hyprland",
         "llama-cpp": "llama-cpp",
+        "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
         "nixpkgsPgsearch": "nixpkgsPgsearch",
         "prettyswitch": "prettyswitch",

@@ -103,7 +103,7 @@ in
       set -u  # Fail on undefined variables, but allow commands to fail
       trap 'echo "[hyprvibe][hyprland] WARNING at line $LINENO - continuing anyway"' ERR
       echo "[hyprvibe][hyprland] starting activation"
-      mkdir -p ${userHome}/.config/hypr
+      install -d -m0755 -o ${userName} -g ${userGroup} ${userHome}/.config/hypr
       # Wallpaper-backed configs
       ${pkgs.gnused}/bin/sed "s#__WALLPAPER__#${
         if cfg.wallpaper != null then cfg.wallpaper else defaultWallpaper
@@ -145,6 +145,7 @@ in
       # Only chown regular files/directories, not symlinks
       # Use find with -print0 and xargs for better error handling, or fallback to simple chown if find fails
       if [ -d ${userHome}/.config/hypr ]; then
+        chown ${userName}:${userGroup} ${userHome}/.config/hypr
         find ${userHome}/.config/hypr -mindepth 1 -maxdepth 1 -not -type l -print0 2>/dev/null | xargs -0 -r chown -R ${userName}:${userGroup} 2>/dev/null || true
         # Fix ownership of symlinks themselves (not their targets)
         find ${userHome}/.config/hypr -mindepth 1 -maxdepth 1 -type l -print0 2>/dev/null | xargs -0 -r chown -h ${userName}:${userGroup} 2>/dev/null || true
