@@ -118,6 +118,7 @@ in
       yazi
       zoxide
       restic
+      codex
       autorestic
       restique
       trayscale
@@ -153,6 +154,7 @@ in
       papirus-icon-theme
       hermesDesktopNomad
       hermesDesktopNomadEntry
+      self.packages.${pkgs.stdenv.hostPlatform.system}.codexbar
       self.packages.${pkgs.stdenv.hostPlatform.system}.chatgpt-desktop
       kdePackages.dolphin
       kdePackages.ark

@@ -92,6 +92,7 @@
       };
       voice-pe-firmware-tools = pkgs.callPackage ./pkgs/voice-pe-firmware-tools.nix {};
       voice-pe-hermes-bridge = pkgs.callPackage ./pkgs/voice-pe-hermes-bridge.nix {};
+      codexbar = pkgs.callPackage ./pkgs/codexbar.nix { };
     };
 
     nixosModules = {

@@ -55,6 +55,18 @@ window#waybar {
   padding: 0 10px;
 }
 
+#custom-codexbar {
+  padding: 0 10px;
+  margin: 0 8px;
+  color: #c5a8ff;
+}
+
+#custom-codexbar.critical { color: #e06c75; }
+#custom-codexbar.high { color: #d19a66; }
+#custom-codexbar.mid { color: #e5c07b; }
+#custom-codexbar.low { color: #98c379; }
+#custom-codexbar.warning { color: #e06c75; }
+
 #clock { color: #ffe86b; }
 #network { color: #7af7a7; }
 #battery.warning { color: #ffe86b; }
