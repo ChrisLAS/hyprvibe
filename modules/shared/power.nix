@@ -9,6 +9,13 @@ let
   userName = config.hyprvibe.user.name;
   userGroup = config.hyprvibe.user.group;
   userHome = config.hyprvibe.user.home;
+  powerProfileMenu = pkgs.writeShellScriptBin "power-profile-menu" ''
+    set -euo pipefail
+    choice="$(${pkgs.coreutils}/bin/printf '%s\n' performance balanced power-saver \
+      | ${lib.getExe pkgs.vicinae} dmenu -p "Power profile")"
+    [ -n "$choice" ] || exit 0
+    exec ${userHome}/.local/bin/power-profile "$choice"
+  '';
 in
 {
   options.hyprvibe.power = {
@@ -66,7 +73,7 @@ in
       power-profiles-daemon
       upower
       acpi
-    ];
+    ] ++ [ powerProfileMenu ];
 
     # Power profile switching script
     systemd.user.services.power-profile-switcher = {

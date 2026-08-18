@@ -5,3 +5,5 @@ hl.monitor({
     position = "auto",
     scale = 1,
 })
+
+hl.bind("SUPER + SHIFT + P", hl.dsp.exec_cmd("power-profile-menu"))
