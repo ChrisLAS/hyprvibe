@@ -143,7 +143,7 @@ let
         dir="$generated_dir"
         trap 'rm -rf "$generated_dir"' RETURN
         palette="$(mktemp)"
-        wallust run --no-config --skip-sequences --skip-templates \
+        ${pkgs.wallust}/bin/wallust run --no-config --skip-sequences --skip-templates \
           --palette saliencedarkbalanced --print-scheme \
           "${userHome}/Pictures/bkgrounds/vaderhole.jpg" 2>/dev/null \
           | grep -E '^#[0-9A-Fa-f]{6}$' | head -n 16 > "$palette"
@@ -169,8 +169,8 @@ let
           -e "s/#c7d0da/$fg/g" -e "s/#5f9ea0/$accent/g" \
           -e "s/#8fb8b8/$accent_bright/g" "$theme_dir/stealth/swaync.css" > "$dir/swaync.css"
         cp "$theme_dir/stealth/swaync.json" "$dir/swaync.json"
-        printf 'rgba(%s ee) rgba(%s ee) 45deg\n' "''${accent#\#}" "''${accent_bright#\#}" | tr -d ' ' > "$dir/active-border"
-        printf 'rgba(%s cc)\n' "''${muted#\#}" | tr -d ' ' > "$dir/inactive-border"
+        printf 'rgba(%see) rgba(%see) 45deg\n' "''${accent#\#}" "''${accent_bright#\#}" > "$dir/active-border"
+        printf 'rgba(%scc)\n' "''${muted#\#}" > "$dir/inactive-border"
         rm -f "$palette"
       elif [ ! -d "$dir" ]; then
         echo "Unknown theme: $name" >&2
