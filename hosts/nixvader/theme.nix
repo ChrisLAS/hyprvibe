@@ -187,7 +187,7 @@ let
       hyprctl keyword general:col.active_border "$(cat "$dir/active-border")" >/dev/null 2>&1 || true
       hyprctl keyword general:col.inactive_border "$(cat "$dir/inactive-border")" >/dev/null 2>&1 || true
       pkill -USR2 waybar 2>/dev/null || true
-      swaync-client -R >/dev/null 2>&1 || true
+      timeout 2s ${pkgs.swaynotificationcenter}/bin/swaync-client -R >/dev/null 2>&1 || true
       pkill -USR1 kitty 2>/dev/null || true
       echo "Applied Nixvader theme: $name"
     }
