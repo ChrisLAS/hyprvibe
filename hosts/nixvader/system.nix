@@ -65,6 +65,10 @@ in
 
   hyprvibe.hyprland.monitorsFile = ./monitors.lua;
   hyprvibe.hyprland.wallpaper = "/home/chrisf/Pictures/bkgrounds/vaderhole.jpg";
+  hyprvibe.hyprland.enable = true;
+  # Pin the ScreenCast portal backend to Hyprland so screen-sharing tools
+  # (OBS, Discord, etc.) prefer it over the GTK fallback.
+  xdg.portal.config.common."org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
   hyprvibe.waybar = {
     configPath = ./waybar.json;
     stylePath = ./waybar.css;
@@ -128,6 +132,11 @@ in
       xmlstarlet
       nextcloud-client
       maestral-gui
+      hyprpaper
+      hypridle
+      hyprlock
+      hyprsunset
+      hyprshot
       rclone
       rclone-browser
       smartmontools
@@ -214,6 +223,13 @@ in
     dconf.enable = true;
     firefox.enable = true;
     virt-manager.enable = true;
+    thunar = {
+      enable = true;
+      plugins = with pkgs; [
+        thunar-archive-plugin
+        thunar-volman
+      ];
+    };
   };
 
   environment.sessionVariables = {
@@ -232,6 +248,21 @@ in
   nixpkgs.config.allowUnfree = true;
   time.timeZone = "America/Los_Angeles";
 
+  # Automatic boot-time updates from Hyprvibe main, no auto-reboot.
+  system.autoUpgrade = {
+    enable = true;
+    operation = "boot";
+    randomizedDelaySec = "45min";
+    allowReboot = false;
+    dates = "02:00";
+  };
+  # Performance-oriented VM tuning; never auto-reboot on panic.
+  boot.kernel.sysctl = {
+    "vm.swappiness" = 10;
+    "vm.dirty_background_ratio" = 5;
+    "vm.dirty_ratio" = 10;
+    "kernel.panic" = 0;
+  };
   system.configurationRevision = self.rev or "dirty";
   system.stateVersion = "26.05";
 }
