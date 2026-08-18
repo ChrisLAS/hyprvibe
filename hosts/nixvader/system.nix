@@ -32,7 +32,7 @@ let
     {
       ${pkgs.coreutils}/bin/printf '\n[%s] launching Hermes Desktop (Nomad)\n' \
         "$(${pkgs.coreutils}/bin/date --iso-8601=seconds)"
-      exec ${config.nix.package}/bin/nix run github:NousResearch/hermes-agent#desktop -- "$@"
+      exec ${config.nix.package}/bin/nix run github:NousResearch/hermes-agent/d127b27303e16e281a75438b08d19ad89ca667b4#desktop -- "$@"
     } >>"$log_file" 2>&1
   '';
 
@@ -82,6 +82,7 @@ in
       firefox
       brave
       chromium
+      telegram-desktop
       google-chrome
       tor-browser
       signal-desktop
@@ -228,6 +229,7 @@ in
     nixPath = ["nixpkgs=${pkgs.path}"];
   };
   nixpkgs.config.allowUnfree = true;
+  time.timeZone = "America/Los_Angeles";
 
   system.configurationRevision = self.rev or "dirty";
   system.stateVersion = "26.05";
