@@ -83,6 +83,7 @@ in
   };
   hyprvibe.opencode2Client.enable = true;
   hyprvibe.packages = {
+    dunst.enable = false;
     dev.enable = true;
     extraPackages = with pkgs; [
       codex
