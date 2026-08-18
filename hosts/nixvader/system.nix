@@ -52,6 +52,7 @@ in
     hyprland.nixosModules.default
     ./hardware-configuration.nix
     ./flatpak.nix
+    ./theme.nix
     ../../modules/shared
   ];
 
@@ -117,6 +118,11 @@ in
       zoxide
       restic
       codex
+      wallust
+      wlogout
+      swappy
+      qalculate-gtk
+      swaynotificationcenter
       autorestic
       restique
       trayscale

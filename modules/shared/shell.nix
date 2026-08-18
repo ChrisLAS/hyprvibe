@@ -176,18 +176,18 @@ in
           bold_font auto
           italic_font auto
           bold_italic_font auto
-          background #1a1b26
-          foreground #c0caf5
-          selection_background #28344a
-          selection_foreground #c0caf5
-          url_color #7aa2f7
-          cursor #c0caf5
-          cursor_text_color #1a1b26
-          active_tab_background #7aa2f7
-          active_tab_foreground #1a1b26
-          inactive_tab_background #1a1b26
-          inactive_tab_foreground #c0caf5
-          tab_bar_background #16161e
+          background #080b10
+          foreground #c7d0da
+          selection_background #10151c
+          selection_foreground #c7d0da
+          url_color #8fb8b8
+          cursor #8fb8b8
+          cursor_text_color #080b10
+          active_tab_background #5f9ea0
+          active_tab_foreground #080b10
+          inactive_tab_background #10151c
+          inactive_tab_foreground #657383
+          tab_bar_background #080b10
           window_padding_width 10
           window_margin_width 0
           window_border_width 0
@@ -208,12 +208,13 @@ in
           shell fish
           enable_audio_bell no
           visual_bell_duration 0.5
-          visual_bell_color #f7768e
+          visual_bell_color #b8646b
           cursor_shape beam
           cursor_beam_thickness 2
           scrollback_lines 10000
           scrollback_pager less --chop-long-lines --RAW-CONTROL-CHARS +INPUT_LINE_NUMBER
           clipboard_control write-clipboard write-primary read-clipboard read-primary
+          include theme.conf
           EOF
           echo "[hyprvibe][shell][kitty] wrote kitty.conf"
         '';

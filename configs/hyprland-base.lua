@@ -6,7 +6,7 @@ local browser = "junction"
 
 hl.on("hyprland.start", function()
     hl.exec_cmd("waybar")
-    hl.exec_cmd("dunst")
+    hl.exec_cmd("swaync")
     hl.exec_cmd("wl-paste --watch cliphist store")
     hl.exec_cmd("wl-clip-persist --clipboard regular")
     hl.exec_cmd("systemctl --user set-environment XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_DESKTOP=hyprland XDG_SESSION_TYPE=wayland")
@@ -41,31 +41,31 @@ hl.config({
         },
     },
     general = {
-        gaps_in = 5,
-        gaps_out = 20,
-        border_size = 2,
+        gaps_in = 4,
+        gaps_out = 14,
+        border_size = 1,
         col = {
             active_border = {
-                colors = { "rgba(33ccffee)", "rgba(00ff99ee)" },
+                colors = { "rgba(5f9ea0ee)", "rgba(6f8790ee)" },
                 angle = 45,
             },
-            inactive_border = "rgba(595959aa)",
+            inactive_border = "rgba(39434fcc)",
         },
         layout = "dwindle",
         allow_tearing = false,
     },
     decoration = {
-        rounding = 10,
+        rounding = 6,
         blur = {
             enabled = true,
-            size = 3,
-            passes = 1,
+            size = 4,
+            passes = 2,
         },
         shadow = {
             enabled = true,
             range = 4,
             render_power = 3,
-            color = "rgba(1a1a1aee)",
+            color = "rgba(000000cc)",
         },
     },
     animations = {
@@ -98,6 +98,16 @@ hl.device({
     name = "epic-mouse-v1",
     sensitivity = -0.5,
 })
+
+hl.bind("SUPER + SHIFT + K", hl.dsp.exec_cmd("nixvader-keybinds"))
+hl.bind("SUPER + T", hl.dsp.exec_cmd("nixvader-theme menu"))
+hl.bind("SUPER + SHIFT + G", hl.dsp.exec_cmd("nixvader-gamemode"))
+hl.bind("SUPER + ALT + O", hl.dsp.exec_cmd("nixvader-blur-toggle"))
+hl.bind("SUPER + SHIFT + N", hl.dsp.exec_cmd("swaync-client -t"))
+hl.bind("CTRL + ALT + P", hl.dsp.exec_cmd("wlogout"))
+hl.bind("SUPER + ALT + C", hl.dsp.exec_cmd("qalculate-gtk"))
+hl.bind("SUPER + ALT + V", hl.dsp.exec_cmd("cliphist list | vicinae dmenu -p Clipboard | cliphist decode | wl-copy"))
+hl.bind("ALT + SHIFT + S", hl.dsp.exec_cmd([[grim -g "$(slurp)" - | swappy -f -]]))
 
 hl.bind("SUPER + RETURN", hl.dsp.exec_cmd(terminal))
 hl.bind("SUPER + Q", hl.dsp.window.close())
