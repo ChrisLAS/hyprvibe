@@ -1,5 +1,6 @@
 {
   coreutils,
+  gnused,
   hermes-desktop,
   lib,
   makeDesktopItem,
@@ -31,8 +32,10 @@ let
     fi
 
     # Tolerate either a bare token or a `KEY=value` (one-line shell) form.
+    # Use gnused explicitly because pkgs.coreutils is the minimal variant
+    # (no sed).
     token="$(${coreutils}/bin/tr -d '\n' < "$token_file" \
-             | ${coreutils}/bin/sed -n '1 { s/^[^=]*=//; s/[[:space:]]*$//; p; }')"
+             | ${gnused}/bin/sed -n '1 { s/^[^=]*=//; s/[[:space:]]*$//; p; }')"
     if [ -z "$token" ]; then
       echo "Hermes Desktop remote token is empty: $token_file" >&2
       exit 1
