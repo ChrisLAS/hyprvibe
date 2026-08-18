@@ -51,6 +51,11 @@ let
 
   kittyFor = p: ''
     # Nixvader theme: managed by nixvader-theme
+    font_family FiraCode Nerd Font
+    font_size 12
+    bold_font auto
+    italic_font auto
+    bold_italic_font auto
     background ${p.bg}
     foreground ${p.fg}
     selection_background ${p.surface}
@@ -63,7 +68,32 @@ let
     inactive_tab_background ${p.surface}
     inactive_tab_foreground ${p.muted}
     tab_bar_background ${p.bg}
+    window_padding_width 10
+    window_margin_width 0
+    window_border_width 0
+    background_opacity 0.95
+    shell_integration enabled
+    copy_on_select yes
+    detect_urls yes
+    show_hyperlink_targets yes
+    underline_hyperlinks always
+    mouse_hide_while_typing yes
+    focus_follows_mouse yes
+    sync_to_monitor yes
+    repaint_delay 10
+    input_delay 3
+    map ctrl+shift+equal change_font_size all +1.0
+    map ctrl+shift+minus change_font_size all -1.0
+    map ctrl+shift+0 change_font_size all 0
+    shell fish
+    enable_audio_bell no
+    visual_bell_duration 0.5
     visual_bell_color ${p.critical}
+    cursor_shape beam
+    cursor_beam_thickness 2
+    scrollback_lines 10000
+    scrollback_pager less --chop-long-lines --RAW-CONTROL-CHARS +INPUT_LINE_NUMBER
+    clipboard_control write-clipboard write-primary read-clipboard read-primary
   '';
 
   swayncCssFor = p: ''
@@ -113,7 +143,7 @@ let
         return 1
       fi
       install -Dm0644 "$dir/waybar.css" "${userHome}/.config/waybar/style.css"
-      install -Dm0644 "$dir/kitty.conf" "${userHome}/.config/kitty/theme.conf"
+      install -Dm0644 "$dir/kitty.conf" "${userHome}/.config/kitty/kitty.conf"
       install -Dm0644 "$dir/swaync.css" "${userHome}/.config/swaync/style.css"
       install -Dm0644 "$dir/swaync.json" "${userHome}/.config/swaync/config.json"
       printf '%s\n' "$name" > "$state_file"
