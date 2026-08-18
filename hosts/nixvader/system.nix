@@ -173,7 +173,7 @@ in
 
   # Disable the Intel display and deep-idle paths implicated in Latitude 7490 hard locks.
   # Keep the performance-oriented CPU governor because battery life is not the goal.
-  hyprvibe.system.kernelPackages = pkgs.linuxPackages;
+  hyprvibe.system.kernelPackages = pkgs.linuxPackages_zen;
   boot.kernelParams = [
     "i915.enable_dc=0"
     "i915.enable_psr=0"
