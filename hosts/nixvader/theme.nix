@@ -137,9 +137,44 @@ let
     apply_theme() {
       local name="$1"
       local dir="$theme_dir/$name"
-      if [ ! -d "$dir" ]; then
+      local generated_dir=""
+      if [ "$name" = wallpaper ]; then
+        generated_dir="$(mktemp -d)"
+        dir="$generated_dir"
+        trap 'rm -rf "$generated_dir"' RETURN
+        palette="$(mktemp)"
+        wallust run --no-config --skip-sequences --skip-templates \
+          --palette saliencedarkbalanced --print-scheme \
+          "${userHome}/Pictures/bkgrounds/vaderhole.jpg" 2>/dev/null \
+          | grep -E '^#[0-9A-Fa-f]{6}$' | head -n 16 > "$palette"
+        [ "$(wc -l < "$palette")" -ge 8 ] || { echo "Wallust did not produce a palette" >&2; return 1; }
+        bg="$(sed -n '1p' "$palette")"
+        surface="$(sed -n '2p' "$palette")"
+        muted="$(sed -n '3p' "$palette")"
+        accent="$(sed -n '4p' "$palette")"
+        accent_bright="$(sed -n '6p' "$palette")"
+        fg="$(sed -n '7p' "$palette")"
+        warning="$(sed -n '5p' "$palette")"
+        critical="$(sed -n '9p' "$palette")"
+        sed -e "s/#080b10/$bg/g" -e "s/#10151c/$surface/g" \
+          -e "s/#c7d0da/$fg/g" -e "s/#657383/$muted/g" \
+          -e "s/#5f9ea0/$accent/g" -e "s/#8fb8b8/$accent_bright/g" \
+          -e "s/#c49a52/$warning/g" -e "s/#b8646b/$critical/g" \
+          "$theme_dir/stealth/waybar.css" > "$dir/waybar.css"
+        sed -e "s/#080b10/$bg/g" -e "s/#10151c/$surface/g" \
+          -e "s/#c7d0da/$fg/g" -e "s/#657383/$muted/g" \
+          -e "s/#5f9ea0/$accent/g" -e "s/#8fb8b8/$accent_bright/g" \
+          -e "s/#b8646b/$critical/g" "$theme_dir/stealth/kitty.conf" > "$dir/kitty.conf"
+        sed -e "s/#080b10/$bg/g" -e "s/#10151c/$surface/g" \
+          -e "s/#c7d0da/$fg/g" -e "s/#5f9ea0/$accent/g" \
+          -e "s/#8fb8b8/$accent_bright/g" "$theme_dir/stealth/swaync.css" > "$dir/swaync.css"
+        cp "$theme_dir/stealth/swaync.json" "$dir/swaync.json"
+        printf 'rgba(%s ee) rgba(%s ee) 45deg\n' "''${accent#\#}" "''${accent_bright#\#}" | tr -d ' ' > "$dir/active-border"
+        printf 'rgba(%s cc)\n' "''${muted#\#}" | tr -d ' ' > "$dir/inactive-border"
+        rm -f "$palette"
+      elif [ ! -d "$dir" ]; then
         echo "Unknown theme: $name" >&2
-        echo "Available themes: stealth ember ice" >&2
+        echo "Available themes: stealth ember ice wallpaper" >&2
         return 1
       fi
       install -Dm0644 "$dir/waybar.css" "${userHome}/.config/waybar/style.css"
@@ -159,7 +194,7 @@ let
 
     case "''${1:-apply}" in
       list)
-        printf '%s\n' stealth ember ice
+        printf '%s\n' stealth ember ice wallpaper
         ;;
       current)
         if [ -r "$state_file" ]; then cat "$state_file"; else echo stealth; fi
@@ -168,11 +203,12 @@ let
         apply_theme "''${2:-stealth}"
         ;;
       menu)
-        choice="$(printf '%s\n' stealth ember ice | vicinae dmenu -p 'Nixvader theme')"
+        choice="$(printf '%s\n' stealth ember ice wallpaper | vicinae dmenu -p 'Nixvader theme')"
         [ -n "$choice" ] && apply_theme "$choice"
         ;;
       *)
-        echo "Usage: nixvader-theme {list|current|apply NAME|menu}" >&2
+        echo "Usage: nixvader-theme {list|current|apply NAME|menu}
+Themes: stealth, ember, ice, wallpaper" >&2
         exit 2
         ;;
     esac
@@ -185,6 +221,7 @@ Super+Return  Kitty terminal
 Super+Space   Vicinae launcher
 Super+Shift+K Search keybinds
 Super+T       Theme selector
+Super+T       Wallpaper-derived theme
 Super+Shift+G Toggle animations
 Super+Alt+O   Toggle blur
 Super+Shift+N Notification center

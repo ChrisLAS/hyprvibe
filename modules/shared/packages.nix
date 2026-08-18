@@ -61,7 +61,6 @@ let
     brightnessctl
     playerctl
     pavucontrol
-    dunst
     junction
     networkmanagerapplet
     # qt6ct  # Temporarily disabled - pulls in qgnomeplatform which has build failure in current nixpkgs
@@ -105,6 +104,11 @@ in
     desktop.enable = lib.mkEnableOption "Desktop helpers for Wayland sessions";
     dev.enable = lib.mkEnableOption "Developer toolchain";
     gaming.enable = lib.mkEnableOption "Gaming helpers";
+    dunst.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Install the Dunst notification daemon for desktop sessions";
+    };
     extraPackages = lib.mkOption {
       type = with lib.types; listOf package;
       default = [ ];
@@ -118,6 +122,7 @@ in
       ++ (lib.optionals cfg.desktop.enable desktopPackages)
       ++ (lib.optionals cfg.dev.enable devPackages)
       ++ (lib.optionals cfg.gaming.enable gamingPackages)
+      ++ (lib.optional cfg.dunst.enable pkgs.dunst)
       ++ cfg.extraPackages;
   };
 }
