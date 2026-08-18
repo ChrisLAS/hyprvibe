@@ -32,10 +32,11 @@ stdenvNoCC.mkDerivation {
   installPhase = ''
     runHook preInstall
     install -Dm0755 "$src" "$out/bin/codexbar"
-    mv "$out/bin/codexbar" "$out/bin/.codexbar-unwrapped"
-    makeWrapper "$out/bin/.codexbar-unwrapped" "$out/bin/codexbar" \
+    # wrapProgram rewrites the existing script's shebang and prepends runtime
+    # tools to its PATH lookup. Do not move or rename the binary; codexbar is
+    # invoked by Waybar as `codexbar` and must remain at $out/bin/codexbar.
+    wrapProgram "$out/bin/codexbar" \
       --prefix PATH : "${lib.makeBinPath [ bash coreutils curl gnused jq util-linux ]}"
-    rm "$out/bin/.codexbar-unwrapped"
     runHook postInstall
   '';
 
