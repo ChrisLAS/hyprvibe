@@ -90,6 +90,7 @@
       chatgpt-desktop = pkgs.callPackage ./pkgs/chatgpt-desktop.nix {
         repositoryMetadata = chatgpt-linux-metadata;
       };
+      codexbar = pkgs.callPackage ./pkgs/codexbar.nix { };
     };
 
     nixosModules = {

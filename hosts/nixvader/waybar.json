@@ -7,6 +7,7 @@
   "modules-right": [
     "pulseaudio",
     "network",
+    "custom/codexbar",
     "cpu",
     "memory",
     "battery",
@@ -44,6 +45,15 @@
     "format-ethernet": "󰈀  {ipaddr}/{cidr}",
     "format-disconnected": "  offline",
     "on-click": "nm-connection-editor"
+  },
+  "custom/codexbar": {
+    "exec": "codexbar",
+    "return-type": "json",
+    "interval": 300,
+    "signal": 12,
+    "tooltip": true,
+    "on-click": "xdg-open https://chatgpt.com/codex/settings/usage",
+    "format": "{session_pct}% · {session_reset}"
   },
   "cpu": {"format": "  {usage}%"},
   "memory": {"format": "  {percentage}%"},
