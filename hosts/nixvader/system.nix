@@ -64,6 +64,7 @@ in
   };
 
   hyprvibe.hyprland.monitorsFile = ./monitors.lua;
+  hyprvibe.hyprland.wallpaper = "/home/chrisf/Pictures/bkgrounds/vaderhole.jpg";
   hyprvibe.waybar = {
     configPath = ./waybar.json;
     stylePath = ./waybar.css;
