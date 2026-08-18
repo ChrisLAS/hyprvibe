@@ -5,49 +5,13 @@
   self,
   hyprland,
   ...
-}:
-let
-  hermesDesktopNomad = pkgs.writeShellScriptBin "hermes-desktop-nomad" ''
-    set -euo pipefail
-
-    token_file="$HOME/.config/secrets/hermes_dashboard_session_token"
-    if [ ! -r "$token_file" ]; then
-      echo "Hermes Desktop remote token not found: $token_file" >&2
-      exit 1
-    fi
-
-    token="$(${pkgs.gnused}/bin/sed -n '1 { s/^[^=]*=//; s/[[:space:]]*$//; p; }' "$token_file")"
-    if [ -z "$token" ]; then
-      echo "Hermes Desktop remote token is empty: $token_file" >&2
-      exit 1
-    fi
-
-    export HERMES_DESKTOP_REMOTE_URL="http://nomad.coin-noodlefish.ts.net:9119"
-    export HERMES_DESKTOP_REMOTE_TOKEN="$token"
-
-    log_dir="$HOME/.cache/hermes-desktop-nomad"
-    ${pkgs.coreutils}/bin/mkdir -p "$log_dir"
-    log_file="$log_dir/launcher.log"
-
-    {
-      ${pkgs.coreutils}/bin/printf '\n[%s] launching Hermes Desktop (Nomad)\n' \
-        "$(${pkgs.coreutils}/bin/date --iso-8601=seconds)"
-      exec ${config.nix.package}/bin/nix run github:NousResearch/hermes-agent/d127b27303e16e281a75438b08d19ad89ca667b4#desktop -- "$@"
-    } >>"$log_file" 2>&1
-  '';
-
-  hermesDesktopNomadEntry = pkgs.makeDesktopItem {
-    name = "hermes-desktop-nomad";
-    desktopName = "Hermes Desktop (Nomad)";
-    comment = "Launch Hermes Desktop connected to the Nomad remote backend";
-    exec = lib.getExe hermesDesktopNomad;
-    terminal = false;
-    categories = [ "Utility" ];
-    icon = "agentdesktop";
-    type = "Application";
-  };
-in
-{
+}: let
+  # Hermes Desktop (Nomad) launcher + .desktop entry. Shared helper at
+  # pkgs/hermes-desktop-nomad.nix; same as nixstation (see hosts/nixstation/system.nix).
+  hermesDesktopNomadHelper = pkgs.callPackage ../../pkgs/hermes-desktop-nomad.nix {hermes-desktop = pkgs.hermes-desktop;};
+  hermesDesktopNomad = hermesDesktopNomadHelper.wrapper;
+  hermesDesktopNomadEntry = hermesDesktopNomadHelper.entry;
+in {
   imports = [
     hyprland.nixosModules.default
     ./hardware-configuration.nix
@@ -69,7 +33,7 @@ in
   hyprvibe.hyprland.enable = true;
   # Pin the ScreenCast portal backend to Hyprland so screen-sharing tools
   # (OBS, Discord, etc.) prefer it over the GTK fallback.
-  xdg.portal.config.common."org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
+  xdg.portal.config.common."org.freedesktop.impl.portal.ScreenCast" = ["hyprland"];
   hyprvibe.waybar = {
     configPath = ./waybar.json;
     stylePath = ./waybar.css;
@@ -161,6 +125,7 @@ in
       papirus-icon-theme
       hermesDesktopNomad
       hermesDesktopNomadEntry
+      hermes-desktop
       self.packages.${pkgs.stdenv.hostPlatform.system}.codexbar
       self.packages.${pkgs.stdenv.hostPlatform.system}.chatgpt-desktop
       kdePackages.dolphin

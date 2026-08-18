@@ -4,68 +4,38 @@
   pkgs,
   hyprland,
   ...
-}:
-let
+}: let
   # Hyprvibe user options (from modules/shared/user.nix)
   userName = config.hyprvibe.user.name;
   userGroup = config.hyprvibe.user.group;
   homeDir = config.hyprvibe.user.home;
 
-  # Package groups - preserving your existing packages
-  hermesDesktopNomad = pkgs.writeShellScriptBin "hermes-desktop-nomad" ''
-    set -euo pipefail
-
-    token_file="$HOME/.config/secrets/hermes_dashboard_session_token"
-    if [ ! -r "$token_file" ]; then
-      echo "Hermes Desktop remote token not found: $token_file" >&2
-      echo "Copy it from nomad: ssh nomad 'cat ~/.config/secrets/hermes_dashboard_session_token' > $token_file" >&2
-      exit 1
-    fi
-
-    export HERMES_DESKTOP_REMOTE_URL="http://nomad.coin-noodlefish.ts.net:9119"
-    export HERMES_DESKTOP_REMOTE_TOKEN="$(${pkgs.coreutils}/bin/tr -d '\n' < "$token_file")"
-
-    log_dir="$HOME/.cache/hermes-desktop-nomad"
-    ${pkgs.coreutils}/bin/mkdir -p "$log_dir"
-    log_file="$log_dir/launcher.log"
-
-    {
-      ${pkgs.coreutils}/bin/printf '\n[%s] launching Hermes Desktop (Nomad)\n' "$(${pkgs.coreutils}/bin/date --iso-8601=seconds)"
-      exec ${config.nix.package}/bin/nix run github:NousResearch/hermes-agent#desktop -- "$@"
-    } >>"$log_file" 2>&1
-  '';
-
-  hermesDesktopNomadEntry = pkgs.makeDesktopItem {
-    name = "hermes-desktop-nomad";
-    desktopName = "Hermes Desktop (Nomad)";
-    comment = "Launch Hermes Desktop connected to the nomad remote gateway";
-    exec = "${lib.getExe hermesDesktopNomad}";
-    terminal = false;
-    categories = [ "Utility" ];
-    icon = "agentdesktop";
-    type = "Application";
-  };
+  # Hermes Desktop (Nomad) launcher + .desktop entry. Shared helper at
+  # pkgs/hermes-desktop-nomad.nix; reused by hosts/nixvader/system.nix.
+  hermesDesktopNomadHelper = pkgs.callPackage ../../pkgs/hermes-desktop-nomad.nix {hermes-desktop = pkgs.hermes-desktop;};
+  hermesDesktopNomad = hermesDesktopNomadHelper.wrapper;
+  hermesDesktopNomadEntry = hermesDesktopNomadHelper.entry;
 
   basiliskII =
     pkgs.runCommand "basiliskii-wrapped-${pkgs.basiliskii.version}"
-      {
-        nativeBuildInputs = [ pkgs.makeWrapper ];
-      }
-      ''
-        mkdir -p "$out/bin" "$out/share"
-        ln -s ${pkgs.basiliskii}/share/* "$out/share/"
+    {
+      nativeBuildInputs = [pkgs.makeWrapper];
+    }
+    ''
+      mkdir -p "$out/bin" "$out/share"
+      ln -s ${pkgs.basiliskii}/share/* "$out/share/"
 
-        makeWrapper ${lib.getExe pkgs.basiliskii} "$out/bin/BasiliskII" \
-          --prefix XDG_DATA_DIRS : "${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}" \
-          --prefix XDG_DATA_DIRS : "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}" \
-          --prefix XDG_DATA_DIRS : "${pkgs.adwaita-icon-theme}/share" \
-          --prefix XDG_DATA_DIRS : "${pkgs.hicolor-icon-theme}/share" \
-          --prefix XDG_DATA_DIRS : "${pkgs.shared-mime-info}/share" \
-          --set GDK_PIXBUF_MODULE_FILE "${pkgs.librsvg}/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache"
-      '';
+      makeWrapper ${lib.getExe pkgs.basiliskii} "$out/bin/BasiliskII" \
+        --prefix XDG_DATA_DIRS : "${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}" \
+        --prefix XDG_DATA_DIRS : "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}" \
+        --prefix XDG_DATA_DIRS : "${pkgs.adwaita-icon-theme}/share" \
+        --prefix XDG_DATA_DIRS : "${pkgs.hicolor-icon-theme}/share" \
+        --prefix XDG_DATA_DIRS : "${pkgs.shared-mime-info}/share" \
+        --set GDK_PIXBUF_MODULE_FILE "${pkgs.librsvg}/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache"
+    '';
 
-  voicePeFirmwareTools = pkgs.callPackage ../../pkgs/voice-pe-firmware-tools.nix { };
-  voicePeHermesBridge = pkgs.callPackage ../../pkgs/voice-pe-hermes-bridge.nix { };
+  voicePeFirmwareTools = pkgs.callPackage ../../pkgs/voice-pe-firmware-tools.nix {};
+  voicePeHermesBridge = pkgs.callPackage ../../pkgs/voice-pe-hermes-bridge.nix {};
 
   basiliskIIBridgeTap = pkgs.writeShellScriptBin "basilisk-ii-bridge-tap" ''
     set -euo pipefail
@@ -147,6 +117,7 @@ let
     oh-my-posh
     hermesDesktopNomad
     hermesDesktopNomadEntry
+    hermes-desktop
     voicePeFirmwareTools
     voicePeHermesBridge
     lazydocker
@@ -176,7 +147,7 @@ let
     lshw
     jack2
     obs-studio
-    (callPackage ../../pkgs/obs-replay-clips.nix { })
+    (callPackage ../../pkgs/obs-replay-clips.nix {})
     obs-studio-plugins.wlrobs
     obs-studio-plugins.waveform
     obs-studio-plugins.obs-pipewire-audio-capture
@@ -540,8 +511,7 @@ let
         exit 1
     fi
   '';
-in
-{
+in {
   hyprvibe.opencode.enable = true;
   hyprvibe.opencode2Client.enable = true;
 
@@ -767,7 +737,7 @@ in
         libva-vdpau-driver
         libvdpau-va-gl
       ];
-      extraPackages32 = with pkgs.pkgsi686Linux; [ libva-vdpau-driver ];
+      extraPackages32 = with pkgs.pkgsi686Linux; [libva-vdpau-driver];
     };
     # Batch 2: GPU optimizations are handled via kernel parameters (amdgpu.powerplay=1)
     i2c.enable = true;
@@ -888,7 +858,7 @@ in
       login.kwallet.enable = true;
       gdm.kwallet.enable = true;
       gdm-password.kwallet.enable = true;
-      hyprlock = { };
+      hyprlock = {};
       login.enableGnomeKeyring = true;
       gdm-password.enableGnomeKeyring = true;
     };
@@ -930,7 +900,7 @@ in
   documentation.man.enable = false;
 
   # User configuration handled by hyprvibe.user
-  hyprvibe.user.extraGroups = [ "disk" "dialout" ];
+  hyprvibe.user.extraGroups = ["disk" "dialout"];
 
   # Removed stale nixstation-specific activation script body.
   # Shared hyprvibe modules now manage Hyprland, shell, and related desktop files.
@@ -1036,14 +1006,14 @@ in
   xdg.portal = {
     enable = true;
     xdgOpenUsePortal = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    extraPortals = [pkgs.xdg-desktop-portal-gtk];
     config = {
       common = {
         default = [
           "hyprland"
           "gtk"
         ];
-        "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
+        "org.freedesktop.impl.portal.ScreenCast" = ["hyprland"];
       };
     };
   };
@@ -1112,8 +1082,8 @@ in
 
   systemd.user.services.set-github-token = {
     description = "Set GITHUB_TOKEN in systemd --user environment from ~/.config/secrets/github_token";
-    after = [ "default.target" ];
-    wantedBy = [ "default.target" ];
+    after = ["default.target"];
+    wantedBy = ["default.target"];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -1124,8 +1094,8 @@ in
   # Solaar service for Logitech device management
   systemd.user.services.solaar = {
     description = "Solaar - Logitech device manager";
-    after = [ "graphical-session.target" ];
-    wantedBy = [ "graphical-session.target" ];
+    after = ["graphical-session.target"];
+    wantedBy = ["graphical-session.target"];
     serviceConfig = {
       Type = "simple";
       ExecStart = "${pkgs.solaar}/bin/solaar --window=hide";
@@ -1137,8 +1107,8 @@ in
   # Polkit authentication agent for GUI applications
   systemd.user.services.polkit-gnome-authentication-agent-1 = {
     description = "Polkit Authentication Agent";
-    after = [ "graphical-session.target" ];
-    wantedBy = [ "graphical-session.target" ];
+    after = ["graphical-session.target"];
+    wantedBy = ["graphical-session.target"];
     serviceConfig = {
       Type = "simple";
       ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
@@ -1153,9 +1123,9 @@ in
   # state; Nix owns the launcher, service, and all paths/configuration.
   systemd.user.services.voice-pe-neutts = {
     description = "Local NeuTTS Lore voice server";
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
-    wantedBy = [ "default.target" ];
+    after = ["network-online.target"];
+    wants = ["network-online.target"];
+    wantedBy = ["default.target"];
     serviceConfig = {
       Type = "simple";
       ExecStart = "${voicePeHermesBridge}/bin/voice-pe-neutts-server";
@@ -1192,9 +1162,9 @@ in
   # keeps the Voice PE and its studio announcement URL on the same LAN.
   systemd.services.voice-pe-local-lan-route = {
     description = "Prefer nixstation LAN for the local Voice PE subnet";
-    wantedBy = [ "multi-user.target" ];
-    wants = [ "NetworkManager.service" "tailscaled.service" ];
-    after = [ "NetworkManager.service" "tailscaled.service" ];
+    wantedBy = ["multi-user.target"];
+    wants = ["NetworkManager.service" "tailscaled.service"];
+    after = ["NetworkManager.service" "tailscaled.service"];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -1212,10 +1182,10 @@ in
   # credential is copied into the Nix store or unit definition.
   systemd.user.services.voice-pe-hermes-bridge = {
     description = "Home Assistant Voice PE bridge for Hermes Lore";
-    after = [ "network-online.target" "tailscaled.service" "voice-pe-neutts.service" ];
-    wants = [ "network-online.target" ];
-    requires = [ "voice-pe-neutts.service" ];
-    wantedBy = [ "default.target" ];
+    after = ["network-online.target" "tailscaled.service" "voice-pe-neutts.service"];
+    wants = ["network-online.target"];
+    requires = ["voice-pe-neutts.service"];
+    wantedBy = ["default.target"];
     serviceConfig = {
       Type = "simple";
       ExecStart = "${voicePeHermesBridge}/bin/voice-pe-hermes-bridge";
@@ -1248,8 +1218,8 @@ in
   # R2 Storage: Setup credentials template
   systemd.user.services.setup-r2-credentials-template = {
     description = "Setup R2 credentials template";
-    after = [ "default.target" ];
-    wantedBy = [ "default.target" ];
+    after = ["default.target"];
+    wantedBy = ["default.target"];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -1260,8 +1230,8 @@ in
   # R2 Storage: Generate rclone config from secrets
   systemd.user.services.setup-rclone-r2-config = {
     description = "Generate rclone R2 configuration from secrets";
-    after = [ "setup-r2-credentials-template.service" ];
-    wantedBy = [ "default.target" ];
+    after = ["setup-r2-credentials-template.service"];
+    wantedBy = ["default.target"];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -1278,7 +1248,7 @@ in
       "setup-rclone-r2-config.service"
       "network-online.target"
     ];
-    requires = [ "setup-rclone-r2-config.service" ];
+    requires = ["setup-rclone-r2-config.service"];
     # Disabled: wantedBy = [ "default.target" ];
 
     serviceConfig = {
@@ -1350,7 +1320,7 @@ in
   # R2 Storage: Log rotation timer
   systemd.user.timers.rclone-r2-log-rotate = {
     description = "Timer for rclone R2 log rotation";
-    wantedBy = [ "timers.target" ];
+    wantedBy = ["timers.target"];
     timerConfig = {
       OnCalendar = "daily";
       Persistent = true;

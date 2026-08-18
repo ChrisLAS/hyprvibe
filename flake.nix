@@ -44,6 +44,20 @@
     # Note: pinning to v0.11.0 tag to avoid unstable main branch
     gogcli-src.url = "github:steipete/gogcli/v0.11.0";
     gogcli-src.flake = false;
+
+    # hermes-agent - NousResearch Hermes Agent (desktop, tui, web). Tracked
+    # so `nix flake update` bumps it with the rest of the inputs and so
+    # nixos-rebuild rebuilds hermes-desktop instead of fetching at launch.
+    #
+    # Pinned: hermes-agent main has a renderer build regression since
+    # commit 9f78a0d37f (2026-07-31) — apps/desktop/src/app/session/hooks/use-session-actions.test.tsx
+    # imports tests/fixtures/session-resume-active-turn.json, but the
+    # renderer's source filter excludes tests/, so `tsc -b` fails locally.
+    # To track main again: drop the SHA from the URL below.
+    hermes-agent = {
+      url = "github:NousResearch/hermes-agent/165c889e5b4277b56dadd42949a4112c1e6175a6";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -58,12 +72,20 @@
     nixos-hardware,
     googleworkspace-cli,
     gogcli-src,
+    hermes-agent,
     ...
   }: let
     prettySwitchModule = {pkgs, ...}: {
       environment.systemPackages = [
         prettyswitch.packages.${pkgs.stdenv.hostPlatform.system}.default
       ];
+    };
+    # Hermes Agent (NousResearch) desktop, tui, web apps — pulled from the
+    # hermes-agent flake input tracked above. `nix flake update` bumps it
+    # alongside other inputs, and nixos-rebuild rebuilds the desktop app
+    # so the launcher just execs a pre-built binary.
+    hermesAgentOverlay = final: prev: {
+      hermes-desktop = hermes-agent.packages.${prev.stdenv.hostPlatform.system}.desktop;
     };
   in {
     # Formatter (optional)
@@ -125,6 +147,7 @@
                   codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
                   codexbar = final.callPackage ./pkgs/codexbar.nix {};
                 })
+                hermesAgentOverlay
               ];
             }
           )
@@ -144,16 +167,17 @@
           (
             {...}: {
               nixpkgs.overlays = [
-            (final: prev: {
-              gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
-              codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
-              codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
-              codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
-              codexbar = final.callPackage ./pkgs/codexbar.nix {};
-              chatgpt-desktop = final.callPackage ./pkgs/chatgpt-desktop.nix {
-                repositoryMetadata = chatgpt-linux-metadata;
-              };
-            })
+                (final: prev: {
+                  gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
+                  codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
+                  codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
+                  codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
+                  codexbar = final.callPackage ./pkgs/codexbar.nix {};
+                  chatgpt-desktop = final.callPackage ./pkgs/chatgpt-desktop.nix {
+                    repositoryMetadata = chatgpt-linux-metadata;
+                  };
+                })
+                hermesAgentOverlay
               ];
             }
           )
@@ -180,6 +204,7 @@
                   codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
                   codexbar = final.callPackage ./pkgs/codexbar.nix {};
                 })
+                hermesAgentOverlay
               ];
             }
           )
@@ -206,6 +231,7 @@
                   codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
                   codexbar = final.callPackage ./pkgs/codexbar.nix {};
                 })
+                hermesAgentOverlay
               ];
             }
           )
