@@ -29,45 +29,45 @@
   "mpris": {
     "format": "{player_icon} {dynamic}",
     "format-paused": "{status_icon} {dynamic}",
-    "player-icons": {"default": "play"},
-    "status-icons": {"paused": "pause"},
+    "player-icons": {"default": "▶"},
+    "status-icons": {"paused": "⏸"},
     "on-click": "playerctl -p playerctld play-pause",
     "on-scroll-up": "playerctl -p playerctld next",
     "on-scroll-down": "playerctl -p playerctld previous"
   },
   "pulseaudio": {
-    "format": "vol {volume}%",
-    "format-muted": "muted",
+    "format": "  {volume}%",
+    "format-muted": "  muted",
     "on-click": "pavucontrol"
   },
   "network": {
-    "format-wifi": "{essid} {signalStrength}%",
-    "format-ethernet": "{ipaddr}/{cidr}",
-    "format-disconnected": "offline",
+    "format-wifi": "  {essid} {signalStrength}%",
+    "format-ethernet": "󰈀  {ipaddr}/{cidr}",
+    "format-disconnected": "  offline",
     "on-click": "nm-connection-editor"
   },
-  "cpu": {"format": "cpu {usage}%"},
-  "memory": {"format": "mem {percentage}%"},
+  "cpu": {"format": "  {usage}%"},
+  "memory": {"format": "  {percentage}%"},
   "battery": {
     "states": {"warning": 30, "critical": 15},
-    "format": "bat {capacity}%",
-    "format-charging": "chg {capacity}%",
-    "format-plugged": "ac {capacity}%"
+    "format": "  {capacity}%",
+    "format-charging": "  {capacity}%",
+    "format-plugged": "  {capacity}%"
   },
   "tray": {"spacing": 10},
   "bluetooth": {
-    "format": "bt {status}",
-    "format-connected": "bt {num_connections}",
-    "format-off": "bt off",
+    "format": "  {status}",
+    "format-connected": "  {num_connections}",
+    "format-off": "  off",
     "on-click": "blueman-manager"
   },
   "idle_inhibitor": {
     "format": "{icon}",
-    "format-icons": {"activated": "awake", "deactivated": "idle"}
+    "format-icons": {"activated": "", "deactivated": ""}
   },
   "backlight": {
     "device": "intel_backlight",
-    "format": "light {percent}%",
+    "format": "󰃟  {percent}%",
     "on-scroll-up": "brightnessctl set +5%",
     "on-scroll-down": "brightnessctl set 5%-"
   },
@@ -79,7 +79,7 @@
     "on-click": "xdg-open https://chatgpt.com/codex/settings/usage"
   },
   "clock": {
-    "format": "{:%I:%M %p}",
+    "format": "  {:%I:%M %p}",
     "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
     "format-alt": "{:%Y-%m-%d}"
   }

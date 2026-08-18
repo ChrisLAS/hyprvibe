@@ -51,6 +51,7 @@ in
   imports = [
     hyprland.nixosModules.default
     ./hardware-configuration.nix
+    ./flatpak.nix
     ../../modules/shared
   ];
 
@@ -83,6 +84,7 @@ in
       firefox
       brave
       chromium
+      google-chrome
       tor-browser
       signal-desktop
       element-desktop

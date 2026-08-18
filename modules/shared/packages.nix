@@ -14,6 +14,7 @@ let
     export LD_LIBRARY_PATH=${pkgs.openssl}/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
     exec ${pkgs.jan}/bin/Jan "$@"
   '';
+  vicinaeSafe = pkgs.writeShellScriptBin "vicinae-safe" (builtins.readFile ../../configs/vicinae-launch.sh);
   # Curated common sets derived from overlaps across hosts
   basePackages = with pkgs; [
     htop
@@ -67,6 +68,7 @@ let
     # Core desktop apps
     kitty
     vicinae
+    vicinaeSafe
     bibata-cursors
     # Hyprland companions started by base config
     hyprpaper
