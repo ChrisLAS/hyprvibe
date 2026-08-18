@@ -1,7 +1,7 @@
 -- Shared Hyprland configuration for all Hyprvibe hosts.
 
 local terminal = "kitty"
-local menu = "vicinae-safe open"
+local menu = "vicinae open"
 local browser = "junction"
 
 hl.on("hyprland.start", function()
@@ -102,7 +102,7 @@ hl.device({
 hl.bind("SUPER + RETURN", hl.dsp.exec_cmd(terminal))
 hl.bind("SUPER + Q", hl.dsp.window.close())
 hl.bind("SUPER + M", hl.dsp.exit())
-hl.bind("SUPER + L", hl.dsp.exec_cmd([[loginctl lock-session; sleep 1; hyprctl eval 'hl.dsp.dpms({ action = "off" })']]))
+hl.bind("SUPER + L", hl.dsp.exec_cmd([[loginctl lock-session; sleep 1; hyprctl -i 0 eval 'hl.dsp.dpms({ action = "off" })']]))
 hl.bind("SUPER + O", hl.dsp.exec_cmd([[if command -v obsidian >/dev/null 2>&1; then exec obsidian; else exec flatpak run md.obsidian.Obsidian; fi]]))
 hl.bind("SUPER + E", hl.dsp.exec_cmd("dolphin"))
 hl.bind("SUPER + F", hl.dsp.exec_cmd(browser))

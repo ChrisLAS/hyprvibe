@@ -158,10 +158,15 @@ in
     autoSleepOnBatteryMinutes = 30;
   };
 
-  # Use the upstream kernel defaults on this older Intel laptop. Apply i915 or
-  # C-state workarounds only if a reproducible fault is observed.
+  # Disable the Intel display and deep-idle paths implicated in Latitude 7490 hard locks.
+  # Keep the performance-oriented CPU governor because battery life is not the goal.
   hyprvibe.system.kernelPackages = pkgs.linuxPackages;
-  powerManagement.cpuFreqGovernor = lib.mkForce "powersave";
+  boot.kernelParams = [
+    "i915.enable_dc=0"
+    "i915.enable_psr=0"
+    "intel_idle.max_cstate=1"
+  ];
+  powerManagement.cpuFreqGovernor = lib.mkForce "performance";
 
   networking = {
     hostName = "nixvader";
