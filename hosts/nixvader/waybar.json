@@ -53,8 +53,7 @@
     "interval": 300,
     "signal": 12,
     "tooltip": true,
-    "on-click": "xdg-open https://chatgpt.com/codex/settings/usage",
-    "format": "{session_pct}% · {session_reset}"
+    "on-click": "xdg-open https://chatgpt.com/codex/settings/usage"
   },
   "cpu": {"format": "  {usage}%"},
   "memory": {"format": "  {percentage}%"},
