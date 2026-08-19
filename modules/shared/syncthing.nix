@@ -6,15 +6,13 @@
   cfg = config.hyprvibe.services.syncthing;
   user = config.hyprvibe.user;
   hostname = config.networking.hostName;
-
   devices = {
-    aurora.id = "2SMXPWK-7BALZTP-P2MERMT-X2263HS-HBQ2Y3D-34GWFTO-BBIHYMH-MR5T6A4";
+    aurora.id = "4CD2OSH-B6OBHJ2-3LZS3NI-LFYCVLQ-POGG2SS-LNEKDXA-RBG5ZKS-X3UJ3QK";
     nixstation.id = "KHJYIB5-L5LK6TE-G5BCAXD-UKTVWYU-GX4YG7T-QEXMBWO-YIJ4B5Y-JG24VQ6";
     rvbee.id = "XG257UG-LBMN4ZM-5JA4NM2-I32JYUL-VPSEUJK-7JQHPNI-NYABXZB-C66KKAY";
     nixbook.id = "RV7GZDJ-OE2DQFT-LTXETQF-BU5VGCC-7CRZDAJ-UJWG72P-WF6VSIL-DLKVYQP";
     nomad.id = "HUAZMND-Q4QYPQQ-UEYHN3N-I72DZCR-DTOPZUY-N2KE5WT-FTKTA5Z-YPICHQ7";
   };
-
   knownHosts = lib.attrNames devices;
   peerNames = lib.filter (name: name != hostname) knownHosts;
   dropboxPeers = ["nixstation" "aurora" "nomad"];
@@ -31,23 +29,19 @@
 in {
   options.hyprvibe.services.syncthing = {
     enable = lib.mkEnableOption "Declarative Syncthing mesh for Hyprvibe hosts";
-
     folderPath = lib.mkOption {
       type = lib.types.str;
       default = "${user.home}/build/hosts";
       description = "Path to the Hyprvibe hosts folder synced across machines.";
     };
-
     agentConfigs = {
       enable = lib.mkEnableOption "shared agent configuration Syncthing folder";
-
       path = lib.mkOption {
         type = lib.types.str;
         default = "${user.home}/Sync/agent-configs";
         description = "Path to the Git-backed shared agent configuration folder.";
       };
     };
-
     dropbox = {
       enable = lib.mkEnableOption "shared Dropbox replacement folders";
       root = lib.mkOption {
@@ -57,7 +51,6 @@ in {
       };
     };
   };
-
   config = lib.mkIf cfg.enable {
     assertions = [
       {
@@ -69,7 +62,6 @@ in {
         message = "All Dropbox peers must have configured Syncthing device IDs.";
       }
     ];
-
     sops.age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
     sops.secrets."syncthing/cert" = {
       sopsFile = secretsFile;
@@ -94,7 +86,6 @@ in {
       ++ lib.optionals cfg.dropbox.enable (lib.mapAttrsToList (_id: folder:
         "d ${cfg.dropbox.root}/${folder.directory} 0750 ${user.name} ${user.group} -"
       ) dropboxFolders);
-
     services.syncthing = {
       enable = true;
       user = user.name;
@@ -106,7 +97,6 @@ in {
       openDefaultPorts = true;
       overrideDevices = true;
       overrideFolders = true;
-
       settings = {
         devices = devices;
         folders =
