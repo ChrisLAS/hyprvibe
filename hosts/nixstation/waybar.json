@@ -25,7 +25,6 @@
     "idle_inhibitor",
     "custom/brightness_menu",
     "clock",
-    "custom/timezones",
     "custom/reboot"
   ],
   "hyprland/workspaces": {
@@ -122,16 +121,27 @@
     "format": "󰊄 {count}"
   },
   "clock": {
-    "format": "{:%I:%M %p}",
-    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
-    "format-alt": "{:%Y-%m-%d}"
-  },
-  "custom/timezones": {
-    "return-type": "json",
-    "exec": "~/.config/waybar/scripts/waybar-timezones.sh",
-    "interval": 60,
-    "tooltip": true,
-    "format": "{}"
+    "format": "{:%H:%M}",
+    "tooltip-format": "<big>{0:%Y %B}</big>\n<tt><small>{calendar}</small></tt>\n\n<b>US</b>\nPacific: {0:%H:%M %Z}\n{tz_list}",
+    "timezone-tooltip-format": "{0:%Z}: {0:%H:%M}",
+    "timezones": [
+      "America/Los_Angeles",
+      "America/Denver",
+      "America/New_York",
+      "Europe/London",
+      "UTC"
+    ],
+    "calendar": {
+      "format": {
+        "today": "<span color='#ffe86b'><b><u>{}</u></b></span>"
+      }
+    },
+    "actions": {
+      "on-scroll-up": "shift_up",
+      "on-scroll-down": "shift_down",
+      "on-click-right": "mode"
+    },
+    "format-alt": "{0:%Y-%m-%d}"
   },
   "tray": {
     "spacing": 10
