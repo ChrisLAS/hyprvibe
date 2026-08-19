@@ -95,6 +95,8 @@ in {
       cert = config.sops.secrets."syncthing/cert".path;
       key = config.sops.secrets."syncthing/key".path;
       openDefaultPorts = true;
+      guiAddress = "0.0.0.0:8384";
+      guiPasswordFile = "${user.home}/.config/secrets/syncthing-gui-password";
       overrideDevices = true;
       overrideFolders = true;
       settings = {
