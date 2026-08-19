@@ -1383,6 +1383,10 @@ in {
       ${homeDir}/.local/share/applications/md.obsidian.Obsidian.desktop
   '';
 
+  system.activationScripts.nixstationDisableMaestralAutostart = lib.mkAfter ''
+    rm -f ${homeDir}/.config/autostart/maestral-maestral.desktop
+  '';
+
   # Workaround for GNOME autologin - PRESERVING YOUR EXISTING CONFIG
   systemd.services."getty@tty1".enable = false;
   systemd.services."autovt@tty1".enable = false;
