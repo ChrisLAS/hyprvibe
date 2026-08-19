@@ -8,22 +8,25 @@
   hostname = config.networking.hostName;
 
   devices = {
-    nixstation = {
-      id = "KHJYIB5-L5LK6TE-G5BCAXD-UKTVWYU-GX4YG7T-QEXMBWO-YIJ4B5Y-JG24VQ6";
-    };
-    rvbee = {
-      id = "XG257UG-LBMN4ZM-5JA4NM2-I32JYUL-VPSEUJK-7JQHPNI-NYABXZB-C66KKAY";
-    };
-    nixbook = {
-      id = "RV7GZDJ-OE2DQFT-LTXETQF-BU5VGCC-7CRZDAJ-UJWG72P-WF6VSIL-DLKVYQP";
-    };
-    nomad = {
-      id = "HUAZMND-Q4QYPQQ-UEYHN3N-I72DZCR-DTOPZUY-N2KE5WT-FTKTA5Z-YPICHQ7";
-    };
+    aurora.id = "2SMXPWK-7BALZTP-P2MERMT-X2263HS-HBQ2Y3D-34GWFTO-BBIHYMH-MR5T6A4";
+    nixstation.id = "KHJYIB5-L5LK6TE-G5BCAXD-UKTVWYU-GX4YG7T-QEXMBWO-YIJ4B5Y-JG24VQ6";
+    rvbee.id = "XG257UG-LBMN4ZM-5JA4NM2-I32JYUL-VPSEUJK-7JQHPNI-NYABXZB-C66KKAY";
+    nixbook.id = "RV7GZDJ-OE2DQFT-LTXETQF-BU5VGCC-7CRZDAJ-UJWG72P-WF6VSIL-DLKVYQP";
+    nomad.id = "HUAZMND-Q4QYPQQ-UEYHN3N-I72DZCR-DTOPZUY-N2KE5WT-FTKTA5Z-YPICHQ7";
   };
 
   knownHosts = lib.attrNames devices;
   peerNames = lib.filter (name: name != hostname) knownHosts;
+  dropboxPeers = ["nixstation" "aurora" "nomad"];
+  dropboxFolders = {
+    "03-chrislas-prods" = {directory = "03-ChrisLAS-PRODS"; label = "03 ChrisLAS productions";};
+    "04-lup" = {directory = "04-LUP"; label = "04 LUP";};
+    "05-twib" = {directory = "05-TWIB"; label = "05 TWiB";};
+    "06-launch" = {directory = "06-Launch"; label = "06 Launch";};
+    "07-wyab" = {directory = "07-WYAB"; label = "07 WYAB";};
+    "10-friday" = {directory = "10-FRIDAY"; label = "10 Friday";};
+    "50-heremes" = {directory = "50-Heremes"; label = "50 Heremes";};
+  };
   secretsFile = ../../secrets/syncthing + "/${hostname}.yaml";
 in {
   options.hyprvibe.services.syncthing = {
@@ -44,6 +47,15 @@ in {
         description = "Path to the Git-backed shared agent configuration folder.";
       };
     };
+
+    dropbox = {
+      enable = lib.mkEnableOption "shared Dropbox replacement folders";
+      root = lib.mkOption {
+        type = lib.types.str;
+        default = "${user.home}/Dropbox/Chris Fisher";
+        description = "Host-local Dropbox replacement root.";
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -51,6 +63,10 @@ in {
       {
         assertion = lib.elem hostname knownHosts;
         message = "hyprvibe.services.syncthing only has device IDs for: ${lib.concatStringsSep ", " knownHosts}";
+      }
+      {
+        assertion = lib.all (name: lib.elem name knownHosts) dropboxPeers;
+        message = "All Dropbox peers must have configured Syncthing device IDs.";
       }
     ];
 
@@ -69,15 +85,15 @@ in {
       group = user.group;
       mode = "0400";
     };
-
     systemd.tmpfiles.rules =
-      [
-        "d ${cfg.folderPath} 0750 ${user.name} ${user.group} -"
-      ]
+      ["d ${cfg.folderPath} 0750 ${user.name} ${user.group} -"]
       ++ lib.optionals cfg.agentConfigs.enable [
         "d ${user.home}/Sync 0750 ${user.name} ${user.group} -"
         "d ${cfg.agentConfigs.path} 0750 ${user.name} ${user.group} -"
-      ];
+      ]
+      ++ lib.optionals cfg.dropbox.enable (lib.mapAttrsToList (_id: folder:
+        "d ${cfg.dropbox.root}/${folder.directory} 0750 ${user.name} ${user.group} -"
+      ) dropboxFolders);
 
     services.syncthing = {
       enable = true;
@@ -111,7 +127,14 @@ in {
               type = "sendreceive";
               devices = peerNames;
             };
-          };
+          }
+          // lib.optionalAttrs cfg.dropbox.enable (lib.mapAttrs (_id: folder: {
+            id = _id;
+            label = folder.label;
+            path = "${cfg.dropbox.root}/${folder.directory}";
+            type = "sendreceive";
+            devices = lib.filter (name: name != hostname) dropboxPeers;
+          }) dropboxFolders);
       };
     };
   };

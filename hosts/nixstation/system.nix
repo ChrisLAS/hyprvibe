@@ -577,6 +577,10 @@ in {
     syncthing = {
       enable = true;
       agentConfigs.enable = true;
+      dropbox = {
+        enable = true;
+        root = "/scary/Dropbox/Chris Fisher";
+      };
     };
     nebula = {
       enable = false;
