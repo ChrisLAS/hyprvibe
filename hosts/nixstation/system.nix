@@ -1309,13 +1309,18 @@ in {
       Type = "simple";
       ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p /mnt/horse ${homeDir}/.cache/rclone/horse ${homeDir}/.local/share/rclone";
       ExecStart = "${mountHorseScript}";
-      ExecStop = "${pkgs.fuse3}/bin/fusermount3 -uz /mnt/horse";
+      ExecStop = "/run/wrappers/bin/fusermount3 -uz /mnt/horse";
       Restart = "on-failure";
       RestartSec = "15s";
       TimeoutStopSec = "30s";
       ProtectSystem = "off";
       ProtectHome = false;
       PrivateMounts = false;
+    };
+    # rclone discovers fusermount3 through PATH.  NixOS's setuid wrapper must
+    # precede the ordinary package symlink for mounts from systemd services.
+    environment = {
+      PATH = lib.mkForce "/run/wrappers/bin:${lib.makeBinPath [pkgs.coreutils pkgs.rclone pkgs.fuse3]}";
     };
   };
 
