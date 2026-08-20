@@ -45,17 +45,9 @@
     gogcli-src.url = "github:steipete/gogcli/v0.11.0";
     gogcli-src.flake = false;
 
-    # hermes-agent - NousResearch Hermes Agent (desktop, tui, web). Tracked
-    # so `nix flake update` bumps it with the rest of the inputs and so
-    # nixos-rebuild rebuilds hermes-desktop instead of fetching at launch.
-    #
-    # Pinned: hermes-agent main has a renderer build regression since
-    # commit 9f78a0d37f (2026-07-31) — apps/desktop/src/app/session/hooks/use-session-actions.test.tsx
-    # imports tests/fixtures/session-resume-active-turn.json, but the
-    # renderer's source filter excludes tests/, so `tsc -b` fails locally.
-    # To track main again: drop the SHA from the URL below.
+    # Hermes Desktop is built during nixos-rebuild instead of at launch.
     hermes-agent = {
-      url = "github:NousResearch/hermes-agent/165c889e5b4277b56dadd42949a4112c1e6175a6";
+      url = "github:NousResearch/hermes-agent/f43eabee5f36e11448086ee8ee17c499958e81bf";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -80,12 +72,29 @@
         prettyswitch.packages.${pkgs.stdenv.hostPlatform.system}.default
       ];
     };
-    # Hermes Agent (NousResearch) desktop, tui, web apps — pulled from the
-    # hermes-agent flake input tracked above. `nix flake update` bumps it
-    # alongside other inputs, and nixos-rebuild rebuilds the desktop app
-    # so the launcher just execs a pre-built binary.
-    hermesAgentOverlay = final: prev: {
-      hermes-desktop = hermes-agent.packages.${prev.stdenv.hostPlatform.system}.desktop;
+    hermesAgentOverlay = final: prev: let
+      hermesMinimal = hermes-agent.packages.${prev.stdenv.hostPlatform.system}.minimal;
+      hermesLocalStub = final.writeShellScriptBin "hermes" ''
+        echo "This Hermes Desktop installation is configured for a remote backend." >&2
+        exit 1
+      '';
+      # Upstream retains its local agent through the desktop wrapper's fallback.
+      # Replace only that reference while preserving the renderer dependencies.
+      hermesDesktop = hermesMinimal.hermesDesktop.overrideAttrs (old: {
+        installPhase = let
+          original = old.installPhase;
+          replaced = builtins.replaceStrings
+            [(final.lib.getExe hermesMinimal)]
+            [(final.lib.getExe hermesLocalStub)]
+            original;
+          context = removeAttrs (builtins.getContext original) [
+            (builtins.unsafeDiscardStringContext hermesMinimal.drvPath)
+          ];
+        in
+          builtins.appendContext (builtins.unsafeDiscardStringContext replaced) context;
+      });
+    in {
+      hermes-desktop = hermesDesktop;
     };
   in {
     # Formatter (optional)
