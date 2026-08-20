@@ -511,6 +511,56 @@
         exit 1
     fi
   '';
+
+  # Script to mount the Nextcloud WebDAV share at /mnt/horse.  The secret is
+  # deliberately read at runtime so it never enters the Nix store or unit
+  # definition.
+  mountHorseScript = pkgs.writeShellScript "horse-mount" ''
+    set -euo pipefail
+
+    credentialsFile="${homeDir}/.config/secrets/files.horse"
+    cacheDir="${homeDir}/.cache/rclone/horse"
+    logDir="${homeDir}/.local/share/rclone"
+
+    if [ ! -r "$credentialsFile" ]; then
+      echo "Nextcloud credentials not found at $credentialsFile" >&2
+      exit 1
+    fi
+
+    mapfile -t horseCredentials < "$credentialsFile"
+    if [ "''${#horseCredentials[@]}" -ne 2 ] || \
+       [ -z "''${horseCredentials[0]}" ] || [ -z "''${horseCredentials[1]}" ]; then
+      echo "Expected username and password on two non-empty lines in $credentialsFile" >&2
+      exit 1
+    fi
+
+    mkdir -p /mnt/horse "$cacheDir" "$logDir"
+
+    # rclone's environment-backed password must be in its obscured form.
+    horsePasswordObscured="$(${pkgs.rclone}/bin/rclone obscure "''${horseCredentials[1]}")"
+    export RCLONE_CONFIG_HORSE_TYPE=webdav
+    export RCLONE_CONFIG_HORSE_URL="https://files.horse/remote.php/dav/files/''${horseCredentials[0]}/"
+    export RCLONE_CONFIG_HORSE_VENDOR=nextcloud
+    export RCLONE_CONFIG_HORSE_USER="''${horseCredentials[0]}"
+    export RCLONE_CONFIG_HORSE_PASS="$horsePasswordObscured"
+
+    exec ${pkgs.rclone}/bin/rclone mount horse: /mnt/horse \
+      --vfs-cache-mode=full \
+      --vfs-write-back=30s \
+      --vfs-cache-max-size=10G \
+      --vfs-cache-max-age=1h \
+      --cache-dir="$cacheDir" \
+      --buffer-size=64M \
+      --dir-cache-time=1m \
+      --poll-interval=0 \
+      --umask=0002 \
+      --dir-perms=0775 \
+      --file-perms=0664 \
+      --log-level=INFO \
+      --log-file="$logDir/horse.log" \
+      --transfers=4 \
+      --checkers=8
+  '';
 in {
   hyprvibe.opencode.enable = true;
   hyprvibe.opencode2Client.enable = true;
@@ -1240,6 +1290,32 @@ in {
       Type = "oneshot";
       RemainAfterExit = true;
       ExecStart = "${generateRcloneConfigScript}";
+    };
+  };
+
+  # Nextcloud Storage: mount files.horse as the chrisf-owned /mnt/horse FUSE
+  # filesystem.  The user has linger enabled, so this is started at boot and
+  # does not depend on an interactive shell being opened.
+  systemd.tmpfiles.rules = [
+    "d /mnt/horse 0755 ${userName} ${userGroup} -"
+  ];
+
+  systemd.user.services.rclone-horse-mount = {
+    description = "Mount files.horse Nextcloud storage at /mnt/horse";
+    after = ["network-online.target"];
+    wants = ["network-online.target"];
+    wantedBy = ["default.target"];
+    serviceConfig = {
+      Type = "simple";
+      ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p /mnt/horse ${homeDir}/.cache/rclone/horse ${homeDir}/.local/share/rclone";
+      ExecStart = "${mountHorseScript}";
+      ExecStop = "${pkgs.fuse3}/bin/fusermount3 -uz /mnt/horse";
+      Restart = "on-failure";
+      RestartSec = "15s";
+      TimeoutStopSec = "30s";
+      ProtectSystem = "off";
+      ProtectHome = false;
+      PrivateMounts = false;
     };
   };
 
