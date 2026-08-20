@@ -217,19 +217,24 @@ The secret path is
 `$HOME/.config/secrets/hermes_dashboard_session_token`. Do not print its
 contents.
 
-The wrapper exports the Nomad backend URL and token, then runs the upstream
-desktop flake. The first build made substantial progress but exceeded the
-30-minute remote command window; Nix should reuse its completed derivations.
+The wrapper exports the Nomad backend URL and token, then executes the
+immutable Nix-store Hermes Desktop binary. The shared client-fleet package
+selection uses `minimal.hermesDesktop` and removes the unused local-agent
+fallback. Nixvader is a remote client; Nomad is the full Hermes host.
 
 ```bash
 stat -c '%U:%G %a %n' "$HOME/.config/secrets/hermes_dashboard_session_token"
-nix build github:NousResearch/hermes-agent#desktop --no-link --print-out-paths
+nix build .#nixosConfigurations.nixvader.config.system.build.toplevel --no-link
 hermes-desktop-nomad
 tail -n 100 "$HOME/.cache/hermes-desktop-nomad/launcher.log"
 ```
 
-Expected: mode `600`, a successful desktop build, and Hermes Desktop connected
-to the Nomad backend at `http://nomad.coin-noodlefish.ts.net:9119`.
+Expected: mode `600`, a successful NixOS build, an immediate launch without a
+`nix` process, and Hermes Desktop connected to the Nomad backend. The realized
+closure should not contain `hermes-agent-env`, `hermes-tui`, `hermes-web`, or a
+versioned local `hermes-agent` output. For the complete client install,
+upgrade, removal, and troubleshooting procedure, read
+`docs/hermes-desktop-client-fleet.md`.
 
 ## Known Validation
 
