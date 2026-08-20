@@ -3,8 +3,7 @@
   pkgs,
   config,
   ...
-}:
-let
+}: let
   cfg = config.hyprvibe.packages;
   janWrappedLower = pkgs.writeShellScriptBin "jan" ''
     export LD_LIBRARY_PATH=${pkgs.openssl}/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
@@ -54,6 +53,7 @@ let
     wl-clipboard
     wl-clip-persist
     grim
+    grimblast
     slurp
     swappy
     wf-recorder
@@ -96,8 +96,7 @@ let
     # sunshine  # Temporarily disabled - build fails fetching Boost dependencies
     vulkan-tools
   ];
-in
-{
+in {
   options.hyprvibe.packages = {
     enable = lib.mkEnableOption "Shared package groups";
     base.enable = lib.mkEnableOption "Common CLI utilities";
@@ -111,7 +110,7 @@ in
     };
     extraPackages = lib.mkOption {
       type = with lib.types; listOf package;
-      default = [ ];
+      default = [];
       description = "Additional packages to append to shared packages.";
     };
   };
