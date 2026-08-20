@@ -74,6 +74,7 @@ in {
       localsend
       mpv
       vlc
+      avidemux
       ffmpeg-full
       handbrake
       audacity
