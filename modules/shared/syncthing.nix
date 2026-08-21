@@ -17,13 +17,39 @@
   peerNames = lib.filter (name: name != hostname) knownHosts;
   dropboxPeers = ["nixstation" "aurora" "nomad"];
   dropboxFolders = {
-    "03-chrislas-prods" = {directory = "03-ChrisLAS-PRODS"; label = "03 ChrisLAS productions";};
-    "04-lup" = {directory = "04-LUP"; label = "04 LUP";};
-    "05-twib" = {directory = "05-TWIB"; label = "05 TWiB";};
-    "06-launch" = {directory = "06-Launch"; label = "06 Launch";};
-    "07-wyab" = {directory = "07-WYAB"; label = "07 WYAB";};
-    "10-friday" = {directory = "10-FRIDAY"; label = "10 Friday";};
-    "50-heremes" = {directory = "50-Heremes"; label = "50 Heremes";};
+    "03-chrislas-prods" = {
+      directory = "03-ChrisLAS-PRODS";
+      label = "03 ChrisLAS productions";
+    };
+    "04-lup" = {
+      directory = "04-LUP";
+      label = "04 LUP";
+    };
+    "05-twib" = {
+      directory = "05-TWIB";
+      label = "05 TWiB";
+    };
+    "06-launch" = {
+      directory = "06-Launch";
+      label = "06 Launch";
+    };
+    "07-wyab" = {
+      directory = "07-WYAB";
+      label = "07 WYAB";
+    };
+    "10-friday" = {
+      directory = "10-FRIDAY";
+      label = "10 Friday";
+    };
+    "50-heremes" = {
+      directory = "50-Heremes";
+      label = "50 Heremes";
+    };
+    "60-backups" = {
+      directory = "60-BACKUPS";
+      label = "60 Backups";
+      backup = true;
+    };
   };
   secretsFile = ../../secrets/syncthing + "/${hostname}.yaml";
 in {
@@ -83,9 +109,10 @@ in {
         "d ${user.home}/Sync 0750 ${user.name} ${user.group} -"
         "d ${cfg.agentConfigs.path} 0750 ${user.name} ${user.group} -"
       ]
-      ++ lib.optionals cfg.dropbox.enable (lib.mapAttrsToList (_id: folder:
-        "d ${cfg.dropbox.root}/${folder.directory} 0750 ${user.name} ${user.group} -"
-      ) dropboxFolders);
+      ++ lib.optionals cfg.dropbox.enable (lib.mapAttrsToList (
+          _id: folder: "d ${cfg.dropbox.root}/${folder.directory} 0750 ${user.name} ${user.group} -"
+        )
+        dropboxFolders);
     services.syncthing = {
       enable = true;
       user = user.name;
@@ -120,13 +147,30 @@ in {
               devices = peerNames;
             };
           }
-          // lib.optionalAttrs cfg.dropbox.enable (lib.mapAttrs (_id: folder: {
-            id = _id;
-            label = folder.label;
-            path = "${cfg.dropbox.root}/${folder.directory}";
-            type = "sendreceive";
-            devices = lib.filter (name: name != hostname) dropboxPeers;
-          }) dropboxFolders);
+          // lib.optionalAttrs cfg.dropbox.enable (lib.mapAttrs (_id: folder:
+            {
+              id = _id;
+              label = folder.label;
+              path = "${cfg.dropbox.root}/${folder.directory}";
+              type =
+                if folder.backup or false
+                then
+                  if hostname == "nomad"
+                  then "sendonly"
+                  else "receiveonly"
+                else "sendreceive";
+              devices = lib.filter (name: name != hostname) dropboxPeers;
+            }
+            // lib.optionalAttrs ((folder.backup or false) && hostname != "nomad") {
+              versioning = {
+                type = "staggered";
+                params = {
+                  cleanInterval = "3600";
+                  maxAge = "2592000";
+                };
+              };
+            })
+          dropboxFolders);
       };
     };
   };
