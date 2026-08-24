@@ -42,6 +42,7 @@ let
       exec ${../../scripts/hyprvibe-dms-config.sh} "$@"
     '';
   };
+  legacyWaybarScript = pkgs.writeShellScript "hyprvibe-legacy-waybar" cfg.legacyWaybarCommand;
   shellTool = pkgs.writeShellApplication {
     name = "hyprvibe-shell";
     runtimeInputs = [
@@ -72,7 +73,7 @@ let
           start_unit hyprvibe-legacy-hypridle ${pkgs.hypridle}/bin/hypridle
           systemctl --user stop hyprvibe-legacy-waybar.service >/dev/null 2>&1 || true
           systemd-run --user --unit=hyprvibe-legacy-waybar --collect --property=Restart=on-failure -- \
-            ${pkgs.bash}/bin/bash -lc ${lib.escapeShellArg cfg.legacyWaybarCommand} >/dev/null
+            ${legacyWaybarScript} >/dev/null
           ;;
         status)
           systemctl --user --no-pager --full status dms.service || true
