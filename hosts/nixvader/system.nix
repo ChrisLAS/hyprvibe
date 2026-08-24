@@ -197,6 +197,7 @@ in
     printing.enable = true;
     resolved.enable = true;
     thermald.enable = true;
+    upower.enable = true;
     hardware.bolt.enable = true;
   };
   services.displayManager.defaultSession = "hyprland";

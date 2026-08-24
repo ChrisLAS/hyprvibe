@@ -56,7 +56,7 @@ PluginComponent {
             DankIcon {
                 name: "public"
                 color: Theme.primary
-                font.pixelSize: Theme.iconSize - 6
+                size: Theme.iconSize - 6
                 anchors.verticalCenter: parent.verticalCenter
             }
             StyledText {
@@ -72,7 +72,7 @@ PluginComponent {
         DankIcon {
             name: "public"
             color: Theme.primary
-            font.pixelSize: Theme.iconSize - 4
+            size: Theme.iconSize - 4
         }
     }
 
