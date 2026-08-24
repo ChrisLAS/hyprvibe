@@ -1,8 +1,8 @@
 {
   "id": "nixvaderCodex",
-  "name": "Nixvader Codex Usage",
+  "name": "Hyprvibe Codex Usage",
   "description": "Shows the current Codex five-hour usage window from codexbar.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "Chris Fisher",
   "type": "widget",
   "capabilities": ["dankbar-widget"],

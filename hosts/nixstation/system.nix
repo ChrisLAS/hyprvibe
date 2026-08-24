@@ -572,6 +572,8 @@ in {
     ./hardware-configuration.nix
     # Shared scaffolding (non-host-specific)
     ../../modules/shared
+    # DankMaterialShell profile and four-monitor bar layout
+    ./dms.nix
     # AI/LLM stack (Ollama + Open WebUI)
     ./ai-memory-stack.nix
     # Tailnet-only OpenAI-compatible Qwen3.8 GGUF server
@@ -584,6 +586,7 @@ in {
     fonts.enable = true;
   };
   hyprvibe.hyprland.enable = true;
+  hyprvibe.hyprland.shellBackend = "dms";
   # Provide per-host monitors and wallpaper paths to hyprvibe module
   hyprvibe.hyprland.monitorsFile = ../../configs/hyprland-monitors-nixstation.lua;
   hyprvibe.hyprland.mainConfig = ./hyprland.lua;

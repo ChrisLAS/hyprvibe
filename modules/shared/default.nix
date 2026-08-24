@@ -8,6 +8,7 @@ in
   imports = [
     ./packages.nix
     ./desktop.nix
+    ./dms.nix
     ./hyprland.nix
     ./waybar.nix
     ./shell.nix

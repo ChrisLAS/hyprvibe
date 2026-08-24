@@ -1,0 +1,87 @@
+{
+  "autoHide": false,
+  "autoHideDelay": 250,
+  "autoHideStrict": false,
+  "borderColor": "primary",
+  "borderEnabled": true,
+  "borderOpacity": 0.35,
+  "borderThickness": 1,
+  "bottomGap": 8,
+  "centerWidgets": [
+    "music",
+    "clock",
+    {
+      "id": "markets",
+      "enabled": true
+    }
+  ],
+  "clickThrough": false,
+  "enabled": true,
+  "fontScale": 1,
+  "gothCornerRadiusOverride": true,
+  "gothCornerRadiusValue": 14,
+  "gothCornersEnabled": false,
+  "hoverPopoutDelay": 150,
+  "hoverPopouts": false,
+  "iconScale": 1,
+  "innerPadding": 6,
+  "leftWidgets": [
+    "launcherButton",
+    "workspaceSwitcher",
+    {
+      "id": "quickCapture",
+      "enabled": true
+    },
+    "focusedWindow",
+    {
+      "id": "runningApps",
+      "enabled": true,
+      "runningAppsCompactMode": true,
+      "runningAppsGroupByApp": false,
+      "runningAppsCurrentWorkspace": true,
+      "runningAppsCurrentMonitor": false
+    }
+  ],
+  "maximizeDetection": true,
+  "maximizeWidgetIcons": false,
+  "maximizeWidgetText": false,
+  "noBackground": false,
+  "openOnOverview": false,
+  "popupGapsAuto": true,
+  "popupGapsManual": 6,
+  "position": 0,
+  "removeWidgetPadding": false,
+  "rightWidgets": [
+    "idleInhibitor",
+    "cpuUsage",
+    "memUsage",
+    "nixvaderCodex",
+    "nixvaderWorldClock",
+    "systemTray",
+    "notificationButton",
+    {
+      "id": "batteryPlus",
+      "enabled": true
+    },
+    "controlCenterButton"
+  ],
+  "scrollEnabled": true,
+  "scrollXBehavior": "column",
+  "scrollYBehavior": "workspace",
+  "shadowColorMode": "default",
+  "shadowCustomColor": "#000000",
+  "shadowIntensity": 8,
+  "shadowOpacity": 55,
+  "showOnWindowsOpen": false,
+  "spacing": 6,
+  "squareCorners": false,
+  "transparency": 0.88,
+  "useOverlayLayer": false,
+  "visible": true,
+  "widgetOutlineColor": "primary",
+  "widgetOutlineEnabled": true,
+  "widgetOutlineOpacity": 0.18,
+  "widgetOutlineThickness": 1,
+  "widgetPadding": 8,
+  "widgetTransparency": 0.78
+}

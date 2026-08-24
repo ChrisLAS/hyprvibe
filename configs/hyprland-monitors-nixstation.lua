@@ -11,9 +11,11 @@ hl.monitor({
     reserved_area = 0,
 })
 
-hl.on("hyprland.start", function()
-    hl.exec_cmd("~/.config/waybar/scripts/waybar-per-monitor.sh")
-end)
+if os.getenv("HYPRVIBE_SHELL_BACKEND") == "legacy" then
+    hl.on("hyprland.start", function()
+        hl.exec_cmd("~/.config/waybar/scripts/waybar-per-monitor.sh")
+    end)
+end
 
 hl.bind("SUPER + CTRL + left", hl.dsp.focus({ monitor = "left" }))
 hl.bind("SUPER + CTRL + right", hl.dsp.focus({ monitor = "right" }))

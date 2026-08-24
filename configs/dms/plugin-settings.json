@@ -1,0 +1,28 @@
+{
+  "nixvaderCodex": {
+    "enabled": true
+  },
+  "nixvaderWorldClock": {
+    "enabled": true
+  },
+  "markets": {
+    "enabled": true,
+    "_addTicker": "",
+    "_addChartRange": "1M",
+    "_addPriceRange": "1h",
+    "_addShowChange": false,
+    "_addName": "",
+    "symbols": "[{\"id\":\"BTC-USD\",\"name\":\"BTC\",\"provider\":\"yahoo\",\"priceInterval\":\"5m\",\"graphInterval\":\"3M\",\"showChangeWhenPinned\":true,\"invert\":false,\"pinned\":false},{\"id\":\"DX-Y.NYB\",\"name\":\"Dollar vs Basket\",\"provider\":\"yahoo\",\"priceInterval\":\"1h\",\"graphInterval\":\"1M\",\"showChangeWhenPinned\":false,\"invert\":false,\"pinned\":false},{\"id\":\"^TNX\",\"name\":\"10-Year Treasury\",\"provider\":\"yahoo\",\"priceInterval\":\"1h\",\"graphInterval\":\"1M\",\"showChangeWhenPinned\":false,\"invert\":false,\"pinned\":false},{\"id\":\"^TYX\",\"name\":\"30-Year Treasury\",\"provider\":\"yahoo\",\"priceInterval\":\"1h\",\"graphInterval\":\"1M\",\"showChangeWhenPinned\":false,\"invert\":false,\"pinned\":false},{\"id\":\"GC=F\",\"name\":\"Gold\",\"provider\":\"yahoo\",\"priceInterval\":\"1h\",\"graphInterval\":\"1M\",\"showChangeWhenPinned\":false,\"invert\":false,\"pinned\":false},{\"id\":\"^GSPC\",\"name\":\"S&P 500\",\"provider\":\"yahoo\",\"priceInterval\":\"1h\",\"graphInterval\":\"1M\",\"showChangeWhenPinned\":false,\"invert\":false,\"pinned\":false},{\"id\":\"^VIX\",\"name\":\"VIX\",\"provider\":\"yahoo\",\"priceInterval\":\"1h\",\"graphInterval\":\"1M\",\"showChangeWhenPinned\":false,\"invert\":false,\"pinned\":false}]",
+    "_addProvider": "yahoo",
+    "_addInvert": false
+  },
+  "wallpaperCarousel": {
+    "enabled": true
+  },
+  "quickCapture": {
+    "enabled": true
+  },
+  "batteryPlus": {
+    "enabled": true
+  }
+}
