@@ -34,6 +34,11 @@ in {
   # Pin the ScreenCast portal backend to Hyprland so screen-sharing tools
   # (OBS, Discord, etc.) prefer it over the GTK fallback.
   xdg.portal.config.common."org.freedesktop.impl.portal.ScreenCast" = ["hyprland"];
+  # Keep MPV as the declarative default for video files while VLC remains
+  # installed as an alternate player.
+  xdg.mime.defaultApplications = {
+    "video/*" = "mpv.desktop";
+  };
   hyprvibe.waybar = {
     configPath = ./waybar.json;
     stylePath = ./waybar.css;
@@ -69,6 +74,7 @@ in {
       localsend
       mpv
       vlc
+      avidemux
       ffmpeg-full
       handbrake
       audacity

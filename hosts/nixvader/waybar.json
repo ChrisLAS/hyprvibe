@@ -7,7 +7,6 @@
   "modules-right": [
     "pulseaudio",
     "network",
-    "custom/codexbar",
     "cpu",
     "memory",
     "battery",
@@ -47,14 +46,6 @@
     "format-disconnected": "  offline",
     "on-click": "nm-connection-editor"
   },
-  "custom/codexbar": {
-    "exec": "codexbar",
-    "return-type": "json",
-    "interval": 300,
-    "signal": 12,
-    "tooltip": true,
-    "on-click": "xdg-open https://chatgpt.com/codex/settings/usage"
-  },
   "cpu": {"format": "  {usage}%"},
   "memory": {"format": "  {percentage}%"},
   "battery": {
@@ -88,9 +79,9 @@
     "on-click": "xdg-open https://chatgpt.com/codex/settings/usage"
   },
   "clock": {
-    "format": "{0:%H:%M} ",
-    "tooltip-format": "<big>{0:%Y %B}</big>\n<tt><small>{calendar}</small></tt>\n\n<b>US</b>\nPacific: {0:%H:%M %Z}\n{tz_list}",
-    "timezone-tooltip-format": "{0:%Z}: {0:%H:%M}",
+    "format": "{0:%I:%M %p} ",
+    "tooltip-format": "<big>{0:%Y %B}</big>\n<tt><small>{calendar}</small></tt>\n\n<b>US</b>\nPacific: {0:%I:%M %p %Z}\n{tz_list}",
+    "timezone-tooltip-format": "{0:%Z}: {0:%I:%M %p}",
     "timezones": [
       "America/Los_Angeles",
       "America/Denver",

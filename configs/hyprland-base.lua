@@ -147,7 +147,7 @@ hl.gesture({ fingers = 3, direction = "up", action = function() hl.exec_cmd(menu
 hl.bind("SUPER + mouse:272", hl.dsp.window.drag(), { mouse = true })
 hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
-hl.bind("Print", hl.dsp.exec_cmd([[grim -g "$(slurp)" - | wl-copy]]))
+hl.bind("Print", hl.dsp.exec_cmd("grimblast copy area"))
 hl.bind("SHIFT + Print", hl.dsp.exec_cmd([[mkdir -p "$HOME/Pictures" && grim -g "$(slurp)" "$HOME/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png"]]))
 
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
