@@ -572,7 +572,7 @@ in {
     ./hardware-configuration.nix
     # Shared scaffolding (non-host-specific)
     ../../modules/shared
-    # AI/LLM stack (Ollama + LobeHub)
+    # AI/LLM stack (Ollama + Open WebUI)
     ./ai-memory-stack.nix
     # Tailnet-only OpenAI-compatible Qwen3.8 GGUF server
     ./qwen38-server.nix

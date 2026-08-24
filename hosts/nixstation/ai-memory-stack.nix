@@ -3,10 +3,6 @@
 let
   coreLlmModel = "mistral";
   preloadTimeout = "48h";
-  pgSearchNixpkgs = import inputs.nixpkgsPgsearch {
-    system = pkgs.stdenv.hostPlatform.system;
-    config.allowUnfree = true;
-  };
 in
 {
   virtualisation.oci-containers.containers.ollama = {
@@ -42,104 +38,26 @@ in
     };
   };
 
-  services.postgresql = {
-    enable = true;
-    package = pgSearchNixpkgs.postgresql_17;
-    extensions = with pgSearchNixpkgs.postgresql_17.pkgs; [
-      pgvector
-      pg_search
-    ];
-    ensureDatabases = [ "lobehub" ];
-    ensureUsers = [
-      {
-        name = "lobehub";
-      }
-    ];
-    authentication = ''
-      local all all trust
-      host all all 127.0.0.1/32 trust
-      host all all ::1/128 trust
-    '';
-    initialScript = pkgs.writeText "lobehub-init.sql" ''
-      ALTER USER lobehub WITH SUPERUSER;
-      ALTER USER lobehub WITH PASSWORD 'lobehub-secret';
-      GRANT ALL PRIVILEGES ON DATABASE lobehub TO lobehub;
-      GRANT ALL ON SCHEMA public TO lobehub;
-    '';
-  };
 
-  virtualisation.oci-containers.containers.redis = {
-    image = "docker.io/redis:7-alpine";
-    autoStart = true;
-    ports = [
-      "127.0.0.1:6379:6379"
-    ];
-    volumes = [
-      "redis-data:/data"
-    ];
-    cmd = [
-      "redis-server"
-      "--appendonly"
-      "yes"
-    ];
-    labels = {
-      "io.containers.autoupdate" = "registry";
-    };
-  };
-
-  virtualisation.oci-containers.containers.minio = {
-    image = "docker.io/minio/minio:latest";
-    autoStart = true;
-    ports = [
-      "127.0.0.1:9000:9000"
-      "127.0.0.1:9001:9001"
-    ];
-    volumes = [
-      "minio-data:/data"
-    ];
-    cmd = [
-      "server"
-      "/data"
-      "--console-address"
-      ":9001"
-    ];
-    environment = {
-      MINIO_ROOT_USER = "lobehub";
-      MINIO_ROOT_PASSWORD = "lobehub-minio-secret";
-    };
-    labels = {
-      "io.containers.autoupdate" = "registry";
-    };
-  };
-
-  virtualisation.oci-containers.containers.lobehub = {
-    image = "docker.io/lobehub/lobehub:latest";
-    autoStart = true;
+  virtualisation.oci-containers.containers.open-webui = {
+    image = "ghcr.io/open-webui/open-webui:main";
+    autoStart = false;
     pull = "newer";
-    ports = [
-      "127.0.0.1:3210:3210"
+    volumes = [
+      "/var/lib/open-webui:/app/backend/data"
     ];
     environment = {
+      HOST = "0.0.0.0";
+      PORT = "8081";
       OLLAMA_BASE_URL = "http://127.0.0.1:11434";
-      DATABASE_URL = "postgresql://lobehub:lobehub-secret@localhost:5432/lobehub";
-      REDIS_URL = "redis://127.0.0.1:6379";
-      S3_ENDPOINT = "http://127.0.0.1:9000";
-      S3_REGION = "us-east-1";
-      S3_BUCKET = "lobehub";
-      S3_ACCESS_KEY_ID = "lobehub";
-      S3_SECRET_ACCESS_KEY = "lobehub-minio-secret";
-      S3_ENABLE_PATH_STYLE = "true";
-      KEY_VAULTS_SECRET = "/ytytLi5JVMIYeSTAFiv3yP+uD+tdDiH4oWknKqSt/U=";
-      BETTER_AUTH_SECRET = "Njg2ZDcwNTk2ZmNlODM1ZWNhYjY0MTZj";
-      QSTASH_TOKEN = "not-needed";
-      QSTASH_CURRENT_SIGNING_KEY = "not-needed";
-      QSTASH_NEXT_SIGNING_KEY = "not-needed";
+      DEFAULT_MODELS = "orcarouter/Qwen3.8-27B-Uncensored:latest";
+      WEBUI_AUTH = "true";
     };
     extraOptions = [
+      "--network=host"
       "--cpus=2"
       "--memory=4g"
       "--memory-swap=4g"
-      "--network=host"
     ];
     labels = {
       "io.containers.autoupdate" = "registry";
@@ -211,6 +129,7 @@ in
   };
 
   systemd.tmpfiles.rules = [
+    "d /var/lib/open-webui 0750 root root -"
     "d /var/lib/ollama 0755 root root -"
   ];
 }
