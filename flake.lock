@@ -66,6 +66,43 @@
         "type": "github"
       }
     },
+    "dank-qml-common": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1784074596,
+        "narHash": "sha256-/rCqHgC39mHvBDxb/dZLWCQ3W4ev94y3/1KtCRSPDp8=",
+        "owner": "AvengeMedia",
+        "repo": "dank-qml-common",
+        "rev": "b50afcf549f7e9c8f07c85b7f3fbba867701650d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "AvengeMedia",
+        "repo": "dank-qml-common",
+        "type": "github"
+      }
+    },
+    "dankcalendar": {
+      "inputs": {
+        "dank-qml-common": "dank-qml-common",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1787524278,
+        "narHash": "sha256-7mpS6FfISw6Ox/KWzxjQiR0VE8OoSz5HDuSCu8M9bjg=",
+        "owner": "AvengeMedia",
+        "repo": "dankcalendar",
+        "rev": "123dc2c1b723cd8a41a5f75209f824b4e33ecc11",
+        "type": "github"
+      },
+      "original": {
+        "owner": "AvengeMedia",
+        "repo": "dankcalendar",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -809,6 +846,7 @@
       "inputs": {
         "chatgpt-linux-metadata": "chatgpt-linux-metadata",
         "codex-cli-nix": "codex-cli-nix",
+        "dankcalendar": "dankcalendar",
         "freshrss-mcp": "freshrss-mcp",
         "gogcli-src": "gogcli-src",
         "googleworkspace-cli": "googleworkspace-cli",

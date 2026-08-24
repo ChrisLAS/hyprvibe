@@ -142,6 +142,15 @@ in
     };
   };
 
+  programs.dank-calendar = {
+    enable = true;
+    systemd = {
+      enable = true;
+      target = "nixos-fake-graphical-session.target";
+      restartIfChanged = true;
+    };
+  };
+
   systemd.user.services.hyprvibe-setup-dms = {
     description = "Nixvader: seed DankMaterialShell user settings";
     unitConfig.ConditionUser = user.name;

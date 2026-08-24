@@ -44,6 +44,10 @@ in
   # installed as an alternate player.
   xdg.mime.defaultApplications = {
     "video/*" = "mpv.desktop";
+    "text/calendar" = "com.danklinux.dankcalendar.desktop";
+    "x-scheme-handler/calendar" = "com.danklinux.dankcalendar.desktop";
+    "x-scheme-handler/webcal" = "com.danklinux.dankcalendar.desktop";
+    "x-scheme-handler/webcals" = "com.danklinux.dankcalendar.desktop";
   };
   hyprvibe.waybar = {
     configPath = ./waybar.json;
