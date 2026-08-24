@@ -1,24 +1,37 @@
 -- Shared Hyprland configuration for all Hyprvibe hosts.
 
 local terminal = "kitty"
-local menu = "vicinae-safe open"
 local browser = "junction"
+local shell_backend = os.getenv("HYPRVIBE_SHELL_BACKEND") or "legacy"
+local dms_enabled = shell_backend == "dms"
+
+local function shell_command(legacy_command, dms_command)
+    if dms_enabled then
+        return dms_command .. " || " .. legacy_command
+    end
+    return legacy_command
+end
+
+local menu = shell_command("vicinae-safe open", "dms ipc call spotlight toggle")
 
 hl.on("hyprland.start", function()
-    hl.exec_cmd("waybar")
-    hl.exec_cmd("swaync")
-    hl.exec_cmd("wl-paste --watch cliphist store")
-    hl.exec_cmd("wl-clip-persist --clipboard regular")
     hl.exec_cmd("systemctl --user set-environment XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_DESKTOP=hyprland XDG_SESSION_TYPE=wayland")
     hl.exec_cmd("systemctl --user import-environment DISPLAY WAYLAND_DISPLAY XAUTHORITY HYPRLAND_INSTANCE_SIGNATURE")
     hl.exec_cmd("dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY XAUTHORITY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_DESKTOP=hyprland XDG_SESSION_TYPE=wayland")
     -- Portals require an active graphical session target as of xdg-desktop-portal 1.22.
+    -- DMS is attached to this target so it starts after the Wayland environment is imported.
     hl.exec_cmd("systemctl --user start nixos-fake-graphical-session.target")
-    -- Hyprpaper is managed by hyprvibe-hyprpaper.service.
-    hl.exec_cmd("hypridle")
-    hl.exec_cmd("blueman-applet")
-    hl.exec_cmd("nm-applet --indicator")
-    hl.exec_cmd("playerctld daemon")
+    if not dms_enabled then
+        hl.exec_cmd("waybar")
+        hl.exec_cmd("swaync")
+        hl.exec_cmd("wl-paste --watch cliphist store")
+        hl.exec_cmd("wl-clip-persist --clipboard regular")
+        -- Hyprpaper is managed by hyprvibe-hyprpaper.service.
+        hl.exec_cmd("hypridle")
+        hl.exec_cmd("blueman-applet")
+        hl.exec_cmd("nm-applet --indicator")
+        hl.exec_cmd("playerctld daemon")
+    end
 end)
 
 hl.on("hyprland.shutdown", function()
@@ -99,26 +112,26 @@ hl.device({
     sensitivity = -0.5,
 })
 
-hl.bind("SUPER + SHIFT + K", hl.dsp.exec_cmd("nixvader-keybinds"))
-hl.bind("SUPER + T", hl.dsp.exec_cmd("nixvader-theme menu"))
+hl.bind("SUPER + SHIFT + K", hl.dsp.exec_cmd(shell_command("nixvader-keybinds", "dms ipc call keybinds toggle hyprland")))
+hl.bind("SUPER + T", hl.dsp.exec_cmd(shell_command("nixvader-theme menu", "dms ipc call settings openWith theme")))
 hl.bind("SUPER + SHIFT + G", hl.dsp.exec_cmd("nixvader-gamemode"))
 hl.bind("SUPER + ALT + O", hl.dsp.exec_cmd("nixvader-blur-toggle"))
-hl.bind("SUPER + SHIFT + N", hl.dsp.exec_cmd("swaync-client -t"))
-hl.bind("CTRL + ALT + P", hl.dsp.exec_cmd("wlogout"))
+hl.bind("SUPER + SHIFT + N", hl.dsp.exec_cmd(shell_command("swaync-client -t", "dms ipc call notifications toggle")))
+hl.bind("CTRL + ALT + P", hl.dsp.exec_cmd(shell_command("wlogout", "dms ipc call powermenu toggle")))
 hl.bind("SUPER + ALT + C", hl.dsp.exec_cmd("qalculate-gtk"))
-hl.bind("SUPER + ALT + V", hl.dsp.exec_cmd("cliphist list | vicinae dmenu -p Clipboard | cliphist decode | wl-copy"))
+hl.bind("SUPER + ALT + V", hl.dsp.exec_cmd(shell_command("cliphist list | vicinae dmenu -p Clipboard | cliphist decode | wl-copy", "dms ipc call clipboard toggle")))
 hl.bind("ALT + SHIFT + S", hl.dsp.exec_cmd([[grim -g "$(slurp)" - | swappy -f -]]))
 
 hl.bind("SUPER + RETURN", hl.dsp.exec_cmd(terminal))
 hl.bind("SUPER + Q", hl.dsp.window.close())
 hl.bind("SUPER + M", hl.dsp.exit())
-hl.bind("SUPER + L", hl.dsp.exec_cmd([[loginctl lock-session; sleep 1; hyprctl -i 0 eval 'hl.dsp.dpms({ action = "off" })']]))
+hl.bind("SUPER + L", hl.dsp.exec_cmd(shell_command([[loginctl lock-session; sleep 1; hyprctl -i 0 eval 'hl.dsp.dpms({ action = "off" })']], "dms ipc call lock lockAndOutputsOff")))
 hl.bind("SUPER + O", hl.dsp.exec_cmd([[if command -v obsidian >/dev/null 2>&1; then exec obsidian; else exec flatpak run md.obsidian.Obsidian; fi]]))
 hl.bind("SUPER + E", hl.dsp.exec_cmd("dolphin"))
 hl.bind("SUPER + F", hl.dsp.exec_cmd(browser))
 hl.bind("SUPER + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd(menu))
-hl.bind("SUPER + B", hl.dsp.exec_cmd("~/.local/bin/rofi-brightness"))
+hl.bind("SUPER + B", hl.dsp.exec_cmd(shell_command("~/.local/bin/rofi-brightness", "dms ipc call control-center toggle")))
 hl.bind("SUPER + P", hl.dsp.window.pseudo())
 hl.bind("SUPER + J", hl.dsp.layout("togglesplit"))
 

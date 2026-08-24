@@ -1,0 +1,14 @@
+{
+  "id": "nixvaderCodex",
+  "name": "Nixvader Codex Usage",
+  "description": "Shows the current Codex five-hour usage window from codexbar.",
+  "version": "1.0.0",
+  "author": "Chris Fisher",
+  "type": "widget",
+  "capabilities": ["dankbar-widget"],
+  "component": "./CodexWidget.qml",
+  "icon": "terminal",
+  "requires_dms": ">=1.5.0",
+  "requires": ["codexbar"],
+  "permissions": []
+}

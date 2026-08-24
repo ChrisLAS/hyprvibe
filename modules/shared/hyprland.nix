@@ -40,6 +40,14 @@ in
   options.hyprvibe.hyprland = {
     enable = lib.mkEnableOption "Hyprland base setup";
     waybar.enable = lib.mkEnableOption "Waybar autostart integration";
+    shellBackend = lib.mkOption {
+      type = lib.types.enum [
+        "legacy"
+        "dms"
+      ];
+      default = "legacy";
+      description = "Desktop shell started with Hyprland. The legacy backend uses Waybar and SwayNC; dms uses DankMaterialShell.";
+    };
     monitorsFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
       default = null;
@@ -99,7 +107,10 @@ in
 
     # Load the complete immutable composition directly. The home-directory
     # links below are for inspection and editing convenience, not startup.
-    environment.sessionVariables.HYPRLAND_CONFIG = "${hyprlandConfigDir}/hyprland.lua";
+    environment.sessionVariables = {
+      HYPRLAND_CONFIG = "${hyprlandConfigDir}/hyprland.lua";
+      HYPRVIBE_SHELL_BACKEND = cfg.shellBackend;
+    };
 
     # Install base config; fall back to shared defaults where host options are not provided
     system.activationScripts.hyprlandBase = lib.mkAfter ''
@@ -163,7 +174,7 @@ in
       unitConfig.ConditionUser = userName;
       after = [ "hyprvibe-setup-hyprland.service" ];
       wants = [ "hyprvibe-setup-hyprland.service" ];
-      wantedBy = [ "default.target" ];
+      wantedBy = lib.optionals (cfg.shellBackend == "legacy") [ "default.target" ];
       serviceConfig = {
         Type = "simple";
         ExecStart = "${pkgs.writeShellScript "hyprvibe-start-hyprpaper" ''
@@ -226,7 +237,7 @@ in
       unitConfig.ConditionUser = userName;
       after = [ "hyprvibe-setup-hyprland.service" ];
       wants = [ "hyprvibe-setup-hyprland.service" ];
-      wantedBy = [ "default.target" ];
+      wantedBy = lib.optionals (cfg.shellBackend == "legacy") [ "default.target" ];
       serviceConfig = {
         Type = "simple";
         ExecStart = pkgs.writeShellScript "hyprvibe-start-swaybg" ''

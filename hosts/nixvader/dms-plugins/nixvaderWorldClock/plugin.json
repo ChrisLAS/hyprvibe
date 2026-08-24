@@ -1,0 +1,14 @@
+{
+  "id": "nixvaderWorldClock",
+  "name": "Nixvader World Clock",
+  "description": "A compact Pacific-time pill with a five-zone world clock popout.",
+  "version": "1.0.0",
+  "author": "Chris Fisher",
+  "type": "widget",
+  "capabilities": ["dankbar-widget"],
+  "component": "./WorldClockWidget.qml",
+  "icon": "public",
+  "requires_dms": ">=1.5.0",
+  "requires": ["bash", "date"],
+  "permissions": []
+}

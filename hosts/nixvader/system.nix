@@ -5,18 +5,23 @@
   self,
   hyprland,
   ...
-}: let
+}:
+let
   # Hermes Desktop (Nomad) launcher + .desktop entry. Shared helper at
   # pkgs/hermes-desktop-nomad.nix; same as nixstation (see hosts/nixstation/system.nix).
-  hermesDesktopNomadHelper = pkgs.callPackage ../../pkgs/hermes-desktop-nomad.nix {hermes-desktop = pkgs.hermes-desktop;};
+  hermesDesktopNomadHelper = pkgs.callPackage ../../pkgs/hermes-desktop-nomad.nix {
+    hermes-desktop = pkgs.hermes-desktop;
+  };
   hermesDesktopNomad = hermesDesktopNomadHelper.wrapper;
   hermesDesktopNomadEntry = hermesDesktopNomadHelper.entry;
-in {
+in
+{
   imports = [
     hyprland.nixosModules.default
     ./hardware-configuration.nix
     ./flatpak.nix
     ./theme.nix
+    ./dms.nix
     ../../modules/shared
   ];
 
@@ -30,10 +35,11 @@ in {
 
   hyprvibe.hyprland.monitorsFile = ./monitors.lua;
   hyprvibe.hyprland.wallpaper = "/home/chrisf/Pictures/bkgrounds/vaderhole.jpg";
+  hyprvibe.hyprland.shellBackend = "dms";
   hyprvibe.hyprland.enable = true;
   # Pin the ScreenCast portal backend to Hyprland so screen-sharing tools
   # (OBS, Discord, etc.) prefer it over the GTK fallback.
-  xdg.portal.config.common."org.freedesktop.impl.portal.ScreenCast" = ["hyprland"];
+  xdg.portal.config.common."org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
   # Keep MPV as the declarative default for video files while VLC remains
   # installed as an alternate player.
   xdg.mime.defaultApplications = {
@@ -183,7 +189,7 @@ in {
     graphics = {
       enable = true;
       enable32Bit = true;
-      extraPackages = [pkgs.intel-media-driver];
+      extraPackages = [ pkgs.intel-media-driver ];
     };
   };
   services = {
@@ -225,7 +231,7 @@ in {
       "flakes"
     ];
     registry.hyprvibe.flake = self;
-    nixPath = ["nixpkgs=${pkgs.path}"];
+    nixPath = [ "nixpkgs=${pkgs.path}" ];
   };
   nixpkgs.config.allowUnfree = true;
   time.timeZone = "America/Los_Angeles";
