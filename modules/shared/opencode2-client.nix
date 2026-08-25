@@ -51,6 +51,27 @@
     exec ${lib.getExe opencode2} --server ${lib.escapeShellArg cfg.serverUrl} "$@"
   '';
 
+  opencode2Showfactory = pkgs.writeShellScriptBin "opencode2-showfactory" ''
+    set -euo pipefail
+    ${credentialSetup}
+
+    project_root=${lib.escapeShellArg cfg.showfactoryProjectRoot}
+    if [ ! -d "$project_root" ]; then
+      echo "OpenCode 2 requires the Showfactory Location mirror on the TUI client: $project_root" >&2
+      exit 1
+    fi
+
+    # The Nomad server has the same Location with Showfactory-specific
+    # instructions. Keep the client cwd aligned so TUI state is scoped there.
+    cd "$project_root"
+
+    if [ "$#" -eq 0 ]; then
+      set -- "$project_root"
+    fi
+
+    exec ${lib.getExe opencode2} --server ${lib.escapeShellArg cfg.serverUrl} "$@"
+  '';
+
   opencode2NomadStatus = pkgs.writeShellScriptBin "opencode2-nomad-status" ''
     set -euo pipefail
     ${credentialSetup}
@@ -72,6 +93,12 @@ in {
       description = "Nomad-side project selected by a no-argument remote TUI";
     };
 
+    showfactoryProjectRoot = lib.mkOption {
+      type = lib.types.str;
+      default = "${config.hyprvibe.user.home}/opencode/showfactory";
+      description = "Dedicated OpenCode Location for the Showfactory Hermes endpoint";
+    };
+
     secretFile = lib.mkOption {
       type = lib.types.str;
       default = "${config.hyprvibe.user.home}/.config/secrets/opencode2-server.env";
@@ -80,9 +107,15 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    systemd.tmpfiles.rules = [
+      "d ${builtins.dirOf cfg.showfactoryProjectRoot} 0755 ${config.hyprvibe.user.name} ${config.hyprvibe.user.group} -"
+      "d ${cfg.showfactoryProjectRoot} 0755 ${config.hyprvibe.user.name} ${config.hyprvibe.user.group} -"
+    ];
+
     environment.systemPackages = [
       opencode2
       opencode2Nomad
+      opencode2Showfactory
       opencode2NomadStatus
     ];
   };
