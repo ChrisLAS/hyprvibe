@@ -34,12 +34,17 @@
     ${credentialSetup}
 
     project_root=${lib.escapeShellArg cfg.projectRoot}
+    if [ ! -d "$project_root" ]; then
+      echo "OpenCode 2 requires the server project path to exist on the TUI client: $project_root" >&2
+      echo "Create an empty local path mirror; filesystem tools still run on Nomad." >&2
+      exit 1
+    fi
+
+    # OpenCode keys TUI state by the client process working directory. Start in
+    # the canonical mirror so flags such as --auto do not select the caller cwd.
+    cd "$project_root"
+
     if [ "$#" -eq 0 ]; then
-      if [ ! -d "$project_root" ]; then
-        echo "OpenCode 2 requires the server project path to exist on the TUI client: $project_root" >&2
-        echo "Create an empty local path mirror; filesystem tools still run on Nomad." >&2
-        exit 1
-      fi
       set -- "$project_root"
     fi
 
