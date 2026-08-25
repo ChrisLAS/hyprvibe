@@ -880,6 +880,8 @@ in {
       ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="mq-deadline"
       # Increase I/O queue depth for better performance (NVMe and SATA)
       ACTION=="add|change", KERNEL=="sd[a-z]|nvme[0-9]*n[0-9]*", ATTR{queue/nr_requests}="1024"
+      # Allow OBS and conferencing applications to use the virtual camera
+      KERNEL=="video10", GROUP="video", MODE="0660"
     '';
     # Desktop support services moved to shared module (udisks2, gvfs, tumbler, blueman, avahi, davfs2, gnome-keyring)
     atuin = {
@@ -952,6 +954,24 @@ in {
     "hid_generic"
     "uhid"
   ];
+
+  # Provide OBS and conferencing applications with a V4L2 virtual camera.
+  # Load it after the normal module-loading phase to avoid early-boot issues.
+  boot.extraModulePackages = with config.boot.kernelPackages; [v4l2loopback];
+  boot.extraModprobeConfig = ''
+    options v4l2loopback video_nr=10 exclusive_caps=1 card_label=OBS-VirtualCam
+  '';
+
+  systemd.services.load-v4l2loopback = {
+    description = "Load v4l2loopback kernel module";
+    wantedBy = ["multi-user.target"];
+    after = ["systemd-modules-load.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.kmod}/bin/modprobe v4l2loopback";
+    };
+  };
 
   # No man pages
   documentation.man.enable = false;
