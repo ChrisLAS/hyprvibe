@@ -50,7 +50,7 @@
 
     # Hermes Desktop is built during nixos-rebuild instead of at launch.
     hermes-agent = {
-      url = "github:NousResearch/hermes-agent/v2026.8.19";
+      url = "github:NousResearch/hermes-agent/v2026.8.27";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -77,7 +77,19 @@
       ];
     };
     hermesAgentOverlay = final: prev: let
-      hermesMinimal = hermes-agent.packages.${prev.stdenv.hostPlatform.system}.minimal;
+      hermesSource = final.applyPatches {
+        src = hermes-agent;
+        name = "hermes-agent-electron-headers-fixed";
+        patches = [ ./patches/hermes-electron-headers.patch ];
+      };
+      hermesMinimal =
+        (builtins.getAttr prev.stdenv.hostPlatform.system hermes-agent.packages).minimal.override {
+          callPackage = path: args:
+            if builtins.baseNameOf (toString path) == "desktop.nix" then
+              final.callPackage (hermesSource + "/nix/desktop.nix") args
+            else
+              final.callPackage path args;
+        };
       hermesLocalStub = final.writeShellScriptBin "hermes" ''
         echo "This Hermes Desktop installation is configured for a remote backend." >&2
         exit 1

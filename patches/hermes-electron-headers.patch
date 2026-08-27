@@ -1,0 +1,6 @@
+diff --git a/nix/desktop.nix b/nix/desktop.nix
+--- a/nix/desktop.nix
++++ b/nix/desktop.nix
+@@ -42,1 +42,1 @@
+-    sha256 = "sha256-f8bSbLRmtbP93CJAvEBs+sHWDZ1xP2bcpLhC1EnOmZU=";
++    sha256 = "sha256-CyzcARd1+GhWr8ED7HBYW2MYD+tgetqZFMkaivaGvw0=";
