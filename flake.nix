@@ -98,6 +98,9 @@
           builtins.appendContext (builtins.unsafeDiscardStringContext replaced) context;
         postInstall = (old.postInstall or "") + ''
           sed -i "s|^export HERMES_DESKTOP_HERMES=.*|export HERMES_DESKTOP_HERMES='${final.lib.getExe hermesLocalStub}'|" "$out/bin/hermes-desktop"
+          chmod u+w "$out/share/hermes-desktop/dist/electron-main.mjs"
+          chmod u+w "$out/share/hermes-desktop/dist"
+          sed -i 's#if (opts.globalRemote || opts.profileRemoteOverride)#if (opts.profileRemoteOverride)#' "$out/share/hermes-desktop/dist/electron-main.mjs"
         '';
       });
     in {
