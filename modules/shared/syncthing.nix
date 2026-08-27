@@ -50,6 +50,11 @@
       label = "60 Backups";
       backup = true;
     };
+    "studio-production-backups" = {
+      directory = "90-STUDIO-BACKUPS";
+      label = "Studio Production Backups";
+      studioBackup = true;
+    };
   };
   secretsFile = ../../secrets/syncthing + "/${hostname}.yaml";
 in {
@@ -158,15 +163,26 @@ in {
                   if hostname == "nomad"
                   then "sendonly"
                   else "receiveonly"
+                else if folder.studioBackup or false
+                then
+                  if hostname == "aurora"
+                  then "sendonly"
+                  else "receiveonly"
                 else "sendreceive";
               devices = lib.filter (name: name != hostname) dropboxPeers;
             }
-            // lib.optionalAttrs ((folder.backup or false) && hostname != "nomad") {
+            // lib.optionalAttrs (
+              ((folder.backup or false) && hostname != "nomad")
+              || ((folder.studioBackup or false) && hostname != "aurora")
+            ) {
               versioning = {
                 type = "staggered";
                 params = {
                   cleanInterval = "3600";
-                  maxAge = "2592000";
+                  maxAge =
+                    if folder.studioBackup or false
+                    then "7776000"
+                    else "2592000";
                 };
               };
             })
