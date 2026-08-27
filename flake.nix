@@ -96,6 +96,9 @@
           ];
         in
           builtins.appendContext (builtins.unsafeDiscardStringContext replaced) context;
+        postInstall = (old.postInstall or "") + ''
+          sed -i "s|^export HERMES_DESKTOP_HERMES=.*|export HERMES_DESKTOP_HERMES='${final.lib.getExe hermesLocalStub}'|" "$out/bin/hermes-desktop"
+        '';
       });
     in {
       hermes-desktop = hermesDesktop;
