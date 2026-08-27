@@ -50,7 +50,7 @@
 
     # Hermes Desktop is built during nixos-rebuild instead of at launch.
     hermes-agent = {
-      url = "github:NousResearch/hermes-agent/f43eabee5f36e11448086ee8ee17c499958e81bf";
+      url = "github:NousResearch/hermes-agent/v2026.8.19";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
