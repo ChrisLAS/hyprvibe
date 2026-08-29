@@ -12,6 +12,7 @@ let
       "memUsage"
       "nixvaderCodex"
       "nixvaderWorldClock"
+      "syncshell"
       "systemTray"
       "notificationButton"
       "controlCenterButton"

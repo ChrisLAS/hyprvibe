@@ -207,7 +207,7 @@ in
             || [ ! -e "$config_dir/plugin_settings.json" ] \
             || [ ! -e "$state_dir/session.json" ]; then
             plugin_backup_dir=""
-            for plugin_id in markets wallpaperCarousel quickCapture batteryPlus nixvaderCodex nixvaderWorldClock; do
+            for plugin_id in markets wallpaperCarousel quickCapture batteryPlus nixvaderCodex nixvaderWorldClock syncshell; do
               plugin_dir="$config_dir/plugins/$plugin_id"
               if [ -e "$plugin_dir" ] && [ ! -L "$plugin_dir" ]; then
                 if [ -z "$plugin_backup_dir" ]; then

@@ -34,6 +34,9 @@
     dankcalendar.url = "github:AvengeMedia/dankcalendar";
     dankcalendar.inputs.nixpkgs.follows = "nixpkgs";
 
+    syncshell-dms.url = "github:ChrisLAS/syncshell-dms/a60a447";
+    syncshell-dms.inputs.nixpkgs.follows = "nixpkgs";
+
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -64,6 +67,7 @@
     chatgpt-linux-metadata,
     freshrss-mcp,
     dankcalendar,
+    syncshell-dms,
     sops-nix,
     nixos-hardware,
     googleworkspace-cli,
@@ -214,6 +218,7 @@
           )
           prettySwitchModule
           dankcalendar.nixosModules.default
+          syncshell-dms.nixosModules.default
           sops-nix.nixosModules.sops
         ];
         specialArgs = {

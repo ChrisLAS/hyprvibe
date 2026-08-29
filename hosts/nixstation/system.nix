@@ -564,6 +564,7 @@
 in {
   hyprvibe.opencode.enable = true;
   hyprvibe.opencode2Client.enable = true;
+  programs.syncshell-dms.enable = true;
 
   imports = [
     # Import the Hyprland flake module

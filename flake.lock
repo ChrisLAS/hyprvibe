@@ -857,7 +857,8 @@
         "nixpkgs": "nixpkgs",
         "nixpkgsPgsearch": "nixpkgsPgsearch",
         "prettyswitch": "prettyswitch",
-        "sops-nix": "sops-nix"
+        "sops-nix": "sops-nix",
+        "syncshell-dms": "syncshell-dms"
       }
     },
     "sops-nix": {
@@ -877,6 +878,27 @@
       "original": {
         "owner": "Mic92",
         "repo": "sops-nix",
+        "type": "github"
+      }
+    },
+    "syncshell-dms": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1788044606,
+        "narHash": "sha256-KkjlYrVHck8CaHB9qhJ4n24jvs12iXODFi0t4sU1kms=",
+        "owner": "ChrisLAS",
+        "repo": "syncshell-dms",
+        "rev": "a60a4473ba23113c65c2d58c99765355af1ac904",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ChrisLAS",
+        "ref": "a60a447",
+        "repo": "syncshell-dms",
         "type": "github"
       }
     },

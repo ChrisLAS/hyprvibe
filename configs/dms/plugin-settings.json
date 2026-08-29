@@ -5,6 +5,10 @@
   "nixvaderWorldClock": {
     "enabled": true
   },
+  "syncshell": {
+    "enabled": true,
+    "refreshIntervalSec": 60
+  },
   "markets": {
     "enabled": true,
     "_addTicker": "",
