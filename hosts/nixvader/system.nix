@@ -201,6 +201,21 @@ in
     fwupd.enable = true;
     printing.enable = true;
     resolved.enable = true;
+    syncthing = {
+      enable = true;
+      user = "chrisf";
+      group = "users";
+      dataDir = "/home/chrisf";
+      configDir = "/home/chrisf/.config/syncthing";
+      openDefaultPorts = true;
+      overrideDevices = true;
+      overrideFolders = true;
+      settings = {
+        devices = { };
+        folders = { };
+        options.urAccepted = -1;
+      };
+    };
     thermald.enable = true;
     upower.enable = true;
     hardware.bolt.enable = true;
