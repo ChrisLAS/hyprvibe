@@ -26,6 +26,7 @@ in
   ];
 
   hyprvibe.enable = true;
+  programs.syncshell-dms.enable = true;
   hyprvibe.user = {
     name = "chrisf";
     group = "users";

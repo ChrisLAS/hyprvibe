@@ -6,6 +6,7 @@ let
     name = "Nixvader";
     screenPreferences = [ "all" ];
     showOnLastDisplay = true;
+    rightWidgets = barTemplate.rightWidgets ++ [ "syncshell" ];
   };
 in
 {

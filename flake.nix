@@ -274,6 +274,7 @@
           )
           prettySwitchModule
           dankcalendar.nixosModules.default
+          syncshell-dms.nixosModules.default
           sops-nix.nixosModules.sops
         ];
         specialArgs = {
