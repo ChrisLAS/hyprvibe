@@ -27,7 +27,7 @@
     dankcalendar.url = "github:AvengeMedia/dankcalendar";
     dankcalendar.inputs.nixpkgs.follows = "nixpkgs";
 
-    syncshell-dms.url = "github:ChrisLAS/syncshell-dms/v0.1.0";
+    syncshell-dms.url = "github:ChrisLAS/syncshell-dms/606f30a";
     syncshell-dms.inputs.nixpkgs.follows = "nixpkgs";
 
     sops-nix.url = "github:Mic92/sops-nix";

@@ -875,16 +875,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1788098655,
-        "narHash": "sha256-icmWlCBB9Kf48592+vTS31/rvkMa2FntDVgPY7qG6b4=",
+        "lastModified": 1788104384,
+        "narHash": "sha256-Fgt2herz3xy2t4DXBhuwTBTnP/Aa560yIM/RhDXTplI=",
         "owner": "ChrisLAS",
         "repo": "syncshell-dms",
-        "rev": "a5ee8c78a9d53512594f77144c926ba8705bb5ed",
+        "rev": "606f30a4038209deeb7a83b4595730df67852009",
         "type": "github"
       },
       "original": {
         "owner": "ChrisLAS",
-        "ref": "v0.1.0",
+        "ref": "606f30a",
         "repo": "syncshell-dms",
         "type": "github"
       }
