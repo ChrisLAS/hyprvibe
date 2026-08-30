@@ -33,18 +33,6 @@
         "type": "github"
       }
     },
-    "chatgpt-linux-metadata": {
-      "flake": false,
-      "locked": {
-        "narHash": "sha256-IMxk/MIU8jmnPS4LOFwFCpfQX5o+RcywV8pWfjZPtNQ=",
-        "type": "file",
-        "url": "https://persistent.oaistatic.com/codex-app-prod/linux/deb/dists/stable/main/binary-amd64/Packages"
-      },
-      "original": {
-        "type": "file",
-        "url": "https://persistent.oaistatic.com/codex-app-prod/linux/deb/dists/stable/main/binary-amd64/Packages"
-      }
-    },
     "codex-cli-nix": {
       "inputs": {
         "flake-utils": "flake-utils",
@@ -844,7 +832,6 @@
     },
     "root": {
       "inputs": {
-        "chatgpt-linux-metadata": "chatgpt-linux-metadata",
         "codex-cli-nix": "codex-cli-nix",
         "dankcalendar": "dankcalendar",
         "freshrss-mcp": "freshrss-mcp",

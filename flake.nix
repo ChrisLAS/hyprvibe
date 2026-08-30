@@ -21,13 +21,6 @@
     llama-cpp.url = "github:ggml-org/llama.cpp/b10430";
     llama-cpp.inputs.nixpkgs.follows = "nixpkgs";
 
-    # OpenAI's stable Linux package index. Keeping this as a locked file input
-    # lets `nix flake update` advance ChatGPT with the rest of the system.
-    chatgpt-linux-metadata = {
-      url = "file+https://persistent.oaistatic.com/codex-app-prod/linux/deb/dists/stable/main/binary-amd64/Packages";
-      flake = false;
-    };
-
     freshrss-mcp.url = "github:ChrisLAS/freshrss-mcp";
     freshrss-mcp.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -64,7 +57,6 @@
     prettyswitch,
     hyprland,
     codex-cli-nix,
-    chatgpt-linux-metadata,
     freshrss-mcp,
     dankcalendar,
     syncshell-dms,
@@ -144,9 +136,7 @@
     in {
       gogcli = pkgs.gogcli;
       gws = pkgs.gws;
-      chatgpt-desktop = pkgs.callPackage ./pkgs/chatgpt-desktop.nix {
-        repositoryMetadata = chatgpt-linux-metadata;
-      };
+      chatgpt-desktop = pkgs.callPackage ./pkgs/chatgpt-desktop.nix {};
       voice-pe-firmware-tools = pkgs.callPackage ./pkgs/voice-pe-firmware-tools.nix {};
       voice-pe-hermes-bridge = pkgs.callPackage ./pkgs/voice-pe-hermes-bridge.nix {};
       codexbar = pkgs.callPackage ./pkgs/codexbar.nix { };
@@ -208,9 +198,7 @@
                   codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
                   codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
                   codexbar = final.callPackage ./pkgs/codexbar.nix {};
-                  chatgpt-desktop = final.callPackage ./pkgs/chatgpt-desktop.nix {
-                    repositoryMetadata = chatgpt-linux-metadata;
-                  };
+                  chatgpt-desktop = final.callPackage ./pkgs/chatgpt-desktop.nix {};
                 })
                 hermesAgentOverlay
               ];

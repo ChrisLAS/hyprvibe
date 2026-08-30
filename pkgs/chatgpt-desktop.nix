@@ -6,20 +6,9 @@
   fetchurl,
   dpkg,
   patchelf,
-  repositoryMetadata,
 }: let
-  metadataLines = lib.splitString "\n" (builtins.readFile repositoryMetadata);
-  getField = field:
-    lib.removePrefix "${field}: " (
-      lib.findFirst
-      (line: lib.hasPrefix "${field}: " line)
-      (throw "OpenAI Linux package metadata is missing ${field}")
-      metadataLines
-    );
-
-  version = getField "Version";
-  filename = getField "Filename";
-  sha256 = getField "SHA256";
+  version = "26.825.41651";
+  filename = "pool/main/c/chatgpt/chatgpt_${version}_amd64.deb";
 
   unpacked = stdenvNoCC.mkDerivation {
     pname = "chatgpt-desktop-unpacked";
@@ -27,7 +16,7 @@
 
     src = fetchurl {
       url = "https://persistent.oaistatic.com/codex-app-prod/linux/deb/${filename}";
-      inherit sha256;
+      hash = "sha256-IbIulcDEOj8RTz7TJpKr7cY49AV6CPmMmINuLT6aZx4=";
     };
 
     nativeBuildInputs = [
@@ -113,8 +102,7 @@ in
     '';
 
     passthru = {
-      inherit repositoryMetadata unpacked;
-      updateCommand = "nix flake update chatgpt-linux-metadata";
+      inherit unpacked;
     };
 
     meta = {
