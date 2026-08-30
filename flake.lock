@@ -36,7 +36,7 @@
     "chatgpt-linux-metadata": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-Iu79Jn81tBFDkrmoSBOnQQdoMbUfJheCYjIC3IivsJE=",
+        "narHash": "sha256-IMxk/MIU8jmnPS4LOFwFCpfQX5o+RcywV8pWfjZPtNQ=",
         "type": "file",
         "url": "https://persistent.oaistatic.com/codex-app-prod/linux/deb/dists/stable/main/binary-amd64/Packages"
       },

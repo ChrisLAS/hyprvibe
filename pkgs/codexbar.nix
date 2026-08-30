@@ -11,9 +11,9 @@
 }:
 
 let
-  version = "0.1.0-unstable-2026-08-18";
+  version = "0.8.0";
   src = fetchurl {
-    url = "https://raw.githubusercontent.com/mryll/codexbar/master/codexbar";
+    url = "https://raw.githubusercontent.com/mryll/codexbar/adde9b10c725b51500a2a1975bea089449034958/codexbar";
     sha256 = "sha256-eZToejGv4+rFsHFAk7n7GXUmM83vtP/9hTNOGH2Ouio=";
   };
 in
