@@ -1,8 +1,10 @@
-{ lib, config, ... }:
-let
-  cfg = config.hyprvibe;
-in
 {
+  lib,
+  config,
+  ...
+}: let
+  cfg = config.hyprvibe;
+in {
   options.hyprvibe.enable = lib.mkEnableOption "Enable the base Hyprvibe desktop experience";
 
   imports = [
@@ -21,6 +23,7 @@ in
     ./agent-configs.nix
     ./opencode.nix
     ./opencode2-client.nix
+    ./hypruse.nix
   ];
 
   config = lib.mkIf cfg.enable {

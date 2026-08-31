@@ -60,6 +60,7 @@ in {
     kittyConfig.enable = true;
   };
   hyprvibe.opencode2Client.enable = true;
+  hyprvibe.hypruse.enable = true;
   hyprvibe.packages = {
     dunst.enable = false;
     dev.enable = true;
