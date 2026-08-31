@@ -5,6 +5,12 @@ launcher lives in `pkgs/hermes-desktop-nomad.nix`, and the desktop-only package
 selection lives in the Hermes overlay in `flake.nix`. The pinned upstream
 revision lives in the root `flake.lock` as `hermes-agent`.
 
+The working registry contains Nomad and Showfactory, with Nomad primary. Gateway
+URLs, authentication design, registry schema, onboarding, upgrade validation,
+and recovery are documented in `../../docs/hermes-desktop-client-fleet.md`.
+The mandatory `This device` entry is intentionally unusable on this remote-only
+host; it is not a duplicate Nomad profile.
+
 The launcher executes an immutable store binary. It must not use `nix run`,
 resolve GitHub `HEAD`, or build dependencies during an interactive launch.
 

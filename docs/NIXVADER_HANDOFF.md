@@ -213,24 +213,29 @@ Review and commit the resulting `flake.lock` change after rebuilding.
 
 ### Hermes Desktop
 
-The secret path is
+The provisioned Nomad secret path is
 `$HOME/.config/secrets/hermes_dashboard_session_token`. Do not print its
-contents.
+contents. Desktop's active saved credentials live in its owner-only connection
+registry; the standalone Nomad secret file is not exported by the launcher.
 
-The wrapper exports the Nomad backend URL and token, then executes the
-immutable Nix-store Hermes Desktop binary. The shared client-fleet package
-selection uses `minimal.hermesDesktop` and removes the unused local-agent
-fallback. Nixvader is a remote client; Nomad is the full Hermes host.
+The wrapper executes the immutable Nix-store Hermes Desktop binary. Gateway
+URLs and credentials live in Desktop's owner-only v2 registry at
+`$HOME/.config/Hermes/connections.json`; the wrapper does not force Nomad or
+export a token. The shared client-fleet package selection uses
+`minimal.hermesDesktop` and removes the unused local-agent fallback. Nixvader
+is a remote client with Nomad and Showfactory registered; Nomad is primary.
 
 ```bash
 stat -c '%U:%G %a %n' "$HOME/.config/secrets/hermes_dashboard_session_token"
 nix build .#nixosConfigurations.nixvader.config.system.build.toplevel --no-link
-hermes-desktop-nomad
+hermes-desktop-remote
 tail -n 100 "$HOME/.cache/hermes-desktop-remote/launcher.log"
 ```
 
 Expected: mode `600`, a successful NixOS build, an immediate launch without a
-`nix` process, and Hermes Desktop connected to the Nomad backend. The realized
+`nix` process, and Hermes Desktop able to switch between Nomad and Showfactory.
+The mandatory `This device` registry entry has no local backend and should not
+be authorized or used. The realized
 closure should not contain `hermes-agent-env`, `hermes-tui`, `hermes-web`, or a
 versioned local `hermes-agent` output. For the complete client install,
 upgrade, removal, and troubleshooting procedure, read
