@@ -5,17 +5,15 @@
   self,
   hyprland,
   ...
-}:
-let
-  # Hermes Desktop (Nomad) launcher + .desktop entry. Shared helper at
+}: let
+  # Remote-only Hermes Desktop launcher + .desktop entry. Shared helper at
   # pkgs/hermes-desktop-nomad.nix; same as nixstation (see hosts/nixstation/system.nix).
-  hermesDesktopNomadHelper = pkgs.callPackage ../../pkgs/hermes-desktop-nomad.nix {
+  hermesDesktopRemoteHelper = pkgs.callPackage ../../pkgs/hermes-desktop-nomad.nix {
     hermes-desktop = pkgs.hermes-desktop;
   };
-  hermesDesktopNomad = hermesDesktopNomadHelper.wrapper;
-  hermesDesktopNomadEntry = hermesDesktopNomadHelper.entry;
-in
-{
+  hermesDesktopRemote = hermesDesktopRemoteHelper.wrapper;
+  hermesDesktopRemoteEntry = hermesDesktopRemoteHelper.entry;
+in {
   imports = [
     hyprland.nixosModules.default
     ./hardware-configuration.nix
@@ -40,7 +38,7 @@ in
   hyprvibe.hyprland.enable = true;
   # Pin the ScreenCast portal backend to Hyprland so screen-sharing tools
   # (OBS, Discord, etc.) prefer it over the GTK fallback.
-  xdg.portal.config.common."org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
+  xdg.portal.config.common."org.freedesktop.impl.portal.ScreenCast" = ["hyprland"];
   # Keep MPV as the declarative default for video files while VLC remains
   # installed as an alternate player.
   xdg.mime.defaultApplications = {
@@ -140,8 +138,8 @@ in
       fwupd
       adwaita-icon-theme
       papirus-icon-theme
-      hermesDesktopNomad
-      hermesDesktopNomadEntry
+      hermesDesktopRemote
+      hermesDesktopRemoteEntry
       hermes-desktop
       self.packages.${pkgs.stdenv.hostPlatform.system}.codexbar
       self.packages.${pkgs.stdenv.hostPlatform.system}.chatgpt-desktop
@@ -194,7 +192,7 @@ in
     graphics = {
       enable = true;
       enable32Bit = true;
-      extraPackages = [ pkgs.intel-media-driver ];
+      extraPackages = [pkgs.intel-media-driver];
     };
   };
   services = {
@@ -211,8 +209,8 @@ in
       overrideDevices = true;
       overrideFolders = true;
       settings = {
-        devices = { };
-        folders = { };
+        devices = {};
+        folders = {};
         options.urAccepted = -1;
       };
     };
@@ -252,7 +250,7 @@ in
       "flakes"
     ];
     registry.hyprvibe.flake = self;
-    nixPath = [ "nixpkgs=${pkgs.path}" ];
+    nixPath = ["nixpkgs=${pkgs.path}"];
   };
   nixpkgs.config.allowUnfree = true;
   time.timeZone = "America/Los_Angeles";

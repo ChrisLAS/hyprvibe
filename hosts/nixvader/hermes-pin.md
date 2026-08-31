@@ -1,6 +1,6 @@
 # Hermes Desktop package
 
-Nixvader runs Hermes Desktop against the Nomad remote backend. The shared
+Nixvader runs Hermes Desktop as a client for registered remote gateways. The shared
 launcher lives in `pkgs/hermes-desktop-nomad.nix`, and the desktop-only package
 selection lives in the Hermes overlay in `flake.nix`. The pinned upstream
 revision lives in the root `flake.lock` as `hermes-agent`.
@@ -31,7 +31,7 @@ sudo nixos-rebuild boot --flake .#nixvader
 
 After reboot, launch, close, and relaunch Hermes Desktop from Vicinae. Both
 launches should start immediately without a `nix` process. Runtime diagnostics
-remain in `~/.cache/hermes-desktop-nomad/launcher.log`.
+remain in `~/.cache/hermes-desktop-remote/launcher.log`.
 
 Update Hermes deliberately with `nix flake update hermes-agent`, rebuild, and
 repeat the closure and launch tests. Do not replace the locked input with an

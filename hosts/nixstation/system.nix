@@ -10,11 +10,11 @@
   userGroup = config.hyprvibe.user.group;
   homeDir = config.hyprvibe.user.home;
 
-  # Hermes Desktop (Nomad) launcher + .desktop entry. Shared helper at
+  # Remote-only Hermes Desktop launcher + .desktop entry. Shared helper at
   # pkgs/hermes-desktop-nomad.nix; reused by hosts/nixvader/system.nix.
-  hermesDesktopNomadHelper = pkgs.callPackage ../../pkgs/hermes-desktop-nomad.nix {hermes-desktop = pkgs.hermes-desktop;};
-  hermesDesktopNomad = hermesDesktopNomadHelper.wrapper;
-  hermesDesktopNomadEntry = hermesDesktopNomadHelper.entry;
+  hermesDesktopRemoteHelper = pkgs.callPackage ../../pkgs/hermes-desktop-nomad.nix {hermes-desktop = pkgs.hermes-desktop;};
+  hermesDesktopRemote = hermesDesktopRemoteHelper.wrapper;
+  hermesDesktopRemoteEntry = hermesDesktopRemoteHelper.entry;
 
   basiliskII =
     pkgs.runCommand "basiliskii-wrapped-${pkgs.basiliskii.version}"
@@ -115,8 +115,8 @@
     lazygit
     kitty
     oh-my-posh
-    hermesDesktopNomad
-    hermesDesktopNomadEntry
+    hermesDesktopRemote
+    hermesDesktopRemoteEntry
     hermes-desktop
     voicePeFirmwareTools
     voicePeHermesBridge

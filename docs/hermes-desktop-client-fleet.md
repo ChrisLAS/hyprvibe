@@ -5,7 +5,7 @@ This flake manages two kinds of Hermes hosts:
 - **Nomad** is the production Hermes host. It owns the full Hermes agent stack,
   gateways, profiles, skills, services, and the remote dashboard/API.
 - **Nixvader and Nixstation** are front-end clients. They should install only
-  the Electron Hermes Desktop application and the Nomad launcher. They must not
+  the Electron Hermes Desktop application and remote-gateway launcher. They must not
   install a local Hermes agent environment, TUI, web application, or optional
   Python integration groups.
 
@@ -40,12 +40,16 @@ excluding `hermes-agent-env`, `hermes-tui`, and `hermes-web`.
 
 The wrapper in `pkgs/hermes-desktop-nomad.nix`:
 
-1. Reads `$HOME/.config/secrets/hermes_dashboard_session_token` without
-   printing it.
-2. Exports the Nomad remote URL and session token.
-3. Logs launch diagnostics to
-   `$HOME/.cache/hermes-desktop-nomad/launcher.log`.
-4. Executes the immutable Nix-store `hermes-desktop` binary.
+1. Leaves gateway selection and credentials to Desktop's owner-only v2
+   connection registry under `$HOME/.config/Hermes`.
+2. Logs launch diagnostics to
+   `$HOME/.cache/hermes-desktop-remote/launcher.log`.
+3. Executes the immutable Nix-store `hermes-desktop` binary.
+
+Register Nomad and Showfactory through **Settings -> Gateways** as remote
+gateways on port `9119`. Do not use their OpenAI-compatible API ports for
+Desktop. The Nix package disables the local Hermes fallback, so `This device`
+is not a usable agent backend on these client-only installations.
 
 It must never run `nix run`, resolve GitHub `HEAD`, or build dependencies when a
 user clicks the desktop entry.
@@ -65,7 +69,8 @@ but not `hermes-agent-env`, `hermes-tui`, `hermes-web`, or a versioned local
 
 Validate the generated launcher and desktop entry from the build output. Check
 that the launcher contains a direct store path to `hermes-desktop`, not `nix
-run`. Confirm the token file is readable with `test -r`; never print its value.
+run`. Use Desktop's connection **Test** action to validate both HTTP and
+WebSocket authentication; never print saved credential values.
 
 ## Install, Activation, And Upgrade
 
@@ -83,8 +88,8 @@ full `hermes-agent` package merely to make a client build.
 
 ## Removal
 
-To remove Hermes Desktop from one client, remove `hermesDesktopNomad`,
-`hermesDesktopNomadEntry`, and `hermes-desktop` from that host's package list,
+To remove Hermes Desktop from one client, remove `hermesDesktopRemote`,
+`hermesDesktopRemoteEntry`, and `hermes-desktop` from that host's package list,
 then build and stage that host. Keep the shared flake input and overlay while
 another client uses them. Remove those shared definitions only after all client
 references are gone. Never remove Nomad's Hermes source or services as part of
@@ -100,6 +105,5 @@ client cleanup.
   the generated wrapper from the current system.
 - Electron errors about a missing display during an SSH test are not proof that
   the package is broken. Test from the actual graphical session.
-- Remote authentication failures usually mean the client secret file is absent,
-  unreadable, empty, or stale. Check file metadata and connectivity without
-  exposing the token.
+- Remote authentication failures usually mean the saved gateway credential is
+  absent or stale. Re-test the specific gateway without exposing the token.

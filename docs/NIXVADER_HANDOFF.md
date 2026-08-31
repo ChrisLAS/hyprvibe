@@ -226,7 +226,7 @@ fallback. Nixvader is a remote client; Nomad is the full Hermes host.
 stat -c '%U:%G %a %n' "$HOME/.config/secrets/hermes_dashboard_session_token"
 nix build .#nixosConfigurations.nixvader.config.system.build.toplevel --no-link
 hermes-desktop-nomad
-tail -n 100 "$HOME/.cache/hermes-desktop-nomad/launcher.log"
+tail -n 100 "$HOME/.cache/hermes-desktop-remote/launcher.log"
 ```
 
 Expected: mode `600`, a successful NixOS build, an immediate launch without a
