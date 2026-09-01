@@ -190,7 +190,7 @@
     })
     qjackctl
     qpwgraph
-    x32edit
+    (callPackage ../../pkgs/x32edit-buffered.nix {})
     easyeffects
     wayfarer
     libepoxy
