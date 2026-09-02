@@ -21,6 +21,7 @@ Known working client state as of 2026-08-31:
 | --- | --- | --- |
 | Nixstation | Nomad, Showfactory | Nomad |
 | Nixvader | Nomad, Showfactory | Nomad |
+| FedoraMax | Nomad | Nomad |
 
 ## Source Map
 
@@ -69,7 +70,10 @@ FedoraMax should use the same `hermes-agent` revision and
 focused `data.roster.test.tsx` suite before `npm run --workspace apps/desktop
 pack`, then restore `release/linux-arm64-unpacked/chrome-sandbox` to
 `root:root` mode `4755`. Its native checkout and packaged artifact are runtime
-state on FedoraMax, not outputs of this flake.
+state on FedoraMax, not outputs of this flake. Its desktop entry must execute
+the unpacked `Hermes` binary directly with
+`HERMES_DESKTOP_PASSWORD_STORE=gnome-libsecret`; do not use plain `hermes
+desktop`, which rebuilds a package carrying an intentionally dirty stamp.
 
 Register Nomad and Showfactory through **Settings -> Gateways** as remote
 gateways on port `9119`. Do not use their OpenAI-compatible API ports for
