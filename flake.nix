@@ -46,7 +46,7 @@
 
     # Hermes Desktop is built during nixos-rebuild instead of at launch.
     hermes-agent = {
-      url = "github:NousResearch/hermes-agent/v2026.8.27";
+      url = "github:NousResearch/hermes-agent/b20cc5f787ea816ea8645603b7b2ac8234dcb8b4";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -76,7 +76,10 @@
       hermesSource = final.applyPatches {
         src = hermes-agent;
         name = "hermes-agent-electron-headers-fixed";
-        patches = [ ./patches/hermes-electron-headers.patch ];
+        patches = [
+          ./patches/hermes-electron-headers.patch
+          ./patches/hermes-bot-profile-routing.patch
+        ];
       };
       hermesMinimal =
         (builtins.getAttr prev.stdenv.hostPlatform.system hermes-agent.packages).minimal.override {

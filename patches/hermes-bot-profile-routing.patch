@@ -1,0 +1,59 @@
+diff --git a/apps/desktop/src/plugins/hermes-bots/data.ts b/apps/desktop/src/plugins/hermes-bots/data.ts
+index 6a5811e..bf1d929 100644
+--- a/apps/desktop/src/plugins/hermes-bots/data.ts
++++ b/apps/desktop/src/plugins/hermes-bots/data.ts
+@@ -697,8 +697,37 @@ export function useRoster() {
+         }
+       }
+ 
++      // profiles.list came from the active gateway, so its rows still have an
++      // exact owner when the desktop-wide union roster is temporarily
++      // unavailable. Preserve that owner instead of degrading Bot Chat to the
++      // ambient dashboard request path.
++      const connectionId = String(activeConnectionId || '').trim()
++      const profiles = Array.isArray(local?.profiles)
++        ? local.profiles.map(row => {
++            const profile = String(row?.name || '').trim() || 'default'
++            const mode: 'local' | 'remote' = connectionId === 'local' ? 'local' : 'remote'
++
++            return connectionId
++              ? {
++                  ...row,
++                  connectionId,
++                  connectionKind: mode,
++                  targetProfile: profile,
++                  route: {
++                    connectionId,
++                    mode,
++                    profile,
++                    targetProfile: profile
++                  },
++                  sourceScoped: true
++                }
++              : row
++          })
++        : []
++
+       return {
+         ...(local && typeof local === 'object' ? local : {}),
++        profiles,
+         fetchedAt: issuedAt
+       }
+     },
+diff --git a/apps/desktop/src/plugins/hermes-bots/data.roster.test.tsx b/apps/desktop/src/plugins/hermes-bots/data.roster.test.tsx
+index d1e4523..d42e2bd 100644
+--- a/apps/desktop/src/plugins/hermes-bots/data.roster.test.tsx
++++ b/apps/desktop/src/plugins/hermes-bots/data.roster.test.tsx
+@@ -123,6 +123,12 @@ describe('no union roster', () => {
+     expect(rows).toHaveLength(1)
+     expect(rows[0].name).toBe('default')
+     expect(rows[0].last_session?.id).toBe('s1')
++    expect(rows[0]).toMatchObject({
++      connectionId: 'local',
++      sourceScoped: true,
++      targetProfile: 'default',
++      route: { connectionId: 'local', mode: 'local', profile: 'default', targetProfile: 'default' }
++    })
+   })
+ 
+   it('appends nothing when the union is empty', async () => {

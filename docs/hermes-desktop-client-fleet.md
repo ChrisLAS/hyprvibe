@@ -8,6 +8,9 @@ This flake manages two kinds of Hermes hosts:
   the Electron Hermes Desktop application and remote-gateway launcher. They must not
   install a local Hermes agent environment, TUI, web application, or optional
   Python integration groups.
+- **FedoraMax** is also a remote-only front end, but its Fedora Asahi ARM64
+  Desktop is built natively from `/home/chrisf/.hermes/hermes-agent`; it does
+  not consume this flake's x86_64 package.
 
 The client package is intentionally remote-first. A client does not become a
 second Hermes host when the remote backend is unavailable.
@@ -25,6 +28,7 @@ The client configuration is in the `hyprvibe` flake:
 
 ```text
 flake.nix
+patches/hermes-bot-profile-routing.patch
 pkgs/hermes-desktop-nomad.nix
 hosts/nixvader/system.nix
 hosts/nixstation/system.nix
@@ -45,6 +49,13 @@ failing explanatory stub and removes only the local-agent derivation from the
 Nix string context. This keeps the Electron renderer and its build inputs while
 excluding `hermes-agent-env`, `hermes-tui`, and `hermes-web`.
 
+The overlay also applies `patches/hermes-bot-profile-routing.patch`. If the
+desktop-wide union roster is temporarily unavailable, it preserves the active
+gateway's exact owner route on each `profiles.list` row instead of letting Bot
+Chat fall back to the ambient dashboard profile. Keep the Desktop pin aligned
+with Nomad's Hermes backend pin when updating this patch and its routing
+contract.
+
 The wrapper in `pkgs/hermes-desktop-nomad.nix`:
 
 1. Leaves gateway selection and credentials to Desktop's owner-only v2
@@ -52,6 +63,13 @@ The wrapper in `pkgs/hermes-desktop-nomad.nix`:
 2. Logs launch diagnostics to
    `$HOME/.cache/hermes-desktop-remote/launcher.log`.
 3. Executes the immutable Nix-store `hermes-desktop` binary.
+
+FedoraMax should use the same `hermes-agent` revision and
+`patches/hermes-bot-profile-routing.patch`. Run the Desktop typecheck and
+focused `data.roster.test.tsx` suite before `npm run --workspace apps/desktop
+pack`, then restore `release/linux-arm64-unpacked/chrome-sandbox` to
+`root:root` mode `4755`. Its native checkout and packaged artifact are runtime
+state on FedoraMax, not outputs of this flake.
 
 Register Nomad and Showfactory through **Settings -> Gateways** as remote
 gateways on port `9119`. Do not use their OpenAI-compatible API ports for
