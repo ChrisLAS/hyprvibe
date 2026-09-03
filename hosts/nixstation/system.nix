@@ -763,15 +763,12 @@ in {
   hardware = {
     bluetooth = {
       enable = true;
+      powerOnBoot = true;
       # Enhanced settings for Logitech mice
       settings = {
         General = {
           # Enable experimental features for better HID support
           Experimental = true;
-          # Enable battery reporting
-          BatteryReporting = true;
-          # Enable HID over GATT
-          HIDOverGATT = true;
         };
         Policy = {
           # Auto-enable Bluetooth on boot
@@ -779,11 +776,6 @@ in {
           # Allow pairing without PIN for trusted devices
           ReconnectAttempts = 7;
           ReconnectIntervals = "1,2,4,8,16,32,64";
-        };
-        GATT = {
-          # Enable HID over GATT for better mouse support
-          Key = "HIDOverGATT";
-          Value = true;
         };
       };
       # Additional packages for Logitech support
@@ -876,6 +868,8 @@ in {
       SUBSYSTEM=="scsi_disk", GROUP="disk", MODE="0664"
       # Disable power management for network interface to prevent link drops
       SUBSYSTEM=="net", KERNEL=="eno1", ATTR{power/control}="on"
+      # The RTL8761BU adapter fails to recover from long-idle USB autosuspend.
+      ACTION=="add|change", SUBSYSTEM=="usb", ATTR{idVendor}=="2357", ATTR{idProduct}=="0604", TEST=="power/control", ATTR{power/control}="on"
 
       # Batch 1: I/O scheduler and queue depth optimizations
       # Set I/O scheduler for SATA drives (rotational)
@@ -963,6 +957,41 @@ in {
   boot.extraModprobeConfig = ''
     options v4l2loopback video_nr=10 exclusive_caps=1 card_label=OBS-VirtualCam
   '';
+
+  # A wedged adapter can leave a soft rfkill block that systemd restores on the
+  # next boot, preventing BlueZ's normal power-on policy from taking effect.
+  systemd.services.bluetooth-unblock = {
+    description = "Clear stale Bluetooth rfkill state";
+    wantedBy = ["bluetooth.target"];
+    before = ["bluetooth.service"];
+    after = ["systemd-rfkill.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.util-linux}/bin/rfkill unblock bluetooth";
+    };
+  };
+
+  # Powertop runs after udev during boot and otherwise changes the adapter back
+  # to autosuspend. Reapply the device-specific exception after auto-tuning.
+  systemd.services.keep-bluetooth-usb-awake = {
+    description = "Keep the TP-Link Bluetooth adapter out of USB autosuspend";
+    wantedBy = ["multi-user.target"];
+    after = ["powertop.service"];
+    script = ''
+      for device in /sys/bus/usb/devices/*; do
+        if [ -r "$device/idVendor" ] && [ -r "$device/idProduct" ] \
+          && [ "$(< "$device/idVendor")" = "2357" ] \
+          && [ "$(< "$device/idProduct")" = "0604" ] \
+          && [ -w "$device/power/control" ]; then
+          echo on > "$device/power/control"
+        fi
+      done
+    '';
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+  };
 
   systemd.services.load-v4l2loopback = {
     description = "Load v4l2loopback kernel module";
