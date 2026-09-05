@@ -972,26 +972,18 @@ in {
   };
 
   # Powertop runs after udev during boot and otherwise changes the adapter back
-  # to autosuspend. Reapply the device-specific exception after auto-tuning.
-  systemd.services.keep-bluetooth-usb-awake = {
-    description = "Keep the TP-Link Bluetooth adapter out of USB autosuspend";
-    wantedBy = ["multi-user.target"];
-    after = ["powertop.service"];
-    script = ''
-      for device in /sys/bus/usb/devices/*; do
-        if [ -r "$device/idVendor" ] && [ -r "$device/idProduct" ] \
-          && [ "$(< "$device/idVendor")" = "2357" ] \
-          && [ "$(< "$device/idProduct")" = "0604" ] \
-          && [ -w "$device/power/control" ]; then
-          echo on > "$device/power/control"
-        fi
-      done
-    '';
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-    };
-  };
+  # to autosuspend. Apply the exception inside Powertop's start transaction:
+  # a separate multi-user.target service ordered after Powertop creates a cycle.
+  systemd.services.powertop.postStart = ''
+    for device in /sys/bus/usb/devices/*; do
+      if [ -r "$device/idVendor" ] && [ -r "$device/idProduct" ] \
+        && [ "$(< "$device/idVendor")" = "2357" ] \
+        && [ "$(< "$device/idProduct")" = "0604" ] \
+        && [ -w "$device/power/control" ]; then
+        echo on > "$device/power/control"
+      fi
+    done
+  '';
 
   systemd.services.load-v4l2loopback = {
     description = "Load v4l2loopback kernel module";
