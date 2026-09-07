@@ -61,6 +61,10 @@ in {
   };
   hyprvibe.opencode2Client.enable = true;
   hyprvibe.hypruse.enable = true;
+  hyprvibe.herdr = {
+    enable = true;
+    ghostty.primaryFont = "DejaVu Sans Mono";
+  };
   hyprvibe.packages = {
     dunst.enable = false;
     dev.enable = true;

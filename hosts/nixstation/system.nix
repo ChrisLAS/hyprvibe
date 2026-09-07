@@ -565,6 +565,10 @@ in {
   hyprvibe.opencode.enable = true;
   hyprvibe.opencode2Client.enable = true;
   hyprvibe.hypruse.enable = true;
+  hyprvibe.herdr = {
+    enable = true;
+    ghostty.primaryFont = "Fira Code";
+  };
   programs.syncshell-dms.enable = true;
 
   imports = [

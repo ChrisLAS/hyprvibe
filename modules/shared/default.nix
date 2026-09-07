@@ -24,6 +24,7 @@ in {
     ./opencode.nix
     ./opencode2-client.nix
     ./hypruse.nix
+    ./herdr.nix
   ];
 
   config = lib.mkIf cfg.enable {
