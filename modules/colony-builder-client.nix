@@ -1,6 +1,6 @@
 {lib, pkgs, ...}: let
   sshKey = "/home/chrisf/.ssh/id_ed25519";
-  builders = "ssh-ng://root@colony-builder x86_64-linux ${sshKey} 4 4 big-parallel -";
+  builders = "ssh-ng://root@colony-builder x86_64-linux ${sshKey} 1 4 big-parallel -";
   colonyBuild = pkgs.writeShellApplication {
     name = "colony-build";
     runtimeInputs = [pkgs.nix pkgs.openssh];
