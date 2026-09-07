@@ -21,6 +21,7 @@ in {
     ./theme.nix
     ./dms.nix
     ../../modules/shared
+    ../../modules/colony-builder-client.nix
   ];
 
   hyprvibe.enable = true;
