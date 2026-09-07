@@ -23,6 +23,17 @@ bd dolt push          # Push shared issue history
 - Prefer `nix flake check`, targeted builds, and `nixos-rebuild boot` for
   staged changes unless Chris asks for a live activation.
 
+## Colony Remote Builder Safety
+
+- Colony runs production Matrix. Its containerized Nix builder is an opt-in
+  accelerator, never Nixvader's automatic or mandatory builder.
+- Use `colony-build` only for an explicitly selected heavyweight build. Before
+  starting one, check for active coordinated builds on Nixvader, Nomad, Nixobs,
+  or Colony; never compete with or interrupt an existing build for a smoke test.
+- Preserve the pinned host keys, SSH jump route, and explicit-only behavior in
+  `modules/colony-builder-client.nix`. Read
+  `docs/COLONY_REMOTE_BUILDER.md` before changing or operating it.
+
 ## Landing the Plane (Session Completion)
 
 **When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
