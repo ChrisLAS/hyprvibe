@@ -1,6 +1,7 @@
 {
   stdenvNoCC,
   fetchFromGitHub,
+  python3Packages,
 }:
 stdenvNoCC.mkDerivation {
   pname = "herdr-agent-icons-max";
@@ -14,6 +15,15 @@ stdenvNoCC.mkDerivation {
   };
 
   dontBuild = true;
+
+  nativeCheckInputs = [python3Packages.fonttools];
+  doCheck = true;
+
+  checkPhase = ''
+    runHook preCheck
+    python3 tests/test_font.py
+    runHook postCheck
+  '';
 
   installPhase = ''
     runHook preInstall
