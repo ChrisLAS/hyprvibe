@@ -159,8 +159,6 @@ There are a few ways we could improve for easier sharing. I'd appreciate suggest
 | Workspaces | SUPER+SHIFT+1..0 | Move window to ws 1–10 | `movetoworkspace 1..10` |
 | Workspaces | SUPER+mouse_down | Next workspace | `workspace e+1` |
 | Workspaces | SUPER+mouse_up | Previous workspace | `workspace e-1` |
-| Special ws | SUPER+ALT+S | Toggle special | `togglespecialworkspace magic` |
-| Special ws | SUPER+SHIFT+S | Move to special | `movetoworkspace special:magic` |
 | Mouse | SUPER + LMB drag | Move window | `bindm … movewindow` |
 | Mouse | SUPER + RMB drag | Resize window | `bindm … resizewindow` |
 | Display power | SUPER+SHIFT+L | Screen off (DPMS) | `hyprctl dispatch 'hl.dsp.dpms({ action = "off" })'` |
