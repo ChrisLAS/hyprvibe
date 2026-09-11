@@ -215,8 +215,21 @@ in {
       overrideDevices = true;
       overrideFolders = true;
       settings = {
-        devices = {};
-        folders = {};
+        devices = {
+          aurora.id = "4CD2OSH-B6OBHJ2-3LZS3NI-LFYCVLQ-POGG2SS-LNEKDXA-RBG5ZKS-X3UJ3QK";
+          nixstation.id = "KHJYIB5-L5LK6TE-G5BCAXD-UKTVWYU-GX4YG7T-QEXMBWO-YIJ4B5Y-JG24VQ6";
+          nomad.id = "HUAZMND-Q4QYPQQ-UEYHN3N-I72DZCR-DTOPZUY-N2KE5WT-FTKTA5Z-YPICHQ7";
+          showfactory.id = "6VWD4YN-ONN7JJE-5ZUX2KT-RHABTOM-3WTOETG-JAQFNEC-VMAKH6R-KW3X3A3";
+        };
+        folders = {
+          "50-heremes" = {
+            id = "50-heremes";
+            label = "50 Heremes";
+            path = "/home/chrisf/syncthing/50-Heremes";
+            type = "sendreceive";
+            devices = ["aurora" "nixstation" "nomad" "showfactory"];
+          };
+        };
         options.urAccepted = -1;
       };
     };
@@ -224,6 +237,10 @@ in {
     upower.enable = true;
     hardware.bolt.enable = true;
   };
+  systemd.tmpfiles.rules = [
+    "d /home/chrisf/syncthing 0750 chrisf users -"
+    "d /home/chrisf/syncthing/50-Heremes 0750 chrisf users -"
+  ];
   services.displayManager.defaultSession = "hyprland";
 
   qt = {

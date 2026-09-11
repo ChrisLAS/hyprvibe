@@ -12,6 +12,8 @@
     rvbee.id = "XG257UG-LBMN4ZM-5JA4NM2-I32JYUL-VPSEUJK-7JQHPNI-NYABXZB-C66KKAY";
     nixbook.id = "RV7GZDJ-OE2DQFT-LTXETQF-BU5VGCC-7CRZDAJ-UJWG72P-WF6VSIL-DLKVYQP";
     nomad.id = "HUAZMND-Q4QYPQQ-UEYHN3N-I72DZCR-DTOPZUY-N2KE5WT-FTKTA5Z-YPICHQ7";
+    showfactory.id = "6VWD4YN-ONN7JJE-5ZUX2KT-RHABTOM-3WTOETG-JAQFNEC-VMAKH6R-KW3X3A3";
+    nixvader.id = "P3H46TL-T5GMIQO-LXE4SWA-TJO6NXP-2ASG63D-SFS6IY3-N4XCEO6-TZSYIQE";
   };
   knownHosts = lib.attrNames devices;
   peerNames = lib.filter (name: name != hostname) knownHosts;
@@ -36,6 +38,7 @@
     "07-wyab" = {
       directory = "07-WYAB";
       label = "07 WYAB";
+      showfactory = true;
     };
     "10-friday" = {
       directory = "10-FRIDAY";
@@ -44,6 +47,8 @@
     "50-heremes" = {
       directory = "50-Heremes";
       label = "50 Heremes";
+      showfactory = true;
+      nixvader = true;
     };
     "60-backups" = {
       directory = "60-BACKUPS";
@@ -169,7 +174,10 @@ in {
                   then "sendonly"
                   else "receiveonly"
                 else "sendreceive";
-              devices = lib.filter (name: name != hostname) dropboxPeers;
+              devices =
+                lib.filter (name: name != hostname) dropboxPeers
+                ++ lib.optional (folder.showfactory or false) "showfactory"
+                ++ lib.optional (folder.nixvader or false) "nixvader";
             }
             // lib.optionalAttrs (
               ((folder.backup or false) && hostname != "nomad")
