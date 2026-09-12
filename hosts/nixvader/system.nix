@@ -180,7 +180,8 @@ in {
     hostName = "nixvader";
     networkmanager.enable = true;
     networkmanager.dns = "systemd-resolved";
-    firewall.enable = true;
+    # This trusted client host intentionally does not use the NixOS firewall.
+    firewall.enable = false;
   };
   systemd.services.NetworkManager-wait-online.enable = false;
 
