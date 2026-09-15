@@ -85,7 +85,7 @@ in {
     # This launcher adds the dynamic Tailscale bind and declarative app list.
     systemd.user.services.sunshine = {
       after = [ "tailscaled.service" ];
-      serviceConfig.ExecStart = lib.mkForce (lib.getExe' sunshineLauncher "sunshine-tailscale");
+      serviceConfig.ExecStart = lib.mkForce sunshineLauncher;
     };
   };
 }
