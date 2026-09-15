@@ -756,6 +756,11 @@ in {
   # Time zone - PRESERVING YOUR EXISTING CONFIG
   time.timeZone = "America/Los_Angeles";
 
+  # Some Flatpak runtimes currently expose UTC as /etc/localtime even though
+  # the host timezone is correct.  Export the host zone to desktop apps so
+  # Telegram and similar applications format timestamps in local time.
+  environment.sessionVariables.TZ = config.time.timeZone;
+
   # Internationalization - PRESERVING YOUR EXISTING CONFIG
   i18n = {
     defaultLocale = "en_US.UTF-8";
