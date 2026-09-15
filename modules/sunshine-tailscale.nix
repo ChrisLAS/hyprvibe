@@ -58,6 +58,7 @@ let
       "upnp=disabled" \
       "origin_web_ui_allowed=wan" \
       "wan_encryption_mode=2" \
+      "csrf_allowed_origins=https://nixvader.coin-noodlefish.ts.net,https://$tailscale_ip" \
       "adapter_name=${cfg.adapterName}" \
       "file_apps=${applicationsFile}"
   '';
