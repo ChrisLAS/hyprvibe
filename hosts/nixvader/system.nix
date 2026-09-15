@@ -20,6 +20,7 @@ in {
     ./flatpak.nix
     ./theme.nix
     ./dms.nix
+    ../../modules/sunshine-tailscale.nix
     ../../modules/shared
     ../../modules/colony-builder-client.nix
   ];
@@ -161,6 +162,7 @@ in {
     tailscale.enable = true;
     virt.enable = true;
   };
+  hyprvibe.sunshine.enable = true;
   hyprvibe.power = {
     enable = true;
     autoSleepOnBatteryMinutes = 30;
