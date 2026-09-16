@@ -79,7 +79,7 @@
   '';
 in {
   options.hyprvibe.opencode2Client = {
-    enable = lib.mkEnableOption "OpenCode 2 beta client for the Nomad server";
+    enable = lib.mkEnableOption "OpenCode 2 stable client for the Nomad server";
 
     serverUrl = lib.mkOption {
       type = lib.types.str;
