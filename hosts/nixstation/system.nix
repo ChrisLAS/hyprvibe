@@ -576,7 +576,6 @@ in {
     hyprland.nixosModules.default
     # Import your hardware configuration
     ./hardware-configuration.nix
-    ../../modules/sunshine-tailscale.nix
     # Shared scaffolding (non-host-specific)
     ../../modules/shared
     # DankMaterialShell profile and four-monitor bar layout
@@ -647,7 +646,6 @@ in {
       nebulaIp = "192.168.100.11/24";
     };
   };
-  hyprvibe.sunshine.enable = true;
   hyprvibe.agentConfigs = {
     enable = true;
     codex.enable = true;
