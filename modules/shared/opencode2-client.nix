@@ -75,7 +75,7 @@
   opencode2NomadStatus = pkgs.writeShellScriptBin "opencode2-nomad-status" ''
     set -euo pipefail
     ${credentialSetup}
-    exec ${lib.getExe opencode2} api --server ${lib.escapeShellArg cfg.serverUrl} get /api/health
+    exec ${lib.getExe opencode2} api --server ${lib.escapeShellArg cfg.serverUrl} get /api/status
   '';
 in {
   options.hyprvibe.opencode2Client = {
