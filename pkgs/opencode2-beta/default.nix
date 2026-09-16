@@ -25,13 +25,15 @@ in
 
     installPhase = ''
       runHook preInstall
-      install -Dm755 bin/opencode2 "$out/bin/opencode2"
+      # Stable V2 ships bin/opencode. Keep the repository's explicit
+      # opencode2 command so OpenCode 1 remains available as opencode.
+      install -Dm755 bin/opencode "$out/bin/opencode2"
       runHook postInstall
     '';
 
     meta = {
-      description = "OpenCode 2 beta CLI";
-      homepage = "https://opencode.ai";
+      description = "OpenCode 2 stable CLI";
+      homepage = "https://opencode.ai/v2/docs/";
       license = lib.licenses.mit;
       mainProgram = "opencode2";
       platforms = ["x86_64-linux"];
