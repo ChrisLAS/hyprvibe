@@ -260,6 +260,23 @@
                   codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
                   codexbar = final.callPackage ./pkgs/codexbar.nix {};
                 })
+                # Node 26.9.0's setuid-mode test is incompatible with the
+                # Colony/Nix build environment (nixpkgs issue #564449). Keep
+                # the full test suite and skip only that environment-sensitive
+                # check until the pinned nixpkgs includes the upstream skip.
+                (final: prev: let
+                  node26CheckFix = old: {
+                    checkFlags = map (
+                      flag:
+                        if final.lib.hasPrefix "CI_SKIP_TESTS=" flag
+                        then "${flag},test-fs-cp-async-file-modes"
+                        else flag
+                    ) (old.checkFlags or []);
+                  };
+                in {
+                  nodejs-slim_26 = prev.nodejs-slim_26.overrideAttrs node26CheckFix;
+                  nodejs_26 = prev.nodejs_26.overrideAttrs node26CheckFix;
+                })
                 hermesAgentOverlay
               ];
             }
