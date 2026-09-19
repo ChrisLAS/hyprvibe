@@ -133,12 +133,10 @@ in
         target = "nixos-fake-graphical-session.target";
         restartIfChanged = true;
       };
-      enableSystemMonitoring = true;
       enableVPN = true;
       enableDynamicTheming = true;
       enableAudioWavelength = true;
       enableCalendarEvents = true;
-      enableClipboardPaste = true;
       plugins = {
         nixvaderCodex.src = ../../configs/dms/plugins/nixvaderCodex;
         nixvaderWorldClock.src = ../../configs/dms/plugins/nixvaderWorldClock;
