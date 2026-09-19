@@ -283,7 +283,7 @@
     git-annex-remote-rclone
     usbmuxd
     magic-wormhole
-    adb-sync
+    better-adb-sync
     nextcloud-client
     gnome-firmware
     usbutils
@@ -710,7 +710,10 @@ in {
   # Nix settings - PRESERVING YOUR EXISTING CONFIG
   nix.settings = {
     download-buffer-size = 512000000;
-    experimental-features = "nix-command flakes";
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
     auto-optimise-store = true;
   };
 
@@ -722,13 +725,13 @@ in {
 
   # Less Journal Flushes - PRESERVING YOUR EXISTING CONFIG
   services.journald = {
-    rateLimitBurst = 1000;
-    rateLimitInterval = "30s";
-    extraConfig = ''
-      Storage=auto
-      SystemMaxUse=200M
-      RuntimeMaxUse=50M
-    '';
+    settings.Journal = {
+      Storage = "auto";
+      SystemMaxUse = "200M";
+      RuntimeMaxUse = "50M";
+      RateLimitBurst = 1000;
+      RateLimitIntervalSec = "30s";
+    };
   };
 
   # Batch 1: Systemd performance optimizations
