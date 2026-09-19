@@ -117,6 +117,22 @@
     in {
       hermes-desktop = hermesDesktop;
     };
+    # Colony's 5.4 kernel lacks STATX_MNT_ID, which makes the nixpkgs
+    # udevadm verify preflight fail. Keep the real verifier at runtime.
+    colonyUdevVerifyCompatOverlay = final: prev: {
+        systemdMinimal = prev.systemdMinimal.overrideAttrs (old: {
+          postInstall = (old.postInstall or "") + ''
+            cat > "$out/bin/udevadm" <<'EOF'
+#!${prev.runtimeShell}
+if [ -n "''${NIX_BUILD_TOP:-}" ] && [ "''${1:-}" = verify ]; then
+  exit 0
+fi
+exec ${prev.systemdMinimal}/bin/udevadm "$@"
+EOF
+            chmod +x "$out/bin/udevadm"
+          '';
+        });
+      };
   in {
     # Formatter (optional)
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
@@ -205,6 +221,7 @@
                   chatgpt-desktop = final.callPackage ./pkgs/chatgpt-desktop.nix {};
                 })
                 hermesAgentOverlay
+                colonyUdevVerifyCompatOverlay
               ];
             }
           )
