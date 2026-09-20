@@ -1,6 +1,11 @@
 {lib, pkgs, ...}: let
   sshKey = "/home/chrisf/.ssh/id_ed25519";
-  builders = "ssh-ng://root@colony-builder x86_64-linux ${sshKey} 1 4 big-parallel -";
+  # Colony runs an x86_64 kernel and advertises i686-linux through its Nix
+  # extra-platforms setting, so keep both native and 32-bit jobs remote.
+  builders = builtins.concatStringsSep "; " [
+    "ssh-ng://root@colony-builder x86_64-linux ${sshKey} 1 4 big-parallel -"
+    "ssh-ng://root@colony-builder i686-linux ${sshKey} 1 4 big-parallel -"
+  ];
   colonyBuild = pkgs.writeShellApplication {
     name = "colony-build";
     runtimeInputs = [pkgs.nix pkgs.openssh];
