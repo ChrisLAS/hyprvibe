@@ -300,6 +300,12 @@ EOF
                       fi
                     '';
                   });
+                  # Colony's pinned Clang/libbpf cannot compile systemd's optional BPF
+                  # framework (restrict-fsaccess.bpf.c). Keep the rest of systemd
+                  # enabled while disabling only that build-time feature.
+                  systemd = prev.systemd.override {
+                    withLibBPF = false;
+                  };
                   nodejs-slim_26 = prev.nodejs-slim_26.overrideAttrs node26CheckFix;
                   nodejs_26 = prev.nodejs_26.overrideAttrs node26CheckFix;
                 })
