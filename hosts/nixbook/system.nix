@@ -668,11 +668,11 @@ in
   services.journald = {
     rateLimitBurst = 1000;
     rateLimitInterval = "30s";
-    extraConfig = ''
-      Storage=auto
-      SystemMaxUse=200M
-      RuntimeMaxUse=50M
-    '';
+    settings.Journal = {
+      Storage = "auto";
+      SystemMaxUse = "200M";
+      RuntimeMaxUse = "50M";
+    };
   };
 
   # ZRAM configuration (override shared module defaults for this system)

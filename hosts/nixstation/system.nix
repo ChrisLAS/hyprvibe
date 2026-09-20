@@ -726,11 +726,11 @@ in {
   services.journald = {
     rateLimitBurst = 1000;
     rateLimitInterval = "30s";
-    extraConfig = ''
-      Storage=auto
-      SystemMaxUse=200M
-      RuntimeMaxUse=50M
-    '';
+    settings.Journal = {
+      Storage = "auto";
+      SystemMaxUse = "200M";
+      RuntimeMaxUse = "50M";
+    };
   };
 
   # Batch 1: Systemd performance optimizations
