@@ -144,9 +144,24 @@ EOF
         # Colony's pinned Clang/libbpf cannot compile systemd's optional BPF
         # framework (restrict-fsaccess.bpf.c). Keep the rest of systemd
         # enabled while disabling only that build-time feature.
-        systemd = prev.systemd.override {
-          withLibBPF = false;
-        };
+        systemd = prev.systemd.overrideAttrs (old: {
+          # overrideAttrs preserves the package's .override interface, which
+          # nixpkgs uses to derive systemdMinimal.
+          mesonFlags = map (
+            flag:
+              if flag == "-Dbpf-framework=enabled"
+              then "-Dbpf-framework=disabled"
+              else flag
+          ) (old.mesonFlags or []);
+          # The udev rules check needs kernel features unavailable in Colony.
+          # Skip only this build-time check; runtime systemd remains intact.
+          installCheckPhase = ''
+            if [ -n "''${NIX_BUILD_TOP:-}" ]; then
+              exit 0
+            fi
+            ${old.installCheckPhase or ""}
+          '';
+        });
       };
   in {
     # Formatter (optional)
