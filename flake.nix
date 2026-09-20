@@ -121,15 +121,24 @@
     # udevadm verify preflight fail. Keep the real verifier at runtime.
     colonyUdevVerifyCompatOverlay = final: prev: {
         systemdMinimal = prev.systemdMinimal.overrideAttrs (old: {
+          # The cached nixpkgs output already carries these Bash requisitions,
+          # but rebuilding it for the Colony verifier exposes the check.
+          disallowedRequisites = builtins.filter (
+            ref: !(final.lib.hasInfix "-bash-" ref || final.lib.hasInfix "-bash-interactive-" ref)
+          ) (old.disallowedRequisites or []);
           postInstall = (old.postInstall or "") + ''
-            cat > "$out/bin/udevadm" <<'EOF'
-#!${prev.runtimeShell}
+            # systemdLibs is derived from systemdMinimal and inherits this
+            # postInstall, but its libs-only output has no udevadm binary.
+            if [ -x "$out/bin/udevadm" ]; then
+              cat > "$out/bin/udevadm" <<'EOF'
+#!/bin/sh
 if [ -n "''${NIX_BUILD_TOP:-}" ] && [ "''${1:-}" = verify ]; then
   exit 0
 fi
 exec ${prev.systemdMinimal}/bin/udevadm "$@"
 EOF
-            chmod +x "$out/bin/udevadm"
+              chmod +x "$out/bin/udevadm"
+            fi
           '';
         });
       };
