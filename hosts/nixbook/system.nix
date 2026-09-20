@@ -666,9 +666,9 @@ in
 
   # Journald performance tuning
   services.journald = {
-    rateLimitBurst = 1000;
-    rateLimitInterval = "30s";
     settings.Journal = {
+      RateLimitBurst = 1000;
+      RateLimitIntervalSec = "30s";
       Storage = "auto";
       SystemMaxUse = "200M";
       RuntimeMaxUse = "50M";
