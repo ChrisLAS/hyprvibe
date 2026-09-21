@@ -3,8 +3,7 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   cfg = config.hyprvibe.sunshine;
   hermesDesktopRemote = pkgs.callPackage ../pkgs/hermes-desktop-nomad.nix {
     hermes-desktop = pkgs.hermes-desktop;
@@ -85,7 +84,11 @@ in {
     # supplies the user service lifecycle, uinput rules, package, and wrapper.
     # This launcher adds the dynamic Tailscale bind and declarative app list.
     systemd.user.services.sunshine = {
-      after = [ "tailscaled.service" ];
+      # The NixOS user unit is installed for every graphical user, including
+      # GDM's greeter. Only the configured desktop user should own Sunshine;
+      # otherwise the greeter races the real session for Sunshine's ports.
+      unitConfig.ConditionUser = config.hyprvibe.user.name;
+      after = ["tailscaled.service"];
       serviceConfig.ExecStart = lib.mkForce sunshineLauncher;
     };
   };

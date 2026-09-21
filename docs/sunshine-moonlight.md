@@ -5,7 +5,8 @@ Moonlight client.
 
 ## Security model
 
-- Sunshine is started as the `chrisf` graphical user service.
+- Sunshine is started only as the `chrisf` graphical user service; the unit is
+  conditioned so GDM's greeter cannot start a competing instance.
 - UPnP is disabled.
 - The launcher resolves the current Tailscale IPv4 address at service start and
   binds all Sunshine TCP/UDP listeners to that address only.
