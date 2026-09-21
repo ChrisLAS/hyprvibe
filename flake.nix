@@ -210,6 +210,22 @@
                   codexbar = final.callPackage ./pkgs/codexbar.nix {};
                   chatgpt-desktop = final.callPackage ./pkgs/chatgpt-desktop.nix {};
                 })
+                # Match Nixvader's cache-compatible Node 26.9.0 derivation.
+                # Only the environment-sensitive setuid-mode check is skipped
+                # (nixpkgs #564449); the remaining test suite stays enabled.
+                (final: prev: let
+                  node26CheckFix = old: {
+                    checkFlags = map (
+                      flag:
+                        if final.lib.hasPrefix "CI_SKIP_TESTS=" flag
+                        then "${flag},test-fs-cp-async-file-modes"
+                        else flag
+                    ) (old.checkFlags or []);
+                  };
+                in {
+                  nodejs-slim_26 = prev.nodejs-slim_26.overrideAttrs node26CheckFix;
+                  nodejs_26 = prev.nodejs_26.overrideAttrs node26CheckFix;
+                })
                 hermesAgentOverlay
                 # Keep systemd cache-identical to the pinned upstream packages.
               ];
