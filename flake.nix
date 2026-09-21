@@ -280,53 +280,8 @@
                     ) (old.checkFlags or []);
                   };
                 in {
-                  # systemd 260+ requires STATX_MNT_ID during udevadm verify,
-                  # but Colony's 5.4 kernel cannot provide it. Skip only the
-                  # build-time verifier there; keep the real udevadm at runtime.
-                  systemdMinimal = prev.systemdMinimal.overrideAttrs (old: {
-                    # The cached nixpkgs output already carries these Bash requisitions,
-                    # but rebuilding it for the Colony verifier exposes the check.
-                    disallowedRequisites = builtins.filter (
-                      ref: !(final.lib.hasInfix "-bash-" ref || final.lib.hasInfix "-bash-interactive-" ref)
-                    ) (old.disallowedRequisites or []);
-                    # Preserve systemdMinimal's derivation interface for nixpkgs
-                    # consumers while bypassing only Colony's broken verifier.
-                    postInstall = (old.postInstall or "") + ''
-                      # systemdLibs is derived from systemdMinimal and inherits this
-                      # postInstall, but its libs-only output has no udevadm binary.
-                      if [ -x "$out/bin/udevadm" ]; then
-                        cat > "$out/bin/udevadm" <<'EOF'
-#!/bin/sh
-if [ -n "''${NIX_BUILD_TOP:-}" ] && [ "''${1:-}" = verify ]; then
-  exit 0
-fi
-exec ${prev.systemdMinimal}/bin/udevadm "$@"
-EOF
-                        chmod +x "$out/bin/udevadm"
-                      fi
-                    '';
-                  });
-                  # Colony's pinned Clang/libbpf cannot compile systemd's optional BPF
-                  # framework (restrict-fsaccess.bpf.c). Keep the rest of systemd
-                  # enabled while disabling only that build-time feature.
-                  systemd = prev.systemd.overrideAttrs (old: {
-                    # overrideAttrs preserves the package's .override interface, which
-                    # nixpkgs uses to derive systemdMinimal.
-                    mesonFlags = map (
-                      flag:
-                        if flag == "-Dbpf-framework=enabled"
-                        then "-Dbpf-framework=disabled"
-                        else flag
-                    ) (old.mesonFlags or []);
-                    # The udev rules check needs kernel features unavailable in Colony.
-                    # Skip only this build-time check; runtime systemd remains intact.
-                    installCheckPhase = ''
-                      if [ -n "''${NIX_BUILD_TOP:-}" ]; then
-                        exit 0
-                      fi
-                      ${old.installCheckPhase or ""}
-                    '';
-                  });
+                  # Keep systemd and systemdMinimal cache-identical to nixpkgs.
+                  # Global builder workarounds rebuild their desktop dependents.
                   nodejs-slim_26 = prev.nodejs-slim_26.overrideAttrs node26CheckFix;
                   nodejs_26 = prev.nodejs_26.overrideAttrs node26CheckFix;
                 })
