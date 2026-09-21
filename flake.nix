@@ -122,52 +122,6 @@
     in {
       hermes-desktop = hermesDesktop;
     };
-    # Colony's 5.4 kernel lacks STATX_MNT_ID, which makes the nixpkgs
-    # udevadm verify preflight fail. Keep the real verifier at runtime.
-    colonyUdevVerifyCompatOverlay = final: prev: {
-        systemdMinimal = prev.systemdMinimal.overrideAttrs (old: {
-          # The cached nixpkgs output already carries these Bash requisitions,
-          # but rebuilding it for the Colony verifier exposes the check.
-          disallowedRequisites = builtins.filter (
-            ref: !(final.lib.hasInfix "-bash-" ref || final.lib.hasInfix "-bash-interactive-" ref)
-          ) (old.disallowedRequisites or []);
-          postInstall = (old.postInstall or "") + ''
-            # systemdLibs is derived from systemdMinimal and inherits this
-            # postInstall, but its libs-only output has no udevadm binary.
-            if [ -x "$out/bin/udevadm" ]; then
-              cat > "$out/bin/udevadm" <<'EOF'
-#!/bin/sh
-if [ -n "''${NIX_BUILD_TOP:-}" ] && [ "''${1:-}" = verify ]; then
-  exit 0
-fi
-exec ${prev.systemdMinimal}/bin/udevadm "$@"
-EOF
-              chmod +x "$out/bin/udevadm"
-            fi
-          '';
-        });
-        # Colony's pinned Clang/libbpf cannot compile systemd's optional BPF
-        # framework (restrict-fsaccess.bpf.c). Keep the rest of systemd
-        # enabled while disabling only that build-time feature.
-        systemd = prev.systemd.overrideAttrs (old: {
-          # overrideAttrs preserves the package's .override interface, which
-          # nixpkgs uses to derive systemdMinimal.
-          mesonFlags = map (
-            flag:
-              if flag == "-Dbpf-framework=enabled"
-              then "-Dbpf-framework=disabled"
-              else flag
-          ) (old.mesonFlags or []);
-          # The udev rules check needs kernel features unavailable in Colony.
-          # Skip only this build-time check; runtime systemd remains intact.
-          installCheckPhase = ''
-            if [ -n "''${NIX_BUILD_TOP:-}" ]; then
-              exit 0
-            fi
-            ${old.installCheckPhase or ""}
-          '';
-        });
-      };
   in {
     # Formatter (optional)
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
@@ -257,7 +211,7 @@ EOF
                   chatgpt-desktop = final.callPackage ./pkgs/chatgpt-desktop.nix {};
                 })
                 hermesAgentOverlay
-                colonyUdevVerifyCompatOverlay
+                # Keep systemd cache-identical to the pinned upstream packages.
               ];
             }
           )
