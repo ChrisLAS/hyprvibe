@@ -1,5 +1,10 @@
 {
   inputs = {
+    # Shared client implementation; host policy remains owned by this repository.
+    colony-client = {
+      url = "git+https://github.com/ChrisLAS/nomad-nixos?ref=main&rev=9b355188f225c28f84f93264946ba7d15ae68b42";
+      flake = false;
+    };
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     nixpkgsPgsearch.url = "github:nixos/nixpkgs/c8c34e946ef639a0e1e7ddfc3f3aac1cfecb43a9";
     # musnix.url = "github:musnix/musnix";
@@ -239,6 +244,7 @@ EOF
         system = "x86_64-linux";
         modules = [
           ./hosts/nixstation/system.nix
+          ./modules/colony-builder-client.nix
           (
             {...}: {
               nixpkgs.overlays = [
