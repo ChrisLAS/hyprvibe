@@ -54,6 +54,24 @@
         "type": "github"
       }
     },
+    "colony-client": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790000773,
+        "narHash": "sha256-UkSPrZqLmVnnZ4S5Kks90lLh85E933ZUf2+DoiQsG8A=",
+        "ref": "main",
+        "rev": "9b355188f225c28f84f93264946ba7d15ae68b42",
+        "revCount": 1443,
+        "type": "git",
+        "url": "https://github.com/ChrisLAS/nomad-nixos"
+      },
+      "original": {
+        "ref": "main",
+        "rev": "9b355188f225c28f84f93264946ba7d15ae68b42",
+        "type": "git",
+        "url": "https://github.com/ChrisLAS/nomad-nixos"
+      }
+    },
     "dank-qml-common": {
       "flake": false,
       "locked": {
@@ -833,6 +851,7 @@
     "root": {
       "inputs": {
         "codex-cli-nix": "codex-cli-nix",
+        "colony-client": "colony-client",
         "dankcalendar": "dankcalendar",
         "freshrss-mcp": "freshrss-mcp",
         "gogcli-src": "gogcli-src",

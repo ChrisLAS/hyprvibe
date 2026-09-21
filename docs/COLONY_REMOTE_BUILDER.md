@@ -12,9 +12,15 @@ From the Hyprvibe checkout:
 colony-build .#nixosConfigurations.nixvader.config.system.build.toplevel
 ```
 
-`colony-build` sets local `max-jobs` to zero for that invocation, so uncached
-build work is sent to Colony. Colony can fetch substitutes directly from
-`cache.nixos.org`; uncached inputs and finished outputs still cross Starlink.
+The source client now submits clean committed snapshots to Nomad for planning
+and queueing. It does not dispatch a build. Both Nixvader and Nixstation import
+the shared implementation from the revision-pinned, non-flake `colony-client`
+input. Host configuration remains owned here. Existing deployed generations
+continue using their previous client until an explicitly staged rollout.
+
+Boot-staging acceptance policies remain disabled pending desktop-specific
+validation and bootloader acceptance. Fleet routing enrollment must be verified
+after deployment together with Nomad and Colony authorization migration.
 
 Before starting a large build, check for an existing coordinated job on
 Nixvader, Nomad, Nixobs, or Colony. Never interrupt or compete with an active
@@ -35,11 +41,13 @@ remote build merely to test this client.
 - Do not copy the client module's host-specific SSH identity path to hosts where
   the `chrisf` key does not exist.
 
-After activating a generation containing the client, an idle protocol check is:
+After deploying the coordinator client, verify the protocol marker:
 
 ```console
-sudo nix store info --store ssh-ng://root@colony-builder
+cat /etc/colony-client.json
 ```
 
-This checks connectivity but does not launch a derivation build. A real smoke
-build must wait until no coordinated heavy build is active.
+It must identify protocol 1, coordinator mode and Nomad. Root-assisted fleet
+admission on Nomad must also establish all peers idle and enrolled before an
+explicit smoke-build release. Direct builder connectivity is no longer a client
+acceptance requirement; only Nomad retains execution authority after rollout.
