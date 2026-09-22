@@ -25,13 +25,18 @@ bd dolt push          # Push shared issue history
 
 ## Colony Remote Builder Safety
 
-- Colony runs production Matrix. Its containerized Nix builder is an opt-in
-  accelerator, never Nixvader's automatic or mandatory builder.
-- Use `colony-build` only for an explicitly selected heavyweight build. Before
-  starting one, check for active coordinated builds on Nixvader, Nomad, Nixobs,
-  or Colony; never compete with or interrupt an existing build for a smoke test.
-- Preserve the pinned host keys, SSH jump route, and explicit-only behavior in
-  `modules/colony-builder-client.nix`. Read
+- Chris approved `nixvader-update` and `nixstation-update` as the default guided
+  build/update workflows, using the supervised Colony coordinator. Prefer the
+  owning host's wrapper; ordinary `nix build` and `nixos-rebuild` remain local.
+- `build --local` is an explicit override, never an automatic fallback. Rerun
+  the same wrapper to resume the same committed candidate; do not create a new
+  job to evade failure/recovery limits. See `docs/GUIDED_UPDATES.md`.
+- Colony runs production Matrix. Admission must establish fleet idleness before
+  dispatch; never compete with or interrupt an existing build for a smoke test.
+- `validate`, `commit`, `push`, then `boot` select the exact verified candidate
+  and boot-stage it. The wrappers never live-switch or reboot implicitly.
+- Preserve the pinned host keys, SSH jump route, and ordinary-Nix local behavior
+  in `modules/colony-builder-client.nix`. Read
   `docs/COLONY_REMOTE_BUILDER.md` before changing or operating it.
 
 ## Landing the Plane (Session Completion)
