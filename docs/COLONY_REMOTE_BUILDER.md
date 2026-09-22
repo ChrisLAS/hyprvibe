@@ -6,6 +6,12 @@ Nixvader has an explicit remote-build client for the isolated builder on
 
 ## Use
 
+**Prefer `nixstation-update` / `nixvader-update` for host builds and updates.**
+Chris approved default Colony routing for these guided wrappers. See
+[GUIDED_UPDATES.md](GUIDED_UPDATES.md) for resumable builds, explicit local
+override, validation and exact-output boot staging. The low-level submission
+command below remains available for explicit manual orchestration.
+
 From the Hyprvibe checkout:
 
 ```console
@@ -18,9 +24,9 @@ the shared implementation from the revision-pinned, non-flake `colony-client`
 input. Host configuration remains owned here. Existing deployed generations
 continue using their previous client until an explicitly staged rollout.
 
-Boot-staging acceptance policies remain disabled pending desktop-specific
-validation and bootloader acceptance. Fleet routing enrollment must be verified
-after deployment together with Nomad and Colony authorization migration.
+Reviewed boot policies are enabled: systemd-boot on Nixvader, BIOS GRUB on
+Nixstation. The guided wrappers require clean published source and matching
+host validation before explicit `boot`; build alone never stages or activates.
 
 Before starting a large build, check for an existing coordinated job on
 Nixvader, Nomad, Nixobs, or Colony. Never interrupt or compete with an active
