@@ -296,6 +296,7 @@ in {
     "vm.dirty_ratio" = 10;
     "kernel.panic" = 0;
   };
+  # Guided fleet builds bind the evaluated system to this durable source revision.
   system.configurationRevision = self.rev or "dirty";
   system.stateVersion = "26.05";
 }
