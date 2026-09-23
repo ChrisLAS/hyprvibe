@@ -37,6 +37,8 @@ Local exception outputs are unsigned. Only these pinned fleet copies use a
 per-command signature override plus content/manifest verification; global cache
 trust settings remain unchanged. The initial diagnosed copy rejection has an
 explicit hash-bound transport continuation, separate from the kernel budget.
+The later diagnosed udev failure has a separate `recover-udev` gate bound to the
+same job, exact failed attempt, plan, receipt, and reviewed udev derivations.
 
 Only dirty `flake.lock` is snapshotted into a committed candidate with a private
 Git index. Unrelated dirty source must be intentionally committed first.
