@@ -51,7 +51,30 @@
     exec ${lib.getExe opencode2} --server ${lib.escapeShellArg cfg.serverUrl} "$@"
   '';
 
-  opencode2Showfactory = pkgs.writeShellScriptBin "opencode2-showfactory" ''
+  showfactoryCredentialSetup = ''
+    secret_file=${lib.escapeShellArg cfg.showfactorySecretFile}
+    if [ ! -r "$secret_file" ]; then
+      echo "Showfactory OpenCode 2 credential is not readable: $secret_file" >&2
+      echo "Provide OPENCODE_SERVER_PASSWORD in this local secret file." >&2
+      exit 1
+    fi
+
+    password_lines="$( ${pkgs.gnugrep}/bin/grep -c '^OPENCODE_SERVER_PASSWORD=' "$secret_file" || true)"
+    if [ "$password_lines" -ne 1 ]; then
+      echo "Showfactory credential must contain exactly one OPENCODE_SERVER_PASSWORD entry" >&2
+      exit 1
+    fi
+
+    OPENCODE_SERVER_PASSWORD="$( ${pkgs.gnused}/bin/sed -n 's/^OPENCODE_SERVER_PASSWORD=//p' "$secret_file")"
+    if ! ${pkgs.coreutils}/bin/printf '%s\n' "$OPENCODE_SERVER_PASSWORD" \
+      | ${pkgs.gnugrep}/bin/grep -Eq '^[[:xdigit:]]{32,}$'; then
+      echo "Showfactory OpenCode 2 credential has an unexpected format" >&2
+      exit 1
+    fi
+    export OPENCODE_SERVER_PASSWORD
+  '';
+
+  opencode2ShowfactoryHermes = pkgs.writeShellScriptBin "opencode2-showfactory-hermes" ''
     set -euo pipefail
     ${credentialSetup}
 
@@ -61,15 +84,33 @@
       exit 1
     fi
 
-    # The Nomad server has the same Location with Showfactory-specific
-    # instructions. Keep the client cwd aligned so TUI state is scoped there.
     cd "$project_root"
-
     if [ "$#" -eq 0 ]; then
       set -- "$project_root"
     fi
 
     exec ${lib.getExe opencode2} --server ${lib.escapeShellArg cfg.serverUrl} "$@"
+  '';
+
+  opencode2Showfactory = pkgs.writeShellScriptBin "opencode2-showfactory" ''
+    set -euo pipefail
+    ${showfactoryCredentialSetup}
+
+    project_root=${lib.escapeShellArg cfg.showfactoryProjectRoot}
+    server_project_root=${lib.escapeShellArg cfg.showfactoryServerProjectRoot}
+    if [ ! -d "$project_root" ]; then
+      echo "OpenCode 2 requires the Showfactory Location mirror on the TUI client: $project_root" >&2
+      exit 1
+    fi
+
+    # Keep TUI state in the local mirror while opening the real Showfactory
+    # workspace on its OpenCode 2 backend.
+    cd "$project_root"
+    if [ "$#" -eq 0 ]; then
+      set -- "$server_project_root"
+    fi
+
+    exec ${lib.getExe opencode2} --server ${lib.escapeShellArg cfg.showfactoryServerUrl} "$@"
   '';
 
   opencode2NomadStatus = pkgs.writeShellScriptBin "opencode2-nomad-status" ''
@@ -96,7 +137,25 @@ in {
     showfactoryProjectRoot = lib.mkOption {
       type = lib.types.str;
       default = "${config.hyprvibe.user.home}/opencode/showfactory";
-      description = "Dedicated OpenCode Location for the Showfactory Hermes endpoint";
+      description = "Local mirror used to scope the Showfactory TUI state";
+    };
+
+    showfactoryServerUrl = lib.mkOption {
+      type = lib.types.str;
+      default = "http://100.65.102.108:49374";
+      description = "Tailnet URL of Showfactory's OpenCode 2 backend";
+    };
+
+    showfactoryServerProjectRoot = lib.mkOption {
+      type = lib.types.str;
+      default = "/var/lib/hermes/workspace";
+      description = "Showfactory-side workspace opened by a no-argument TUI";
+    };
+
+    showfactorySecretFile = lib.mkOption {
+      type = lib.types.str;
+      default = "${config.hyprvibe.user.home}/.config/secrets/showfactory-opencode2.env";
+      description = "Local secret file containing OPENCODE_SERVER_PASSWORD";
     };
 
     secretFile = lib.mkOption {
@@ -116,6 +175,7 @@ in {
       opencode2
       opencode2Nomad
       opencode2Showfactory
+      opencode2ShowfactoryHermes
       opencode2NomadStatus
     ];
   };
