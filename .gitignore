@@ -1,6 +1,7 @@
 result
 result-*
 .beads/bd.sock
+.beads.gate.lock
 __pycache__/
 *.py[cod]
 
