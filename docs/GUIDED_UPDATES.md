@@ -39,6 +39,8 @@ trust settings remain unchanged. The initial diagnosed copy rejection has an
 explicit hash-bound transport continuation, separate from the kernel budget.
 The later diagnosed udev failure has a separate `recover-udev` gate bound to the
 same job, exact failed attempt, plan, receipt, and reviewed udev derivations.
+An owner-policy deployment defect has a separate `recover-udev-owner` repair
+gate; it cannot consume or reset the normal udev recovery budget.
 
 The wrapper snapshots dirty `flake.lock` using a private index; it never includes
 unrelated staged/unstaged/untracked work. Commit intended source changes first.
