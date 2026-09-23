@@ -33,6 +33,9 @@ bd dolt push          # Push shared issue history
   job to evade failure/recovery limits. See `docs/GUIDED_UPDATES.md`.
 - Colony runs production Matrix. Admission must establish fleet idleness before
   dispatch; never compete with or interrupt an existing build for a smoke test.
+- Reviewed kernel-compatibility exceptions may realize only the selected
+  derivation on this owning host in a bounded coordinator-controlled worker.
+  Dependencies remain on Colony. Unknown failures never authorize local retry.
 - `validate`, `commit`, `push`, then `boot` select the exact verified candidate
   and boot-stage it. The wrappers never live-switch or reboot implicitly.
 - Preserve the pinned host keys, SSH jump route, and ordinary-Nix local behavior
