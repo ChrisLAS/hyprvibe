@@ -24,6 +24,15 @@ Colony is the default for these wrappers, not for ordinary Nix commands.
 `build --local`, `validate --local`, and `boot --local` are explicit local-route
 operations; no failure or unavailable builder causes a silent local fallback.
 
+Kernel exception: systemd 261 `hwdb.bin` has a reviewed owning-host route because
+Colony's 5.4 kernel lacks required statx mount-ID support. The coordinator binds
+the exact recipe/source/output, builds missing prerequisites on Colony, then
+requests `colony-kernel@ID` locally (one job, two cores, 2 GiB, eight minutes).
+Output manifests are verified on Nomad and Colony before normal remote work
+continues. Existing valid outputs are reused. Progress explicitly names the
+exception; unknown failures still stop. Policy/recovery details live in Nomad's
+`hosts/nomad/colony-builder/KERNEL-EXCEPTIONS.md`.
+
 The wrapper snapshots dirty `flake.lock` using a private index; it never includes
 unrelated staged/unstaged/untracked work. Commit intended source changes first.
 Validation builds the exact committed candidate and checks NixOS assertions.
