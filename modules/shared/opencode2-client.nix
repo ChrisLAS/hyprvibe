@@ -22,7 +22,7 @@
 
     OPENCODE_PASSWORD="$(${pkgs.gnused}/bin/sed -n 's/^OPENCODE_PASSWORD=//p' "$secret_file")"
     if ! ${pkgs.coreutils}/bin/printf '%s\n' "$OPENCODE_PASSWORD" \
-      | ${pkgs.gnugrep}/bin/grep -Eq '^[[:xdigit:]]{32,}$'; then
+      | ${pkgs.gnugrep}/bin/grep -Eq '^[A-Za-z0-9_-]{32,}$'; then
       echo "OpenCode 2 server credential has an unexpected format" >&2
       exit 1
     fi
