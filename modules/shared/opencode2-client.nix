@@ -110,13 +110,26 @@
       set -- "$server_project_root"
     fi
 
+    if [ "''${1:-}" = models ]; then
+      # The CLI otherwise sends the local mirror cwd as a server directory,
+      # which does not exist on Showfactory and makes /api/model return 500.
+      shift
+      if [ "$#" -ne 0 ]; then
+        echo "opencode2-showfactory models does not accept extra arguments" >&2
+        exit 2
+      fi
+      ${lib.getExe opencode2} api --server ${lib.escapeShellArg cfg.showfactoryServerUrl} get '/api/model?location%5Bdirectory%5D=%2Fvar%2Flib%2Fhermes%2Fworkspace' \
+        | ${pkgs.jq}/bin/jq -r '.data[] | "\(.providerID)/\(.id)"'
+      exit
+    fi
+
     exec ${lib.getExe opencode2} --server ${lib.escapeShellArg cfg.showfactoryServerUrl} "$@"
   '';
 
   opencode2NomadStatus = pkgs.writeShellScriptBin "opencode2-nomad-status" ''
     set -euo pipefail
     ${credentialSetup}
-    exec ${lib.getExe opencode2} api --server ${lib.escapeShellArg cfg.serverUrl} get /api/status
+    exec ${lib.getExe opencode2} api --server ${lib.escapeShellArg cfg.serverUrl} get /api/info
   '';
 in {
   options.hyprvibe.opencode2Client = {
