@@ -33,6 +33,11 @@ continues. Existing valid outputs are reused. Progress explicitly names the
 exception; unknown failures still stop. Policy/recovery details live in Nomad's
 `hosts/nomad/colony-builder/KERNEL-EXCEPTIONS.md`.
 
+Local exception outputs are unsigned. Only these pinned fleet copies use a
+per-command signature override plus content/manifest verification; global cache
+trust settings remain unchanged. The initial diagnosed copy rejection has an
+explicit hash-bound transport continuation, separate from the kernel budget.
+
 The wrapper snapshots dirty `flake.lock` using a private index; it never includes
 unrelated staged/unstaged/untracked work. Commit intended source changes first.
 Validation builds the exact committed candidate and checks NixOS assertions.
