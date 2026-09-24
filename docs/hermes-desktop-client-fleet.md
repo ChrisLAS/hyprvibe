@@ -50,12 +50,10 @@ failing explanatory stub and removes only the local-agent derivation from the
 Nix string context. This keeps the Electron renderer and its build inputs while
 excluding `hermes-agent-env`, `hermes-tui`, and `hermes-web`.
 
-The overlay also applies `patches/hermes-bot-profile-routing.patch`. If the
-desktop-wide union roster is temporarily unavailable, it preserves the active
-gateway's exact owner route on each `profiles.list` row instead of letting Bot
-Chat fall back to the ambient dashboard profile. Keep the Desktop pin aligned
-with Nomad's Hermes backend pin when updating this patch and its routing
-contract.
+Hermes Desktop 0.17.6 routes active-gateway profile requests through the active
+connection and provides multi-source roster routing upstream. The local routing
+patch was retired at this pin. Keep the Desktop pin aligned with the Nomad Hermes
+backend when reviewing gateway behavior.
 
 The wrapper in `pkgs/hermes-desktop-nomad.nix`:
 
@@ -65,11 +63,12 @@ The wrapper in `pkgs/hermes-desktop-nomad.nix`:
    `$HOME/.cache/hermes-desktop-remote/launcher.log`.
 3. Executes the immutable Nix-store `hermes-desktop` binary.
 
-FedoraMax should use the same `hermes-agent` revision and
-`patches/hermes-bot-profile-routing.patch`. Run the Desktop typecheck and
-focused `data.roster.test.tsx` suite before `npm run --workspace apps/desktop
-pack`, then restore `release/linux-arm64-unpacked/chrome-sandbox` to
-`root:root` mode `4755`. Its native checkout and packaged artifact are runtime
+FedoraMax should align its checkout to the exact pinned Hermes revision. The
+local routing patch was retired after upstream 0.17.6 added active-connection
+and multi-source roster routing. Run the Desktop typecheck and focused roster
+test before packaging:
+`npm run --workspace apps/desktop pack`, then restore
+`release/linux-arm64-unpacked/chrome-sandbox` to `root:root` mode `4755`. Its native checkout and packaged artifact are runtime
 state on FedoraMax, not outputs of this flake. Its desktop entry must execute
 the unpacked `Hermes` binary directly with
 `HERMES_DESKTOP_PASSWORD_STORE=gnome-libsecret`; do not use plain `hermes

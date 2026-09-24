@@ -83,7 +83,6 @@
         name = "hermes-agent-electron-headers-fixed";
         patches = [
           ./patches/hermes-electron-headers.patch
-          ./patches/hermes-bot-profile-routing.patch
         ];
       };
       hermesMinimal =
