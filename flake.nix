@@ -121,6 +121,16 @@
     in {
       hermes-desktop = hermesDesktop;
     };
+    chatgptPatchedNixpkgs = nixpkgs.legacyPackages.x86_64-linux.applyPatches {
+      name = "nixpkgs-fhs-rootfs-deterministic";
+      src = nixpkgs;
+      patches = [./patches/nixpkgs-fhs-rootfs-deterministic.patch];
+    };
+    chatgptPkgs = import chatgptPatchedNixpkgs {
+      system = "x86_64-linux";
+      config.allowUnfree = true;
+    };
+    chatgptDesktop = chatgptPkgs.callPackage ./pkgs/chatgpt-desktop.nix {};
   in {
     # Formatter (optional)
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
@@ -143,7 +153,7 @@
     in {
       gogcli = pkgs.gogcli;
       gws = pkgs.gws;
-      chatgpt-desktop = pkgs.callPackage ./pkgs/chatgpt-desktop.nix {};
+      chatgpt-desktop = chatgptDesktop;
       voice-pe-firmware-tools = pkgs.callPackage ./pkgs/voice-pe-firmware-tools.nix {};
       voice-pe-hermes-bridge = pkgs.callPackage ./pkgs/voice-pe-hermes-bridge.nix {};
       codexbar = pkgs.callPackage ./pkgs/codexbar.nix { };
@@ -207,7 +217,7 @@
                   codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
                   codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
                   codexbar = final.callPackage ./pkgs/codexbar.nix {};
-                  chatgpt-desktop = final.callPackage ./pkgs/chatgpt-desktop.nix {};
+                  chatgpt-desktop = self.packages.${prev.stdenv.hostPlatform.system}.chatgpt-desktop;
                 })
                 hermesAgentOverlay
               ];
