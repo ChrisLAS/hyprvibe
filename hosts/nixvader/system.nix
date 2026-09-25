@@ -32,6 +32,7 @@ in {
     group = "users";
     home = "/home/chrisf";
     description = "Chris Fisher";
+    extraGroups = [ "uinput" ];
   };
 
   hyprvibe.hyprland.monitorsFile = ./monitors.lua;
