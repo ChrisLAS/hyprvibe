@@ -57,17 +57,17 @@
     "colony-client": {
       "flake": false,
       "locked": {
-        "lastModified": 1790179556,
-        "narHash": "sha256-8ofBtLJkbhmgubd5Grr/PmU5rNpPxuR3IlxRib7Wilg=",
+        "lastModified": 1790333639,
+        "narHash": "sha256-q2JDcQjpmMoJzfFEFLYTwOigddKRmC6S0+5Gx17snW0=",
         "ref": "main",
-        "rev": "d11abee94d5e3bf57d98f48a2b3c5b8fa8cdda75",
-        "revCount": 1501,
+        "rev": "36a1e90265d17cf4521da080b17326c420f1a478",
+        "revCount": 1587,
         "type": "git",
         "url": "https://github.com/ChrisLAS/nomad-nixos"
       },
       "original": {
         "ref": "main",
-        "rev": "d11abee94d5e3bf57d98f48a2b3c5b8fa8cdda75",
+        "rev": "36a1e90265d17cf4521da080b17326c420f1a478",
         "type": "git",
         "url": "https://github.com/ChrisLAS/nomad-nixos"
       }
@@ -300,7 +300,6 @@
       "original": {
         "owner": "NousResearch",
         "repo": "hermes-agent",
-        "rev": "b20cc5f787ea816ea8645603b7b2ac8234dcb8b4",
         "type": "github"
       }
     },
