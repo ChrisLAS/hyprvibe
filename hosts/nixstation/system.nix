@@ -1171,6 +1171,13 @@ in {
       openldap = prev.openldap.overrideAttrs (_: {
         doCheck = false;
       });
+      # Normalize Flatpak build paths so split-debug build IDs match across hosts.
+      flatpak = prev.flatpak.overrideAttrs (old: {
+        preConfigure = (old.preConfigure or "") + ''
+          export NIX_CFLAGS_COMPILE="''${NIX_CFLAGS_COMPILE-} -ffile-prefix-map=$NIX_BUILD_TOP=/build"
+          export NIX_CXXFLAGS_COMPILE="''${NIX_CXXFLAGS_COMPILE-} -ffile-prefix-map=$NIX_BUILD_TOP=/build"
+        '';
+      });
     })
   ];
 
