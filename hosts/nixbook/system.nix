@@ -166,7 +166,6 @@ let
     ghostty
     htop
     btop
-    fastfetch
     socat
     nmap
     mosh
