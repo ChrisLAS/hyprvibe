@@ -210,7 +210,6 @@
     ghostty
     htop
     btop
-    fastfetch
     nmap
     mosh
     yt-dlp

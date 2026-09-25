@@ -22,7 +22,6 @@
     tree
     lsof
     lshw
-    fastfetch
     nmap
     zip
     unzip
