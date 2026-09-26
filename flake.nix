@@ -126,6 +126,16 @@
       src = nixpkgs;
       patches = [./patches/nixpkgs-fhs-rootfs-deterministic.patch];
     };
+    # Steam and other FHS environments share the same randomized path chooser.
+    # Use the patched builder across both workstation package sets.
+    deterministicFhsOverlay = final: prev: let
+      patchedFhsBuilder =
+        final.callPackage
+        (chatgptPatchedNixpkgs + "/pkgs/build-support/build-fhsenv-bubblewrap") {};
+    in {
+      buildFHSEnvBubblewrap = patchedFhsBuilder;
+      buildFHSEnv = patchedFhsBuilder;
+    };
     chatgptPkgs = import chatgptPatchedNixpkgs {
       system = "x86_64-linux";
       config.allowUnfree = true;
@@ -211,6 +221,7 @@
           (
             {...}: {
               nixpkgs.overlays = [
+                deterministicFhsOverlay
                 (final: prev: {
                   gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
                   codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
@@ -267,6 +278,7 @@
           (
             {...}: {
               nixpkgs.overlays = [
+                deterministicFhsOverlay
                 (import ./overlays/gogcli.nix gogcli-src)
                 (final: prev: {
                   gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
