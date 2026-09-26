@@ -121,6 +121,20 @@
     in {
       hermes-desktop = hermesDesktop;
     };
+    deterministicNixpkgs = nixpkgs.legacyPackages.x86_64-linux.applyPatches {
+      name = "nixpkgs-fhs-rootfs-deterministic";
+      src = nixpkgs;
+      patches = [./patches/nixpkgs-fhs-rootfs-deterministic.patch];
+    };
+    deterministicFhsOverlay = final: prev: let
+      buildFHSEnvBubblewrap = final.callPackage (deterministicNixpkgs + "/pkgs/build-support/build-fhsenv-bubblewrap") {};
+    in {
+      buildFHSEnv = buildFHSEnvBubblewrap;
+      buildFHSEnvBubblewrap = buildFHSEnvBubblewrap;
+    };
+    deterministicFhsModule = {...}: {
+      nixpkgs.overlays = [deterministicFhsOverlay];
+    };
   in {
     # Formatter (optional)
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
@@ -166,6 +180,7 @@
       rvbee = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
+          deterministicFhsModule
           ./hosts/rvbee/system.nix
           ./hosts/rvbee/ai-memory-stack.nix
           # Shared overlays for custom flake packages
@@ -196,6 +211,7 @@
       nixstation = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
+          deterministicFhsModule
           ./hosts/nixstation/system.nix
           ./modules/colony-builder-client.nix
           (
@@ -244,6 +260,7 @@
       nixbook = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
+          deterministicFhsModule
           ./hosts/nixbook/system.nix
           (
             {...}: {
@@ -269,6 +286,7 @@
       nixvader = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
+          deterministicFhsModule
           ./hosts/nixvader/system.nix
           nixos-hardware.nixosModules.dell-latitude-7490
           (
