@@ -154,7 +154,17 @@
           })
         ];
       };
+      steamFhsRootfs = builtins.map (package: package.fhsenv)
+        (builtins.filter
+          (package: package ? fhsenv && builtins.match "^(steam|steam-run)-.*" package.name != null)
+          self.nixosConfigurations.nixstation.config.environment.systemPackages);
+      steamFhsRootfsAcceptance = pkgs.linkFarm
+        "nixstation-steam-fhs-rootfs-acceptance"
+        (nixpkgs.lib.lists.imap0
+          (index: path: {name = "rootfs-${toString index}"; inherit path;})
+          steamFhsRootfs);
     in {
+      steam-fhs-rootfs-acceptance = steamFhsRootfsAcceptance;
       gogcli = pkgs.gogcli;
       gws = pkgs.gws;
       chatgpt-desktop = pkgs.callPackage ./pkgs/chatgpt-desktop.nix {};
