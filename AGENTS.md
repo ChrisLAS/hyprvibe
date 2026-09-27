@@ -25,12 +25,14 @@ bd dolt push          # Push shared issue history
 
 ## Colony Remote Builder Safety
 
-- Chris approved `nixvader-update` and `nixstation-update` as the default guided
-  build/update workflows, using the supervised Colony coordinator. Prefer the
-  owning host's wrapper; ordinary `nix build` and `nixos-rebuild` remain local.
-- `build --local` is an explicit override, never an automatic fallback. Rerun
-  the same wrapper to resume the same committed candidate; do not create a new
-  job to evade failure/recovery limits. See `docs/GUIDED_UPDATES.md`.
+- Use the owning host's guided update wrapper; ordinary `nix build` and
+  `nixos-rebuild` remain local. Nixstation guided updates default to its owner-local
+  store because Colony has unresolved cross-store NAR mismatches. Nixvader guided
+  updates continue to default to the supervised Colony coordinator.
+- `--colony` explicitly selects Colony on Nixstation; `--local` explicitly selects
+  the owner-local route on Nixvader. Neither route silently falls back. Rerun the
+  same wrapper to resume the same committed candidate; do not create a new job to
+  evade failure/recovery limits. See `docs/GUIDED_UPDATES.md`.
 - Colony runs production Matrix. Admission must establish fleet idleness before
   dispatch; never compete with or interrupt an existing build for a smoke test.
 - Reviewed kernel-compatibility exceptions may realize only the selected

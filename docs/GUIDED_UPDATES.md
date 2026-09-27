@@ -1,8 +1,10 @@
 # Guided desktop updates
 
-Use **`nixstation-update`** by default on this host. Chris approved the supervised
-Colony workflow on 2026-09-22. Shared implementation is pinned by `colony-client`;
-host configuration and the owning branch remain in this repository.
+Use **`nixstation-update`** by default on this host. It builds in Nixstation's
+local store because Colony has unresolved cross-store NAR mismatches. `--colony`
+remains available for explicit parity work and requires full owner verification.
+The shared implementation is pinned by `colony-client`; host configuration and
+the owning branch remain in this repository.
 
 ```console
 nixstation-update update [INPUT...]
@@ -20,9 +22,11 @@ nixstation-update health
 newer inputs. `status` reports the existing fleet/job/attempt and transfer.
 The corresponding wrapper on Nixvader is `nixvader-update`.
 
-Colony is the default only for these guided wrappers. Ordinary `nix build` and
-`nixos-rebuild` stay local. Use `build --local`, `validate --local` and
-`boot --local` to select the explicit local route. There is no silent fallback.
+Nixstation guided commands default to the owner-local route. Ordinary `nix build`
+and `nixos-rebuild` also stay local. Use `build --colony`, `validate --colony` and
+`boot --colony` only for explicit Colony parity work. Nixvader guided commands
+default to Colony; use their `--local` option for an explicit owner-local build.
+There is no silent fallback.
 
 Kernel exception: systemd 261 `hwdb.bin` has a reviewed owning-host route because
 Colony's 5.4 kernel lacks required statx mount-ID support. The coordinator binds

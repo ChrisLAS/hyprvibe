@@ -7,9 +7,10 @@ Nixvader has an explicit remote-build client for the isolated builder on
 ## Use
 
 **Prefer `nixstation-update` / `nixvader-update` for host builds and updates.**
-Chris approved default Colony routing for these guided wrappers. See
-[GUIDED_UPDATES.md](GUIDED_UPDATES.md) for resumable builds, explicit local
-override, validation and exact-output boot staging. The low-level submission
+Nixstation defaults to its owner-local store until Colony passes full-closure
+owner parity; Nixvader defaults to Colony. See
+[GUIDED_UPDATES.md](GUIDED_UPDATES.md) for resumable builds, explicit route
+selection, validation and exact-output boot staging. The low-level submission
 command below remains available for explicit manual orchestration.
 
 From the Hyprvibe checkout:
