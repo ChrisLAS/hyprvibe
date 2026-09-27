@@ -5,7 +5,29 @@
   pkgs,
   ...
 }: let
-  llamaCpp = inputs.llama-cpp.packages.${pkgs.stdenv.hostPlatform.system}.vulkan;
+  upstreamLlamaCpp = inputs.llama-cpp.packages.${pkgs.stdenv.hostPlatform.system}.vulkan;
+  llamaCpp = upstreamLlamaCpp.overrideAttrs (old: {
+    webui = old.webui.overrideAttrs (uiOld: {
+      # npm writes host-relative tarball paths into this cache metadata. It is
+      # unused by npm run build and differs even when every package file matches.
+      npmDeps = uiOld.npmDeps.overrideAttrs (npmOld: {
+        postInstall = (npmOld.postInstall or "") + ''
+          rm -f $out/node_modules/.package-lock.json
+        '';
+      });
+
+      # SvelteKit defaults kit.version.name to Date.now(). Pin it to the UI
+      # source and npm dependency identities for reproducible embedded assets.
+      LLAMA_UI_BUILD_VERSION = builtins.hashString "sha256" (
+        toString uiOld.src + ":" + toString uiOld.npmDeps
+      );
+      postPatch = (uiOld.postPatch or "") + ''
+        substituteInPlace svelte.config.js \
+          --replace-fail "kit: {" \
+          "kit: { version: { name: process.env.LLAMA_UI_BUILD_VERSION },"
+      '';
+    });
+  });
   modelRoot = "/scary/ai-models/qwen3.8";
   officialModel = "${modelRoot}/official/Qwen3.8-27B-Q4_K_M.gguf";
   abliteratedModel = "${modelRoot}/abliterated/Qwen3.8-27B-ABLITERATED-Q4_K_S.gguf";
