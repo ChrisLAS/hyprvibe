@@ -2,7 +2,7 @@
   inputs = {
     # Shared client implementation; host policy remains owned by this repository.
     colony-client = {
-      url = "git+https://github.com/ChrisLAS/nomad-nixos?ref=main&rev=7a70a276ed0efc9ba1fb0a949692d61da838ef9d";
+      url = "git+https://github.com/ChrisLAS/nomad-nixos?ref=main&rev=a58fb49e86f3b777bca5c0978f7a71784e0954e8";
       flake = false;
     };
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
