@@ -7,7 +7,7 @@
   dpkg,
   patchelf,
 }: let
-  version = "26.825.41651";
+  version = "26.928.20755";
   filename = "pool/main/c/chatgpt/chatgpt_${version}_amd64.deb";
 
   unpacked = stdenvNoCC.mkDerivation {
@@ -16,7 +16,7 @@
 
     src = fetchurl {
       url = "https://persistent.oaistatic.com/codex-app-prod/linux/deb/${filename}";
-      hash = "sha256-IbIulcDEOj8RTz7TJpKr7cY49AV6CPmMmINuLT6aZx4=";
+      hash = "sha256-RYbcGmyGmJgsqFn4aqoWg18zgyoJ4kBC36dVcapg2NE=";
     };
 
     nativeBuildInputs = [
