@@ -48,7 +48,13 @@
       set -- "$project_root"
     fi
 
-    exec ${lib.getExe opencode2} --server ${lib.escapeShellArg cfg.serverUrl} "$@"
+    # OpenCode 2.0.20 requires --server after the subcommand.
+    if [ "''${1:-}" = api ]; then
+      command="$1"
+      shift
+      exec ${lib.getExe opencode2} "$command" --server ${lib.escapeShellArg cfg.serverUrl} "$@"
+    fi
+    exec ${lib.getExe opencode2} "$@" --server ${lib.escapeShellArg cfg.serverUrl}
   '';
 
   showfactoryCredentialSetup = ''
@@ -89,7 +95,13 @@
       set -- "$project_root"
     fi
 
-    exec ${lib.getExe opencode2} --server ${lib.escapeShellArg cfg.serverUrl} "$@"
+    # OpenCode 2.0.20 requires --server after the subcommand.
+    if [ "''${1:-}" = api ]; then
+      command="$1"
+      shift
+      exec ${lib.getExe opencode2} "$command" --server ${lib.escapeShellArg cfg.serverUrl} "$@"
+    fi
+    exec ${lib.getExe opencode2} "$@" --server ${lib.escapeShellArg cfg.serverUrl}
   '';
 
   opencode2Showfactory = pkgs.writeShellScriptBin "opencode2-showfactory" ''
@@ -123,7 +135,13 @@
       exit
     fi
 
-    exec ${lib.getExe opencode2} --server ${lib.escapeShellArg cfg.showfactoryServerUrl} "$@"
+    # OpenCode 2.0.20 requires --server after the subcommand.
+    if [ "''${1:-}" = api ]; then
+      command="$1"
+      shift
+      exec ${lib.getExe opencode2} "$command" --server ${lib.escapeShellArg cfg.showfactoryServerUrl} "$@"
+    fi
+    exec ${lib.getExe opencode2} "$@" --server ${lib.escapeShellArg cfg.showfactoryServerUrl}
   '';
 
   opencode2NomadStatus = pkgs.writeShellScriptBin "opencode2-nomad-status" ''
