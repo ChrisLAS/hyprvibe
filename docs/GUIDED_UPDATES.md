@@ -33,6 +33,14 @@ continues. Existing valid outputs are reused. Progress explicitly names the
 exception; unknown failures still stop. Policy/recovery details live in Nomad's
 `hosts/nomad/colony-builder/KERNEL-EXCEPTIONS.md`.
 
+The owning-host worker runs from the active system generation. Updating the
+`colony-client` pin does not change the helper used during that same candidate's
+build. If an exact owner recovery requires changed helper behavior, build the
+pinned helper and use a temporary `colony-kernel@` systemd drop-in for that
+worker, preserving its 480-second limit, 2-core quota and 2 GiB memory cap. The
+runtime drop-in is not durable source; the validated candidate carries the
+declarative helper update and a reboot removes the temporary override.
+
 Local exception outputs are unsigned. Only these pinned fleet copies use a
 per-command signature override plus content/manifest verification; global cache
 trust settings remain unchanged. The initial diagnosed copy rejection has an
