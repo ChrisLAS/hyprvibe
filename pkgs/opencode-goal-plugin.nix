@@ -21,7 +21,7 @@ buildNpmPackage {
 
   postPatch = ''
     cp ${./opencode-goal-plugin-package-lock.json} package-lock.json
-    node -e 'const fs = require("fs"); const p = JSON.parse(fs.readFileSync("package.json", "utf8")); delete p.devDependencies; delete p.scripts; fs.writeFileSync("package.json", JSON.stringify(p, null, 2) + "\n");'
+    ${nodejs_22}/bin/node -e 'const fs = require("fs"); const p = JSON.parse(fs.readFileSync("package.json", "utf8")); delete p.devDependencies; delete p.scripts; fs.writeFileSync("package.json", JSON.stringify(p, null, 2) + "\n");'
   '';
 
   dontNpmBuild = true;
