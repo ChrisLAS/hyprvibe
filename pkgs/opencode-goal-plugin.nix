@@ -29,6 +29,12 @@ buildNpmPackage {
   installPhase = ''
     runHook preInstall
     cp -R ./. "$out/"
+    cat > "$out/index.ts" <<'EOF'
+    export { default } from "./dist/server.js"
+    EOF
+    cat > "$out/tui.ts" <<'EOF'
+    export { default } from "./src/tui.ts"
+    EOF
     runHook postInstall
   '';
 
