@@ -198,6 +198,11 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    # The Nomad server advertises the TUI entrypoint by its immutable store
+    # path. Keep the plugin in every remote client closure so that path exists
+    # when the OpenCode TUI loads the server's active plugin list.
+    environment.etc."opencode2/plugins/goal-mode".source = opencodeGoalPlugin;
+
     systemd.tmpfiles.rules = [
       "d ${builtins.dirOf cfg.showfactoryProjectRoot} 0755 ${config.hyprvibe.user.name} ${config.hyprvibe.user.group} -"
       "d ${cfg.showfactoryProjectRoot} 0755 ${config.hyprvibe.user.name} ${config.hyprvibe.user.group} -"
@@ -205,7 +210,6 @@ in {
 
     environment.systemPackages = [
       opencode2
-      opencodeGoalPlugin
       opencode2Nomad
       opencode2Showfactory
       opencode2ShowfactoryHermes
