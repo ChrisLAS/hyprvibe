@@ -6,6 +6,7 @@
 }: let
   cfg = config.hyprvibe.opencode2Client;
   opencode2 = pkgs.callPackage ../../pkgs/opencode2-beta {};
+  opencodeGoalPlugin = pkgs.callPackage ../../pkgs/opencode-goal-plugin.nix {};
 
   credentialSetup = ''
     secret_file=${lib.escapeShellArg cfg.secretFile}
@@ -204,6 +205,7 @@ in {
 
     environment.systemPackages = [
       opencode2
+      opencodeGoalPlugin
       opencode2Nomad
       opencode2Showfactory
       opencode2ShowfactoryHermes
