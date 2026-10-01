@@ -186,6 +186,10 @@ in {
     environment.etc."opencode2/plugins/goal-mode".source = opencodeGoalPlugin;
 
     systemd.tmpfiles.rules = [
+      # OpenCode 2.0.20's remote TUI needs this server-side path to exist
+      # locally too; workspace reads and writes still run on Showfactory.
+      "d /var/lib/hermes 0755 root root -"
+      "d /var/lib/hermes/workspace 0755 root root -"
       "d ${builtins.dirOf cfg.showfactoryProjectRoot} 0755 ${config.hyprvibe.user.name} ${config.hyprvibe.user.group} -"
       "d ${cfg.showfactoryProjectRoot} 0755 ${config.hyprvibe.user.name} ${config.hyprvibe.user.group} -"
     ];
