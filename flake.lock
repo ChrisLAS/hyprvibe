@@ -57,11 +57,11 @@
     "colony-client": {
       "flake": false,
       "locked": {
-        "lastModified": 1790808658,
-        "narHash": "sha256-zlW5fJkcN9JLBEjIlEY0UU64H7ok6O5pXSA1U2fhBHM=",
+        "lastModified": 1790825399,
+        "narHash": "sha256-gWjSkPFdULGoUhK+mqGu87wbYDFzSzLzY1ERW8ScUFM=",
         "ref": "main",
-        "rev": "559610127072a4e5fafc6acbf04e4f5f88cb48c3",
-        "revCount": 1833,
+        "rev": "d948daecbc0eb30c176e4924999531879c9eb7e6",
+        "revCount": 1835,
         "type": "git",
         "url": "https://github.com/ChrisLAS/nomad-nixos"
       },
