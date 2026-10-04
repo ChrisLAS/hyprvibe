@@ -645,6 +645,13 @@ in {
       nebulaIp = "192.168.100.11/24";
     };
   };
+  services.syncthing.settings.folders."100-uplink" = {
+    id = "100-uplink";
+    label = "100 Uplink";
+    path = "/scary/Dropbox/Chris Fisher/100-uplink";
+    type = "receiveonly";
+    devices = ["aurora" "showfactory" "nixvader"];
+  };
   hyprvibe.agentConfigs = {
     enable = true;
     codex.enable = true;
@@ -1362,6 +1369,7 @@ in {
   # does not depend on an interactive shell being opened.
   systemd.tmpfiles.rules = [
     "d /mnt/horse 0755 ${userName} ${userGroup} -"
+    "d /scary/Dropbox/Chris Fisher/100-uplink 0750 ${userName} ${userGroup} -"
   ];
 
   systemd.user.services.rclone-horse-mount = {
