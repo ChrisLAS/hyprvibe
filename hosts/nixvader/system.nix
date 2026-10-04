@@ -233,6 +233,13 @@ in {
             type = "sendreceive";
             devices = ["aurora" "nixstation" "nomad" "showfactory"];
           };
+          "100-uplink" = {
+            id = "100-uplink";
+            label = "100 Uplink";
+            path = "/home/chrisf/syncthing/100-uplink";
+            type = "receiveonly";
+            devices = ["aurora" "nixstation" "showfactory"];
+          };
         };
         options.urAccepted = -1;
       };
@@ -244,6 +251,7 @@ in {
   systemd.tmpfiles.rules = [
     "d /home/chrisf/syncthing 0750 chrisf users -"
     "d /home/chrisf/syncthing/50-Heremes 0750 chrisf users -"
+    "d /home/chrisf/syncthing/100-uplink 0750 chrisf users -"
   ];
   services.displayManager.defaultSession = "hyprland";
 
