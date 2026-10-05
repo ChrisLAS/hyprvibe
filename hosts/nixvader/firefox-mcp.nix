@@ -16,7 +16,7 @@ let
         echo "Nixvader Firefox is already available for MCP." >&2
         exit 0
       fi
-      if pgrep -u "$(id -u)" -x firefox >/dev/null; then
+      if pgrep -u "$(id -u)" -f '(^|/)(firefox|\.firefox-wrapped)( |$)' >/dev/null; then
         echo "Quit Firefox on Nixvader, then run nixvader-firefox-mcp-start to reopen your existing profile with MCP enabled." >&2
         exit 1
       fi
