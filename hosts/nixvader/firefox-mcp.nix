@@ -23,6 +23,12 @@ let
       exec ${lib.getExe config.programs.firefox.finalPackage} --marionette --remote-debugging-port=9223 "$@"
     '';
   };
+  firefoxMcpLauncher = pkgs.writeShellApplication {
+    name = "firefox-mcp";
+    text = ''
+      exec ${lib.getExe firefoxMcpStart} "$@"
+    '';
+  };
   firefoxMcp = pkgs.writeShellApplication {
     name = "nixvader-firefox-mcp";
     runtimeInputs = [
@@ -48,12 +54,13 @@ in
 {
   environment.systemPackages = [
     firefoxMcpStart
+    firefoxMcpLauncher
     firefoxMcp
     (pkgs.makeDesktopItem {
       name = "nixvader-firefox-mcp";
       desktopName = "Firefox — Nixvader MCP";
       comment = "Open your existing Firefox profile for remote OpenCode control from Nomad";
-      exec = "${lib.getExe firefoxMcpStart} %U";
+      exec = "${lib.getExe firefoxMcpLauncher} %U";
       icon = "firefox";
       categories = [
         "Network"

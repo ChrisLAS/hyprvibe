@@ -7,7 +7,7 @@ and Firefox running in MCP mode. It is distinct from Nomad's Chrome DevTools,
 Firecrawl search/crawling, and Hypruse desktop control.
 
 `hosts/nixvader/firefox-mcp.nix` installs the pinned nixpkgs Firefox DevTools MCP
-and two launchers. MCP stdio travels over SSH; Marionette (2828) and WebDriver
+and browser/attachment launchers. MCP stdio travels over SSH; Marionette (2828) and WebDriver
 BiDi (9223) retain Firefox's loopback-only defaults. There is no MCP HTTP service
 or firewall change. The MCP runs as Chris and permits one controller at a time.
 
@@ -15,8 +15,14 @@ After activating this configuration, quit Firefox normally on Nixvader, then
 open **Firefox — Nixvader MCP** from its desktop launcher, or run:
 
 ```console
-nixvader-firefox-mcp-start
+firefox-mcp
 ```
+
+`firefox-mcp` delegates to `nixvader-firefox-mcp-start`, which remains available
+for compatibility. The desktop entry uses the same wrapper. URL and other
+Firefox arguments are forwarded unchanged. The standard Firefox launcher does
+not enable MCP; it reuses any already-running instance, so quit before changing
+modes.
 
 This opens the existing default profile with `--marionette` and
 `--remote-debugging-port=9223`. The wrapper refuses to launch over an existing
