@@ -855,6 +855,18 @@ in {
       useRoutingFeatures = lib.mkForce "client";
     };
 
+    # Podcast clip downloads on the tailnet use nixstation's residential egress.
+    # Bind only to the Tailscale address; never expose the proxy on the LAN.
+    tinyproxy = {
+      enable = true;
+      settings = {
+        Listen = "100.75.168.43";
+        Port = 8888;
+        Allow = ["100.64.0.0/10"];
+        ConnectPort = [443];
+      };
+    };
+
     # Enable the OpenSSH daemon - PRESERVING YOUR EXISTING CONFIG
     openssh.enable = true;
 
@@ -1559,6 +1571,13 @@ in {
       # Send KILL signal if service doesn't stop in time
       SendSIGKILL = true;
     };
+  };
+
+  # The proxy cannot bind until tailscaled has brought up its address.
+  systemd.services.tinyproxy = {
+    requires = ["tailscaled.service"];
+    after = ["tailscaled.service"];
+    serviceConfig.RestartSec = "5s";
   };
 
   # System version
