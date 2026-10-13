@@ -227,6 +227,20 @@ in {
           showfactory.id = "6VWD4YN-ONN7JJE-5ZUX2KT-RHABTOM-3WTOETG-JAQFNEC-VMAKH6R-KW3X3A3";
         };
         folders = {
+          "05-twib" = {
+            id = "05-twib";
+            label = "05 TWiB";
+            path = "/home/chrisf/syncthing/05-TWIB";
+            type = "sendreceive";
+            devices = ["nomad"];
+          };
+          "06-launch" = {
+            id = "06-launch";
+            label = "06 Launch";
+            path = "/home/chrisf/syncthing/06-Launch";
+            type = "sendreceive";
+            devices = ["nomad"];
+          };
           "50-heremes" = {
             id = "50-heremes";
             label = "50 Heremes";
@@ -251,6 +265,8 @@ in {
   };
   systemd.tmpfiles.rules = [
     "d /home/chrisf/syncthing 0750 chrisf users -"
+    "d /home/chrisf/syncthing/05-TWIB 0750 chrisf users -"
+    "d /home/chrisf/syncthing/06-Launch 0750 chrisf users -"
     "d /home/chrisf/syncthing/50-Heremes 0750 chrisf users -"
     "d /home/chrisf/syncthing/100-uplink 0750 chrisf users -"
   ];
