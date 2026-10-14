@@ -63,6 +63,10 @@ in
         atk
         at-spi2-atk
         at-spi2-core
+        # The bundled Codex searches PATH for bwrap when sandboxing commands.
+        # buildFHSEnv's own bwrap is outside this environment; expose it inside
+        # /usr/bin as well, rather than weakening Codex's sandbox policy.
+        bubblewrap
         cairo
         cups
         dbus
