@@ -121,7 +121,6 @@
     voicePeFirmwareTools
     voicePeHermesBridge
     lazydocker
-    opencode
     android-tools
     yarn
     qemu
@@ -561,7 +560,6 @@
       --checkers=8
   '';
 in {
-  hyprvibe.opencode.enable = true;
   hyprvibe.opencode2Client.enable = true;
   hyprvibe.hypruse.enable = true;
   hyprvibe.herdr = {

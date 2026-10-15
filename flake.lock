@@ -756,6 +756,22 @@
         "type": "github"
       }
     },
+    "opencode-plugin-nixpkgs": {
+      "locked": {
+        "lastModified": 1789684949,
+        "narHash": "sha256-ZKhUe/2IJUq1JhKxKMu8rbkgSGmPP2ZCqlIPn40aGCM=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "e554fab72f81915600f3f449b786fd9af40439a5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "e554fab72f81915600f3f449b786fd9af40439a5",
+        "type": "github"
+      }
+    },
     "pre-commit-hooks": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -862,6 +878,7 @@
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
         "nixpkgsPgsearch": "nixpkgsPgsearch",
+        "opencode-plugin-nixpkgs": "opencode-plugin-nixpkgs",
         "prettyswitch": "prettyswitch",
         "sops-nix": "sops-nix",
         "syncshell-dms": "syncshell-dms"

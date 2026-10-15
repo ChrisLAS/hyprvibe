@@ -1,0 +1,10 @@
+--- a/dist/server.js
++++ b/dist/server.js
+@@ -831,6 +831,8 @@
+     goal.lastStatus = status === "active" ? "Goal resumed." : "Goal paused.";
+     pushHistory(goal, status === "active" ? "resumed" : "paused", goal.lastStatus);
++    if (status === "active")
++      maybeStopForBudget(goal);
+     return snapshot(goal);
+   });
+ }
