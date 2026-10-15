@@ -1,154 +1,31 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
 }: let
   cfg = config.hyprvibe.opencode2Client;
   opencode2 = pkgs.callPackage ../../pkgs/opencode2-beta {};
-  opencodeGoalPlugin = pkgs.callPackage ../../pkgs/opencode-goal-plugin.nix {};
+  pluginPkgs = import inputs.opencode-plugin-nixpkgs { system = pkgs.stdenv.hostPlatform.system; };
+  opencodeGoalPlugin = pluginPkgs.callPackage ../../pkgs/opencode-goal-plugin.nix {};
 
-  credentialSetup = ''
-    secret_file=${lib.escapeShellArg cfg.secretFile}
-    if [ ! -r "$secret_file" ]; then
-      echo "OpenCode 2 server credential is not readable: $secret_file" >&2
-      exit 1
-    fi
-
-    password_lines="$(${pkgs.gnugrep}/bin/grep -c '^OPENCODE_PASSWORD=' "$secret_file" || true)"
-    if [ "$password_lines" -ne 1 ]; then
-      echo "OpenCode 2 server credential must contain exactly one OPENCODE_PASSWORD entry" >&2
-      exit 1
-    fi
-
-    OPENCODE_PASSWORD="$(${pkgs.gnused}/bin/sed -n 's/^OPENCODE_PASSWORD=//p' "$secret_file")"
-    if ! ${pkgs.coreutils}/bin/printf '%s\n' "$OPENCODE_PASSWORD" \
-      | ${pkgs.gnugrep}/bin/grep -Eq '^[[:xdigit:]]{32,}$'; then
-      echo "OpenCode 2 server credential has an unexpected format" >&2
-      exit 1
-    fi
-    export OPENCODE_PASSWORD
-  '';
-
-  opencode2Nomad = pkgs.writeShellScriptBin "opencode2-nomad" ''
-    set -euo pipefail
-    ${credentialSetup}
-
-    project_root=${lib.escapeShellArg cfg.projectRoot}
-    if [ ! -d "$project_root" ]; then
-      echo "OpenCode 2 requires the server project path to exist on the TUI client: $project_root" >&2
-      echo "Create an empty local path mirror; filesystem tools still run on Nomad." >&2
-      exit 1
-    fi
-
-    # OpenCode keys TUI state by the client process working directory. Start in
-    # the canonical mirror so flags such as --auto do not select the caller cwd.
-    cd "$project_root"
-
-    if [ "$#" -eq 0 ]; then
-      set -- "$project_root"
-    fi
-
-    # OpenCode 2.0.20 requires --server after the subcommand.
-    if [ "''${1:-}" = api ]; then
-      command="$1"
-      shift
-      exec ${lib.getExe opencode2} "$command" --server ${lib.escapeShellArg cfg.serverUrl} "$@"
-    fi
-    exec ${lib.getExe opencode2} "$@" --server ${lib.escapeShellArg cfg.serverUrl}
-  '';
-
-  showfactoryCredentialSetup = ''
-    secret_file=${lib.escapeShellArg cfg.showfactorySecretFile}
-    if [ ! -r "$secret_file" ]; then
-      echo "Showfactory OpenCode 2 credential is not readable: $secret_file" >&2
-      echo "Provide OPENCODE_SERVER_PASSWORD in this local secret file." >&2
-      exit 1
-    fi
-
-    password_lines="$( ${pkgs.gnugrep}/bin/grep -c '^OPENCODE_SERVER_PASSWORD=' "$secret_file" || true)"
-    if [ "$password_lines" -ne 1 ]; then
-      echo "Showfactory credential must contain exactly one OPENCODE_SERVER_PASSWORD entry" >&2
-      exit 1
-    fi
-
-    OPENCODE_SERVER_PASSWORD="$( ${pkgs.gnused}/bin/sed -n 's/^OPENCODE_SERVER_PASSWORD=//p' "$secret_file")"
-    if ! ${pkgs.coreutils}/bin/printf '%s\n' "$OPENCODE_SERVER_PASSWORD" \
-      | ${pkgs.gnugrep}/bin/grep -Eq '^[A-Za-z0-9_-]{32,}$'; then
-      echo "Showfactory OpenCode 2 credential has an unexpected format" >&2
-      exit 1
-    fi
-    export OPENCODE_SERVER_PASSWORD
-  '';
-
-  opencode2ShowfactoryHermes = pkgs.writeShellScriptBin "opencode2-showfactory-hermes" ''
-    set -euo pipefail
-    ${credentialSetup}
-
-    project_root=${lib.escapeShellArg cfg.showfactoryProjectRoot}
-    if [ ! -d "$project_root" ]; then
-      echo "OpenCode 2 requires the Showfactory Location mirror on the TUI client: $project_root" >&2
-      exit 1
-    fi
-
-    cd "$project_root"
-    if [ "$#" -eq 0 ]; then
-      set -- "$project_root"
-    fi
-
-    # OpenCode 2.0.20 requires --server after the subcommand.
-    if [ "''${1:-}" = api ]; then
-      command="$1"
-      shift
-      exec ${lib.getExe opencode2} "$command" --server ${lib.escapeShellArg cfg.serverUrl} "$@"
-    fi
-    exec ${lib.getExe opencode2} "$@" --server ${lib.escapeShellArg cfg.serverUrl}
-  '';
-
-  opencode2Showfactory = pkgs.writeShellScriptBin "opencode2-showfactory" ''
-    set -euo pipefail
-    ${showfactoryCredentialSetup}
-
-    project_root=${lib.escapeShellArg cfg.showfactoryProjectRoot}
-    server_project_root=${lib.escapeShellArg cfg.showfactoryServerProjectRoot}
-    if [ ! -d "$project_root" ]; then
-      echo "OpenCode 2 requires the Showfactory Location mirror on the TUI client: $project_root" >&2
-      exit 1
-    fi
-
-    # Keep TUI state in the local mirror while opening the real Showfactory
-    # workspace on its OpenCode 2 backend.
-    cd "$project_root"
-    if [ "$#" -eq 0 ]; then
-      set -- "$server_project_root"
-    fi
-
-    if [ "''${1:-}" = models ]; then
-      # The CLI otherwise sends the local mirror cwd as a server directory,
-      # which does not exist on Showfactory and makes /api/model return 500.
-      shift
-      if [ "$#" -ne 0 ]; then
-        echo "opencode2-showfactory models does not accept extra arguments" >&2
-        exit 2
-      fi
-      ${lib.getExe opencode2} api --server ${lib.escapeShellArg cfg.showfactoryServerUrl} get '/api/model?location%5Bdirectory%5D=%2Fvar%2Flib%2Fhermes%2Fworkspace' \
-        | ${pkgs.jq}/bin/jq -r '.data[] | "\(.providerID)/\(.id)"'
-      exit
-    fi
-
-    # OpenCode 2.0.20 requires --server after the subcommand.
-    if [ "''${1:-}" = api ]; then
-      command="$1"
-      shift
-      exec ${lib.getExe opencode2} "$command" --server ${lib.escapeShellArg cfg.showfactoryServerUrl} "$@"
-    fi
-    exec ${lib.getExe opencode2} "$@" --server ${lib.escapeShellArg cfg.showfactoryServerUrl}
-  '';
-
+  client = name: endpoint: credentials: key: directory:
+    pkgs.writeShellScriptBin name ''
+      exec ${pkgs.python3}/bin/python3 ${../../pkgs/opencode2-client.py} \
+        ${lib.getExe opencode2} ${lib.escapeShellArg endpoint} \
+        ${lib.escapeShellArg credentials} ${lib.escapeShellArg key} \
+        ${lib.escapeShellArg directory} "$@"
+    '';
+  opencode2Nomad = client "opencode2-nomad" cfg.serverUrl cfg.secretFile "OPENCODE_PASSWORD" cfg.projectRoot;
+  opencode2Default = client "opencode2" cfg.serverUrl cfg.secretFile "OPENCODE_PASSWORD" cfg.projectRoot;
+  opencodeAlias = client "opencode" cfg.serverUrl cfg.secretFile "OPENCODE_PASSWORD" cfg.projectRoot;
+  opencode2Showfactory = client "opencode2-showfactory" cfg.showfactoryServerUrl
+    cfg.showfactorySecretFile "OPENCODE_SERVER_PASSWORD" cfg.showfactoryServerProjectRoot;
+  opencode2ShowfactoryHermes = client "opencode2-showfactory-hermes" cfg.serverUrl
+    cfg.secretFile "OPENCODE_PASSWORD" cfg.showfactoryProjectRoot;
   opencode2NomadStatus = pkgs.writeShellScriptBin "opencode2-nomad-status" ''
-    set -euo pipefail
-    ${credentialSetup}
-    exec ${lib.getExe opencode2} api --server ${lib.escapeShellArg cfg.serverUrl} get /api/info
+    exec ${opencode2Nomad}/bin/opencode2-nomad api get /api/info
   '';
 in {
   options.hyprvibe.opencode2Client = {
@@ -198,6 +75,8 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    # V2 clients use backend-owned config; retire the V1 config generator here.
+    hyprvibe.opencode.enable = lib.mkForce false;
     # The Nomad server advertises the TUI entrypoint by its immutable store
     # path. Keep the plugin in every remote client closure so that path exists
     # when the OpenCode TUI loads the server's active plugin list.
@@ -214,6 +93,8 @@ in {
 
     environment.systemPackages = [
       opencode2
+      (lib.hiPrio opencode2Default)
+      (lib.hiPrio opencodeAlias)
       opencode2Nomad
       opencode2Showfactory
       opencode2ShowfactoryHermes

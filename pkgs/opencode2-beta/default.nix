@@ -8,31 +8,34 @@
   source = builtins.fromJSON (builtins.readFile ./source.json);
 in
   stdenvNoCC.mkDerivation {
-    pname = "opencode2-beta";
+    pname = "opencode2";
     inherit (source) version;
 
     src = fetchurl {
       inherit (source) url hash;
     };
-    sourceRoot = "package";
 
+    sourceRoot = "package";
     nativeBuildInputs = [autoPatchelfHook];
     buildInputs = [glibc];
-
     dontBuild = true;
-    # The executable contains an embedded Bun payload after the ELF data.
+
+    # The executable is a Bun standalone binary. Stripping it removes the
+    # appended OpenCode application payload and leaves only the Bun runtime.
     dontStrip = true;
 
     installPhase = ''
       runHook preInstall
-      # Stable V2 ships bin/opencode. Keep the repository's explicit
-      # opencode2 command so OpenCode 1 remains available as opencode.
+      # Upstream names the binary opencode; keep the explicit V2 command.
+      # The host supplies the opencode compatibility launcher.
       install -Dm755 bin/opencode "$out/bin/opencode2"
       runHook postInstall
     '';
 
+    passthru.sourceMetadata = source;
+
     meta = {
-      description = "OpenCode 2 stable CLI";
+      description = "OpenCode 2 stable CLI and server";
       homepage = "https://opencode.ai/v2/docs/";
       license = lib.licenses.mit;
       mainProgram = "opencode2";
