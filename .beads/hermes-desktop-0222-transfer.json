@@ -1,0 +1,49 @@
+{
+  "fleet_id": "5730c24beb1655ed1eab1d7cad1176ef80c95775a51fcbe13bc308b234c82ed6",
+  "candidate_revision": "5438e0b57dad5e320d54d45e181d9be738f5204a",
+  "state": "transfer-outcome-unknown",
+  "path_count_each": 2720,
+  "path_sets_equal": true,
+  "reference_sets_equal": true,
+  "all_differing_paths_already_active": true,
+  "both_stores_content_verification_passed": true,
+  "hermes_desktop_nar_matches": true,
+  "collision_approval_granted": false,
+  "differences": [
+    {
+      "path": "/nix/store/5hf9qmf3bacxggx35ddrlli3virfim9f-gws-0.22.5",
+      "source_hash": "sha256-Ov7f6PG+UxFdOXv49meCEyB2o/bvp6XVTW5Xxby7Un4=",
+      "source_size": 18921960,
+      "destination_hash": "sha256-dVMfYmBsyM+kdNsWGVDmTJNuBJbExwq1OQRR4hYugLU=",
+      "destination_size": 18893568
+    },
+    {
+      "path": "/nix/store/7jrj5b5lafvp1qxpbc7j6qnvawavpvlw-hyprtoolkit-0.6.0",
+      "source_hash": "sha256-EF6JQo0L9vOurZvRXx9Wqh6Huc2NwJDwP4Kq6Plh7og=",
+      "source_size": 2835072,
+      "destination_hash": "sha256-BuivVT4b8wl7Ld8bAPpLTwxL5HN8r0D105+TgOQDEEM=",
+      "destination_size": 2830976
+    },
+    {
+      "path": "/nix/store/hdbhmc96gvhyyz58i7aixzay0nsf6apn-xdg-desktop-portal-hyprland-1.4.1+date=2026-08-29_ba31964",
+      "source_hash": "sha256-rfhIz2smNpXHi1oNO7EdICLvnr6VRBLdCE7HJpOTFfM=",
+      "source_size": 31687688,
+      "destination_hash": "sha256-ROtxT1TvV9do/afI/VzqZRMpwKek6E1s5sHQj6gcbMU=",
+      "destination_size": 31685448
+    },
+    {
+      "path": "/nix/store/mknc6wira8zra3dq2gm6ydbxhmzjdd49-aquamarine-0.15.1+date=2026-09-17_f31c47a",
+      "source_hash": "sha256-YCHcgp0pXl6/6alQOQocCcpEGMG2y85HW9/qJ7x0h6Q=",
+      "source_size": 1965824,
+      "destination_hash": "sha256-zcBbZmL+tItzYz06tBSqJJ8ElVaHm9jIqK/ukaOxUaU=",
+      "destination_size": 1965440
+    },
+    {
+      "path": "/nix/store/x7gpwv1cl53cc7pdj3b025mihdf327c7-hyprutils-0.14.2+date=2026-09-05_a21e87b",
+      "source_hash": "sha256-GVWh5QNVfLzfzJIQNRtD+NtJaaFkGPrxOb7md8b6Mv8=",
+      "source_size": 784592,
+      "destination_hash": "sha256-uMYMIG05twWnWDtfNSQVbskPo4nYx9jknTRyAEUDQ8c=",
+      "destination_size": 784528
+    }
+  ]
+}
