@@ -53,7 +53,8 @@ bootstrap replacement, or issue-history overwrite is authorized or attempted.
   filtered-asset follow-up removes it. Final closure diff changes only Desktop
   0.17.6 -> 0.22.2 and its install stamp, about 7.2 MiB added.
 - Isolated Xvfb launch, close/relaunch, runtime provenance, and the new app's
-  own HTTP+websocket tests passed for both Nomad and Showfactory. Runtime reports
+  own HTTP+websocket tests passed on **both hosts** for both Nomad and
+  Showfactory. Runtime reports
   appVersion/baseVersion 0.22.2, payload light, distribution nix, external update
   ownership. No chats were submitted. The original registry hash was unchanged;
   the temporary app and credential copies were removed.
@@ -66,19 +67,22 @@ bootstrap replacement, or issue-history overwrite is authorized or attempted.
   `/nix/store/w1yd4pzhp0xkflnm57bwacd40k1zkv4v-nixos-system-nixstation-26.11.20260917.e554fab`.
   Exact receipt: `~/.local/state/nixstation-update/validation.json` on Nixstation.
   No boot staging, live switch or reboot was performed.
-- **Nixvader blocked:** its owning main checkout is at initial candidate
-  `5438e0b57dad5e320d54d45e181d9be738f5204a`. The Colony build succeeded but
-  strict destination retention rejected the transfer. The final light/filtered
-  source is published separately at `46d82a6` on
-  `update/hermes-desktop-0.22.2`; it has not been promoted into the blocked
-  owning checkout or submitted as a new job to evade the gate.
+- **Nixvader complete for preparation:** after explicit operator route approval,
+  candidate `7aca66a4b505fbdf7ac2290a0dfc69b9a4467052` passed
+  `nixvader-update validate --local` and was published on owning `main`.
+  Retained output:
+  `/nix/store/b5bd9aq53knjzzlkcdr9i2skwy66l622-nixos-system-nixvader-26.11.20260917.e554fab`.
+  Exact receipt: `~/.local/state/nixvader-update/validation.json` on Nixvader.
+  Its package and full 2,720-path host closure/launcher checks passed. The older
+  Colony build/transfer receipt below remains unresolved history; it was not
+  reconciled, retried, accepted, or silently re-keyed.
 - These evidence-note changes are on preparation branches only. They do not
-  replace Nixstation's exact validated/published deployment candidate above.
+  replace either exact validated/published deployment candidate above.
 - Both running clients remain 0.17.6. Nixstation's active system remains `gyxvsnd`;
   Nixvader's remains `7xq8ajs`. Their pre-existing booted/active differences were
   not changed or treated as permission to activate.
 
-## Nixvader transfer blocker / next executable action
+## Preserved Nixvader Colony transfer limitation
 
 - Fleet: `5730c24beb1655ed1eab1d7cad1176ef80c95775a51fcbe13bc308b234c82ed6`.
   Job: `16dd90c767c8483d079b8c3039f3019dc6166e8b338368f6638c174ca6f1b463`.
@@ -95,9 +99,22 @@ bootstrap replacement, or issue-history overwrite is authorized or attempted.
 - No reconciliation, collision exception, copy retry, staging, or activation
   was attempted. Prior collision approvals do
   not apply to this fleet. Do not waive verification or change request IDs.
-- Chris approved owner-local validation for the final source, preserving the
-  blocked Colony receipt as unresolved history. Next: archive the owning
-  wrapper's old source/validation/result JSON receipts, fast-forward the clean
-  owning main checkout to this final published source, and use
-  `nixvader-update validate --local`. A different route requires its own exact
-  approval and must retain all current verification boundaries.
+- Chris approved owner-local validation for the final source. Old wrapper JSON
+  receipts were archived on Nixvader under
+  `~/.local/state/nixvader-update/hermes-0222-colony-blocked-5438e0b/`, then the
+  clean owning main checkout was fast-forwarded and local validation succeeded.
+  Neither global build routing nor verification policy changed.
+
+## Remaining / next executable action
+
+Preparation and validation are complete for both desktops. Await separate
+deployment approval; nothing has been boot-staged, activated, or rebooted. If
+boot staging is approved later, use the exact validated owning revisions and
+matching **local** route receipts (`boot --local` on Nixvader; owner-local default
+on Nixstation). Do not use a Colony transfer receipt or silently change routes.
+
+Nixvader's GitHub helper points at a garbage-collected gh 2.97 store path. The
+guided push succeeded using a command-scoped Git helper override to the already
+installed `/run/current-system/sw/bin/gh`, reusing existing scoped credentials.
+No credential, login, or persistent Git configuration was changed. Durable repair
+of that unrelated user Git helper is follow-up work, not a Hermes prerequisite.
