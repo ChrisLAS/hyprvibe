@@ -90,6 +90,14 @@
         echo "This Hermes Desktop installation is configured for a remote backend." >&2
         exit 1
       '';
+      hermesSourcePath = /. + hermes-agent.outPath;
+      hermesDesktopIcons = final.lib.fileset.toSource {
+        root = hermesSourcePath;
+        fileset = final.lib.fileset.unions [
+          (hermesSourcePath + "/apps/desktop/assets/icon.png")
+          (hermesSourcePath + "/apps/desktop/public")
+        ];
+      };
       # Desktop needs provenance, not upstream's local Python/pm runtime.
       # Mark Nix as the update owner and keep the actual locked source identity.
       hermesDesktopStamp = final.writeText "hermes-desktop-install-stamp.json" (builtins.toJSON {
@@ -118,7 +126,7 @@
         };
         hermesAgent = hermesLocalStub;
         installStampFile = hermesDesktopStamp;
-        generatedIcons = hermes-agent;
+        generatedIcons = hermesDesktopIcons;
         python3 = final.python3;
       };
     in {
