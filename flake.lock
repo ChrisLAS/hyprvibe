@@ -301,7 +301,6 @@
         "owner": "NousResearch",
         "ref": "v0.22.2",
         "repo": "hermes-agent",
-        "rev": "749220ef0007f8d87bd1531f1c24b0fe93816385",
         "type": "github"
       }
     },
