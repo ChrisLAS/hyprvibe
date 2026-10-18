@@ -29,7 +29,6 @@ The client configuration is in the `hyprvibe` flake:
 
 ```text
 flake.nix
-patches/hermes-bot-profile-routing.patch
 pkgs/hermes-desktop-nomad.nix
 hosts/nixvader/system.nix
 hosts/nixstation/system.nix
@@ -42,18 +41,24 @@ host.
 
 ## Package Design
 
-The root `flake.lock` pins the `hermes-agent` input. The shared
-`hermesAgentOverlay` selects upstream `minimal.hermesDesktop`, not the full
-`desktop` package. Upstream's desktop wrapper still embeds the full local agent
-as a fallback, so the overlay replaces that one fallback executable with a
-failing explanatory stub and removes only the local-agent derivation from the
-Nix string context. This keeps the Electron renderer and its build inputs while
-excluding `hermes-agent-env`, `hermes-tui`, and `hermes-web`.
+The root `flake.nix` selects the stable `v0.22.2` release; `flake.lock` records
+its exact commit. The shared `hermesAgentOverlay` derives upstream
+`minimal.hermesDesktop`, not the full `desktop` package, and overrides its
+supported `hermesAgent` argument with a failing explanatory stub. It does not
+edit bundled JavaScript or discard Nix string context.
 
-Hermes Desktop 0.17.6 routes active-gateway profile requests through the active
-connection and provides multi-source roster routing upstream. The local routing
-patch was retired at this pin. Keep the Desktop pin aligned with the Nomad Hermes
-backend when reviewing gateway behavior.
+The Desktop-only schema-v2 install stamp records the actual release and locked
+commit, with `updateMechanism = "external"`. It deliberately omits the upstream
+local `pmRuntime` reference. The build consumes this release's committed icon
+assets rather than building the full agent Python environment just to render
+icons. The renderer and Electron remain; `hermes-agent-env`, the local agent,
+`hermes-tui`, `hermes-web`, and the Hermes package-manager runtime must not be in
+the realized client closure. Upstream now uses `electron.headers`, so the old
+fixed Electron-header hash patch is retired.
+
+Active-gateway and multi-source roster routing are upstream-owned. Keep
+Nomad/Showfactory compatibility checks alongside each Desktop upgrade; a current
+Desktop release does not implicitly authorize upgrading either backend.
 
 The wrapper in `pkgs/hermes-desktop-nomad.nix`:
 
@@ -103,9 +108,10 @@ The current non-secret connection inventory is:
 
 Use Showfactory's Tailscale IP until its Hermes dashboard host allowlist accepts
 `showfactory.coin-noodlefish.ts.net`; the hostname currently returns HTTP 400.
-Nomad's hostname is accepted. Both gateways run Hermes `0.20.5` at the time of
-this record, while the packaged Desktop is `0.17.0`; verify current pinned and
-live versions rather than assuming those numbers remain current.
+Nomad's hostname is accepted. At the 2026-10-17 audit both live clients were
+`0.17.6`; both backends reported `0.0.0` through `/api/status`, which is not a
+reliable release identifier for those Nix packages. Verify source pins and
+provenance rather than treating that label or its update link as authoritative.
 
 Desktop sends the saved credential as `X-Hermes-Session-Token` for REST and as
 the websocket token for `/api/ws`. Nomad has a stable dashboard session token.
@@ -200,10 +206,25 @@ HTTP status and unset the variable immediately. Expected status is `200`.
 Check `backend-ownership.json` as well: an empty `backends` array is expected on
 a remote-only client and proves `This device` has no local runtime owner.
 
+The repeatable, secret-free packaging check is:
+
+```bash
+python3 scripts/check-hermes-desktop.py --host nixstation
+python3 scripts/check-hermes-desktop.py --host nixstation --package /nix/store/...-hermes-desktop-0.22.2 --system /nix/store/...-nixos-system-nixstation-...
+# Repeat with --host nixvader and that host's exact retained outputs.
+```
+
+Without outputs it checks release/recipe consistency. With built outputs it
+checks provenance, external update ownership, the failing local stub, app icon,
+native Electron module, forbidden runtime closure members, and the immutable
+remote launcher/desktop entry. It neither launches Desktop nor reads secrets.
+
 ## Install, Activation, And Upgrade
 
 1. Read `AGENTS.md`, this document, and the host file before changing a client.
-2. Update the pinned input deliberately with `nix flake update hermes-agent`.
+2. Review the latest stable release, change the explicit release tag in
+   `flake.nix` and the overlay's `desktopVersion` together, then run
+   `nix flake update hermes-agent`. Do not silently follow upstream `main`.
 3. Build the specific client toplevel and inspect its closure.
 4. Stage the generation with `sudo nixos-rebuild boot --flake .#<host>`.
 5. Reboot only after the operator approves the live interruption.
@@ -211,6 +232,12 @@ a remote-only client and proves `This device` has no local runtime owner.
 7. Confirm there is no launch-time `nix` process and inspect the launcher log.
 8. Confirm both Nomad and Showfactory still return authenticated HTTP 200 and
    open `/api/ws`; then switch between them in the UI.
+
+Preparation/build validation is not deployment approval. Keep the Nixstation
+rollout branch and Nixvader main branch distinct; never merge their unrelated
+host configuration differences just to share this upgrade. Use each owning
+host's guided validation route (Nixstation owner-local, Nixvader Colony) before
+separately approved boot staging, live activation, or reboot.
 
 If an upstream revision changes the desktop package shape, update the overlay
 and this validation before deploying it to either client. Do not restore the

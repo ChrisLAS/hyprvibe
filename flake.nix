@@ -53,7 +53,7 @@
 
     # Hermes Desktop is built during nixos-rebuild instead of at launch.
     hermes-agent = {
-      url = "github:NousResearch/hermes-agent/749220ef0007f8d87bd1531f1c24b0fe93816385";
+      url = "github:NousResearch/hermes-agent/v0.22.2";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -80,46 +80,47 @@
       ];
     };
     hermesAgentOverlay = final: prev: let
-      hermesSource = final.applyPatches {
-        src = hermes-agent;
-        name = "hermes-agent-electron-headers-fixed";
-        patches = [
-          ./patches/hermes-electron-headers.patch
-        ];
-      };
+      desktopVersion = "0.22.2";
       hermesMinimal =
         (builtins.getAttr prev.stdenv.hostPlatform.system hermes-agent.packages).minimal.override {
-          callPackage = path: args:
-            if builtins.baseNameOf (toString path) == "desktop.nix" then
-              final.callPackage (hermesSource + "/nix/desktop.nix") args
-            else
-              final.callPackage path args;
+          # Preserve each owning host's reviewed Node/native dependency overlays.
+          callPackage = final.callPackage;
         };
       hermesLocalStub = final.writeShellScriptBin "hermes" ''
         echo "This Hermes Desktop installation is configured for a remote backend." >&2
         exit 1
       '';
-      # Upstream retains its local agent through the desktop wrapper's fallback.
-      # Replace only that reference while preserving the renderer dependencies.
-      hermesDesktop = hermesMinimal.hermesDesktop.overrideAttrs (old: {
-        installPhase = let
-          original = old.installPhase;
-          replaced = builtins.replaceStrings
-            [(final.lib.getExe hermesMinimal)]
-            [(final.lib.getExe hermesLocalStub)]
-            original;
-          context = removeAttrs (builtins.getContext original) [
-            (builtins.unsafeDiscardStringContext hermesMinimal.drvPath)
-          ];
-        in
-          builtins.appendContext (builtins.unsafeDiscardStringContext replaced) context;
-        postInstall = (old.postInstall or "") + ''
-          sed -i "s|^export HERMES_DESKTOP_HERMES=.*|export HERMES_DESKTOP_HERMES='${final.lib.getExe hermesLocalStub}'|" "$out/bin/hermes-desktop"
-          chmod u+w "$out/share/hermes-desktop/dist/electron-main.mjs"
-          chmod u+w "$out/share/hermes-desktop/dist"
-          sed -i 's#if (opts.globalRemote || opts.profileRemoteOverride)#if (opts.profileRemoteOverride)#' "$out/share/hermes-desktop/dist/electron-main.mjs"
-        '';
+      # Desktop needs provenance, not upstream's local Python/pm runtime.
+      # Mark Nix as the update owner and keep the actual locked source identity.
+      hermesDesktopStamp = final.writeText "hermes-desktop-install-stamp.json" (builtins.toJSON {
+        schemaVersion = 2;
+        commit = hermes-agent.rev;
+        commitDate = hermes-agent.lastModified;
+        branch = null;
+        dirty = false;
+        builtAt = null;
+        baseVersion = desktopVersion;
+        displayVersion = desktopVersion;
+        distance = 0;
+        source = "nix";
+        distribution = "nix";
+        updateMechanism = "external";
+        payload = "bootstrap";
+        tag = "v${desktopVersion}";
       });
+      # Use upstream's supported arguments rather than editing generated JS or
+      # discarding Nix string context. This release tracks its generated icons;
+      # consuming those avoids building the full agent venv just to render art.
+      hermesDesktop = hermesMinimal.hermesDesktop.override {
+        hermesNpmLib = hermesMinimal.hermesNpmLib // {
+          buildNpmPackage = attrs:
+            hermesMinimal.hermesNpmLib.buildNpmPackage (attrs // {version = desktopVersion;});
+        };
+        hermesAgent = hermesLocalStub;
+        installStampFile = hermesDesktopStamp;
+        generatedIcons = hermes-agent;
+        python3 = final.python3;
+      };
     in {
       hermes-desktop = hermesDesktop;
     };
