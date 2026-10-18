@@ -8,6 +8,12 @@ scope; boot staging, live activation, reboots, backend upgrades, credential
 changes, and chat submissions are not. Preserve the two owning branches and all
 unrelated work. Nomad and Showfactory remain the configured remote backends.
 
+Subsequent explicit approval: Chris answered **Yes** to staging both validated
+upgrades for the next reboot, starting with Nixstation. Boot staging of the
+exact published/validated local outputs is now authorized; live switching,
+reboots, backend changes, and credential changes remain out of scope. Stage and
+verify Nixstation first, then Nixvader, using each matching local-route receipt.
+
 After inspection of the exact five-path Colony transfer mismatch, Chris
 explicitly selected **Local validation (Recommended)** for Nixvader. This grants
 an owner-local build/validation of the final source only, not collision
@@ -107,11 +113,13 @@ bootstrap replacement, or issue-history overwrite is authorized or attempted.
 
 ## Remaining / next executable action
 
-Preparation and validation are complete for both desktops. Await separate
-deployment approval; nothing has been boot-staged, activated, or rebooted. If
-boot staging is approved later, use the exact validated owning revisions and
-matching **local** route receipts (`boot --local` on Nixvader; owner-local default
-on Nixstation). Do not use a Colony transfer receipt or silently change routes.
+Preparation and validation are complete for both desktops. Chris approved next-
+boot staging only. Next: recheck exact owning source/publication, validation and
+local build receipts, record the live/booted/profile baseline, then run and
+verify `nixstation-update boot --local` followed by `nixvader-update boot --local`.
+Use only the exact validated owning revisions; do not promote these evidence-
+note commits into either owning checkout. Do not use a Colony transfer receipt,
+silently change routes, replay an uncertain stage, live-switch, or reboot.
 
 Nixvader's GitHub helper points at a garbage-collected gh 2.97 store path. The
 guided push succeeded using a command-scoped Git helper override to the already
