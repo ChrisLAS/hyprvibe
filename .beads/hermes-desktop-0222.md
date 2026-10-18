@@ -79,7 +79,7 @@ bootstrap replacement, or issue-history overwrite is authorized or attempted.
   host preflight, boot assets and context hashes verified. System profile now
   selects the candidate; active and booted systems match the recorded baseline.
   `live_activation_performed=false`. No live switch or reboot occurred.
-- **Nixvader complete for preparation:** after explicit operator route approval,
+- **Nixvader validated and boot-staged:** after explicit operator route approval,
   candidate `7aca66a4b505fbdf7ac2290a0dfc69b9a4467052` passed
   `nixvader-update validate --local` and was published on owning `main`.
   Retained output:
@@ -88,6 +88,13 @@ bootstrap replacement, or issue-history overwrite is authorized or attempted.
   Its package and full 2,720-path host closure/launcher checks passed. The older
   Colony build/transfer receipt below remains unresolved history; it was not
   reconciled, retried, accepted, or silently re-keyed.
+  Approved `nixvader-update boot --local` completed with fleet
+  `cd6bfa74dc0fad35193be1cccdcfb25c1efe7a22b5e9fa4392a448ed0de702a0`, child
+  `345834142bafc09951c442f004fc8343046fc603920f5b997b3caa447dacfc98`.
+  Exported request/transaction both say `boot-staged`; exact source/output,
+  host preflight, boot assets and context hashes verified. System profile now
+  selects the candidate; active and booted systems match the recorded baseline.
+  `live_activation_performed=false`. No live switch or reboot occurred.
 - These evidence-note changes are on preparation branches only. They do not
   replace either exact validated/published deployment candidate above.
 - Both running clients remain 0.17.6. Nixstation's active system remains `gyxvsnd`;
@@ -119,17 +126,20 @@ bootstrap replacement, or issue-history overwrite is authorized or attempted.
 
 ## Remaining / next executable action
 
-Preparation and validation are complete for both desktops. Approved Nixstation
-boot staging is verified. Nixvader staging has been started with
-`nixvader-update boot --local`; follow its existing worker receipt rather than
-replaying it. Log on Nomad:
-`/tmp/opencode/hermes-desktop-0222-nixvader-boot-stage.log`.
-Next: verify Nixvader's exact stage request/transaction, boot assets, candidate
-system profile and unchanged active/booted baseline. Both hosts' baselines are
-at `/tmp/opencode/hermes-desktop-0222-stage-baseline.json` on their own host.
-Do not promote these evidence-note commits into either owning checkout, use a
-Colony transfer receipt, silently change routes, replay an uncertain stage,
-live-switch, or reboot.
+Preparation, validation, and approved next-boot staging are complete for both
+desktops, in the requested order. Each host's system profile selects its exact
+validated 0.22.2 candidate, and both boot-asset checks passed. Both active and
+booted systems remain unchanged; live activation and reboot remain unauthorized.
+Both hosts' baseline and selected verification evidence are at
+`/tmp/opencode/hermes-desktop-0222-stage-{baseline,verified}.json` on their own host.
+Nomad logs are `/tmp/opencode/hermes-desktop-0222-{nixstation,nixvader}-boot-stage.log`.
+
+Next only after separately authorized host restarts: run each owning wrapper's
+health check, confirm `/run/current-system` and `/run/booted-system` match that
+host's candidate, and verify normal graphical launch/backends. Do not promote
+these evidence-note commits into either owning checkout, use the old Colony
+transfer receipt, silently change routes, replay stage workers, live-switch, or
+reboot without that approval.
 
 Nixvader's GitHub helper points at a garbage-collected gh 2.97 store path. The
 guided push succeeded using a command-scoped Git helper override to the already
