@@ -21,9 +21,11 @@ That pulls every optional Python integration into the closure and currently
 hits upstream Python packaging failures that are irrelevant to remote mode.
 
 Nixvader derives the Electron application from `minimal.hermesDesktop`, then
-replaces the local-agent fallback with a small explanatory stub. The override
-removes only the agent derivation from the install phase's Nix string context;
-the renderer, Electron, icon, and desktop-entry references remain intact.
+passes a small explanatory stub through upstream's `hermesAgent` argument.
+The Desktop-only provenance stamp records the locked release and external Nix
+update ownership without retaining the local Python/package-manager runtime.
+The release's committed icon assets avoid building the full agent environment
+for icon generation. No bundled JavaScript or Nix string context is rewritten.
 
 The expected closure contains `hermes-desktop-renderer`, `hermes-desktop`, and
 Electron. It must not contain `hermes-agent-env`, `hermes-tui`, or `hermes-web`.
@@ -39,6 +41,8 @@ After reboot, launch, close, and relaunch Hermes Desktop from Vicinae. Both
 launches should start immediately without a `nix` process. Runtime diagnostics
 remain in `~/.cache/hermes-desktop-remote/launcher.log`.
 
-Update Hermes deliberately with `nix flake update hermes-agent`, rebuild, and
-repeat the closure and launch tests. Do not replace the locked input with an
-unpinned launcher command.
+Review and update the explicit stable tag and `desktopVersion` in `flake.nix`
+together, then run `nix flake update hermes-agent`, rebuild, and repeat the
+closure and launch tests. `scripts/check-hermes-desktop.py` checks the recipe
+and optionally the exact built package/system without touching credentials.
+Do not replace the locked input with an unpinned launcher command.
