@@ -90,13 +90,17 @@
         echo "This Hermes Desktop installation is configured for a remote backend." >&2
         exit 1
       '';
-      hermesSourcePath = /. + hermes-agent.outPath;
-      hermesDesktopIcons = final.lib.fileset.toSource {
-        root = hermesSourcePath;
-        fileset = final.lib.fileset.unions [
-          (hermesSourcePath + "/apps/desktop/assets/icon.png")
-          (hermesSourcePath + "/apps/desktop/public")
-        ];
+      hermesDesktopIcons = final.lib.cleanSourceWith {
+        name = "hermes-desktop-icons";
+        src = hermes-agent;
+        filter = path: _type: let
+          source = toString hermes-agent;
+          relative = final.lib.removePrefix "${source}/" (toString path);
+        in
+          toString path == source
+          || builtins.elem relative ["apps" "apps/desktop" "apps/desktop/assets" "apps/desktop/assets/icon.png"]
+          || relative == "apps/desktop/public"
+          || final.lib.hasPrefix "apps/desktop/public/" relative;
       };
       # Desktop needs provenance, not upstream's local Python/pm runtime.
       # Mark Nix as the update owner and keep the actual locked source identity.
