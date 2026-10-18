@@ -8,6 +8,11 @@ scope; boot staging, live activation, reboots, backend upgrades, credential
 changes, and chat submissions are not. Preserve the two owning branches and all
 unrelated work. Nomad and Showfactory remain the configured remote backends.
 
+After inspection of the exact five-path Colony transfer mismatch, Chris
+explicitly selected **Local validation (Recommended)** for Nixvader. This grants
+an owner-local build/validation of the final source only, not collision
+acceptance, reconciliation of the old receipt, staging, activation, or reboot.
+
 This is a supplemental note in the existing Beads directory, not a replacement
 tracker. Installed `bd` cannot read/write this shared schema (v32 vs v66;
 `leases` table missing). `bd list` and `bd dolt pull` refuse; no migration,
@@ -87,12 +92,12 @@ bootstrap replacement, or issue-history overwrite is authorized or attempted.
   xdg-desktop-portal-hyprland, aquamarine, hyprutils. All five passed
   `nix store verify --no-trust` on both stores. The transferred Hermes Desktop
   itself has matching NAR hashes. Exact fingerprints are in the companion JSON.
-- No reconciliation, collision exception, copy retry, local fallback, staging,
-  activation, or replacement build was attempted. Prior collision approvals do
+- No reconciliation, collision exception, copy retry, staging, or activation
+  was attempted. Prior collision approvals do
   not apply to this fleet. Do not waive verification or change request IDs.
-- Ask Chris for the route decision. Recommended: explicitly authorize Nixvader
-  owner-local validation for the final source, preserving the blocked Colony
-  receipt as unresolved history. Only after that approval, fast-forward the
-  clean owning main checkout to the final published source and use
+- Chris approved owner-local validation for the final source, preserving the
+  blocked Colony receipt as unresolved history. Next: archive the owning
+  wrapper's old source/validation/result JSON receipts, fast-forward the clean
+  owning main checkout to this final published source, and use
   `nixvader-update validate --local`. A different route requires its own exact
   approval and must retain all current verification boundaries.
