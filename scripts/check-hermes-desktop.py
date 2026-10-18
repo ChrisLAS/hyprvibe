@@ -51,6 +51,9 @@ def main():
     if args.package:
         package = args.package.resolve(strict=True)
         closure = check_closure(package)
+        source_info = json.loads(run("nix", "flake", "metadata", "--json", "--no-update-lock-file",
+                                     "--no-write-lock-file", f"github:NousResearch/hermes-agent/{lock['locked']['rev']}"))
+        require(source_info["path"] not in closure, "Desktop retains the entire upstream source tree")
         stamp = json.loads((package / "share/hermes-desktop/install-stamp.json").read_text())
         for name, expected in {
             "commit": lock["locked"]["rev"], "baseVersion": version,
