@@ -30,19 +30,69 @@ bootstrap replacement, or issue-history overwrite is authorized or attempted.
   `d923a5eb487a17c0a68801bba9ef0f56c81040a8`; only the Hermes lock node changes.
 - Replace the obsolete Electron-header patch and generated-JS/string-context
   edits with supported Desktop arguments. Explicit local backend stub,
-  Desktop-only external-update stamp, and committed release icons exclude the
-  local agent and pm runtime. Keep the owning package set's Node overlays.
+  Desktop-only external-update `payload=light` stamp, and filtered committed
+  release icons exclude the local agent, pm runtime, and full upstream source.
+  Keep the owning package set's Node overlays.
 - Both NixOS assertion evaluations returned an empty failure list.
-- Recipe checks and Python syntax check passed; built closure/native-module
-  checks and full owning-host builds remain required.
+- Recipe checks and Python syntax check passed. The final package shared by
+  both host recipes is
+  `/nix/store/z03ydsaxb3y6h4kiv445d2q6awpks1cj-hermes-desktop-0.22.2`.
+  Nixstation's realized package/provenance/stub/native-module/closure checks
+  passed (319 paths); its full host closure/launcher checks passed (3,441 paths).
 - An exploratory package build from main was interrupted deliberately: it used
   the upstream package set instead of the owning Node overlay. Retain its log at
   `/tmp/opencode/hermes-desktop-0222-package-build.log`; do not reuse its output
   as validation of the corrected candidate.
+- Initial full Nixstation builds passed. Closure inspection then found the
+  entire 209 MiB upstream source retained through icon build receipts; the
+  filtered-asset follow-up removes it. Final closure diff changes only Desktop
+  0.17.6 -> 0.22.2 and its install stamp, about 7.2 MiB added.
+- Isolated Xvfb launch, close/relaunch, runtime provenance, and the new app's
+  own HTTP+websocket tests passed for both Nomad and Showfactory. Runtime reports
+  appVersion/baseVersion 0.22.2, payload light, distribution nix, external update
+  ownership. No chats were submitted. The original registry hash was unchanged;
+  the temporary app and credential copies were removed.
 
-## Active / next executable work
+## Exact source and validation state
 
-Build the corrected package on Nixstation using the rollout branch's reviewed
-Node overlay. Run `scripts/check-hermes-desktop.py` against the realized package;
-validate both exact host candidates with their guided build routes, inspect
-closures, and publish source branches. No running app/system has been upgraded.
+- **Nixstation complete for preparation:** candidate
+  `da7f564f0bb8f20ada42072404201d487a0d8f12`, validated through the guided
+  owner-local route, published on `rollout/opencode2-nixstation`. Retained output:
+  `/nix/store/w1yd4pzhp0xkflnm57bwacd40k1zkv4v-nixos-system-nixstation-26.11.20260917.e554fab`.
+  Exact receipt: `~/.local/state/nixstation-update/validation.json` on Nixstation.
+  No boot staging, live switch or reboot was performed.
+- **Nixvader blocked:** its owning main checkout is at initial candidate
+  `5438e0b57dad5e320d54d45e181d9be738f5204a`. The Colony build succeeded but
+  strict destination retention rejected the transfer. The final light/filtered
+  source is published separately at `46d82a6` on
+  `update/hermes-desktop-0.22.2`; it has not been promoted into the blocked
+  owning checkout or submitted as a new job to evade the gate.
+- These evidence-note changes are on preparation branches only. They do not
+  replace Nixstation's exact validated/published deployment candidate above.
+- Both running clients remain 0.17.6. Nixstation's active system remains `gyxvsnd`;
+  Nixvader's remains `7xq8ajs`. Their pre-existing booted/active differences were
+  not changed or treated as permission to activate.
+
+## Nixvader transfer blocker / next executable action
+
+- Fleet: `5730c24beb1655ed1eab1d7cad1176ef80c95775a51fcbe13bc308b234c82ed6`.
+  Job: `16dd90c767c8483d079b8c3039f3019dc6166e8b338368f6638c174ca6f1b463`.
+  Attempt: `e040128bbf3043a8b0cc12a0155f0322`.
+  Transfer child: `17f7eeacff1259dc440412ab3e8bb5ceaa85673caae597a9d5e6cee5ce922c0b`.
+- Output: `/nix/store/l589chr23fn80krnynmh1mj6bhfn2j4v-nixos-system-nixvader-26.11.20260917.e554fab`.
+  Worker failed with `destination closure differs before retention`; fleet state
+  remains `transfer-outcome-unknown`, build verified, transfer not verified.
+- Source and destination have the same 2,720 paths and reference sets. Five
+  pre-existing active paths differ in NAR hash/size: gws, hyprtoolkit,
+  xdg-desktop-portal-hyprland, aquamarine, hyprutils. All five passed
+  `nix store verify --no-trust` on both stores. The transferred Hermes Desktop
+  itself has matching NAR hashes. Exact fingerprints are in the companion JSON.
+- No reconciliation, collision exception, copy retry, local fallback, staging,
+  activation, or replacement build was attempted. Prior collision approvals do
+  not apply to this fleet. Do not waive verification or change request IDs.
+- Ask Chris for the route decision. Recommended: explicitly authorize Nixvader
+  owner-local validation for the final source, preserving the blocked Colony
+  receipt as unresolved history. Only after that approval, fast-forward the
+  clean owning main checkout to the final published source and use
+  `nixvader-update validate --local`. A different route requires its own exact
+  approval and must retain all current verification boundaries.
