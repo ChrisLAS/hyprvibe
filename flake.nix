@@ -117,7 +117,7 @@
         source = "nix";
         distribution = "nix";
         updateMechanism = "external";
-        payload = "bootstrap";
+        payload = "light";
         tag = "v${desktopVersion}";
       });
       # Use upstream's supported arguments rather than editing generated JS or

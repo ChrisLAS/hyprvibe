@@ -48,7 +48,8 @@ supported `hermesAgent` argument with a failing explanatory stub. It does not
 edit bundled JavaScript or discard Nix string context.
 
 The Desktop-only schema-v2 install stamp records the actual release and locked
-commit, with `updateMechanism = "external"`. It deliberately omits the upstream
+commit, with `updateMechanism = "external"` and upstream's remote-only
+`payload = "light"` artifact kind (not a local-bootstrap artifact). It deliberately omits the upstream
 local `pmRuntime` reference. The build consumes this release's committed icon
 assets rather than building the full agent Python environment just to render
 icons. The renderer and Electron remain; `hermes-agent-env`, the local agent,

@@ -59,6 +59,7 @@ def main():
             "commit": lock["locked"]["rev"], "baseVersion": version,
             "displayVersion": version, "tag": tag, "distribution": "nix",
             "updateMechanism": "external", "dirty": False,
+            "payload": "light",
         }.items():
             require(stamp.get(name) == expected, f"Incorrect install-stamp {name}")
         require(not stamp.get("pmRuntime"), "Desktop stamp retains a local package-manager runtime")
