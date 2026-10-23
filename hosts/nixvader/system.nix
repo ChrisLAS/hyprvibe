@@ -305,6 +305,9 @@ in {
     nixPath = ["nixpkgs=${pkgs.path}"];
   };
   nixpkgs.config.allowUnfree = true;
+
+  # Steam client and required NixOS runtime integration.
+  programs.steam.enable = true;
   time.timeZone = "America/Los_Angeles";
 
   # Automatic boot-time updates from Hyprvibe main, no auto-reboot.
