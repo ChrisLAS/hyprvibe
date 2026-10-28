@@ -46,7 +46,7 @@ in
         "dms"
       ];
       default = "legacy";
-      description = "Desktop shell started with Hyprland. The legacy backend uses Waybar and SwayNC; dms uses DankMaterialShell.";
+      description = "Desktop shell started with Hyprland: Waybar or DankMaterialShell. Notifications are independently managed by Hokum.";
     };
     monitorsFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;

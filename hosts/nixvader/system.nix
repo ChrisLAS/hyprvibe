@@ -111,7 +111,6 @@ in {
       wlogout
       swappy
       qalculate-gtk
-      swaynotificationcenter
       autorestic
       restique
       trayscale

@@ -1,0 +1,14 @@
+{
+  "id": "hokum",
+  "name": "Hokum Notifications",
+  "description": "Hokum settings and Do not disturb (right click).",
+  "version": "1.0.0",
+  "author": "Chris Fisher",
+  "type": "widget",
+  "capabilities": ["dankbar-widget"],
+  "component": "./HokumWidget.qml",
+  "icon": "notifications",
+  "requires_dms": ">=1.5.0",
+  "requires": ["hokum"],
+  "permissions": []
+}

@@ -1,3 +1,6 @@
 
 # Use bd merge for beads JSONL files
 .beads/issues.jsonl merge=beads
+
+# Unified-diff blank context lines require their single prefix space.
+patches/dms-external-notifications.patch whitespace=-blank-at-eol

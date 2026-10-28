@@ -9,7 +9,9 @@ let
     Super+T       Shell theme settings
     Super+Shift+G Toggle animations
     Super+Alt+O   Toggle blur
-    Super+Shift+N Notification center
+    Super+Shift+N Hokum notification settings
+    Super+Alt+N   Dismiss newest notification
+    Super+Ctrl+N  Toggle notification Do not disturb
     Ctrl+Alt+P    Power menu
     Super+Alt+C   Calculator
     Super+Alt+V   Clipboard history
@@ -74,7 +76,6 @@ let
       dms)
         systemctl --user stop 'nixvader-legacy-*' >/dev/null 2>&1 || true
         pkill -x waybar 2>/dev/null || true
-        pkill -x swaync 2>/dev/null || true
         pkill -x hypridle 2>/dev/null || true
         systemctl --user stop hyprvibe-hyprpaper.service >/dev/null 2>&1 || true
         systemctl --user restart dms.service
@@ -84,11 +85,10 @@ let
         systemctl --user stop dms.service >/dev/null 2>&1 || true
         systemctl --user start hyprvibe-hyprpaper.service >/dev/null 2>&1 || true
         start_unit nixvader-legacy-waybar ${pkgs.waybar}/bin/waybar
-        start_unit nixvader-legacy-swaync ${pkgs.swaynotificationcenter}/bin/swaync
         start_unit nixvader-legacy-hypridle ${pkgs.hypridle}/bin/hypridle
         start_unit nixvader-legacy-clipboard ${pkgs.bash}/bin/bash -lc '${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store'
         start_unit nixvader-legacy-clipboard-persist ${pkgs.wl-clip-persist}/bin/wl-clip-persist --clipboard regular
-        echo "Legacy Waybar/SwayNC shell started for this session. Run 'nixvader-shell dms' to return."
+        echo "Legacy Waybar shell started; Hokum still handles notifications. Run 'nixvader-shell dms' to return."
         ;;
       status)
         systemctl --user --no-pager --full status dms.service || true
@@ -111,6 +111,5 @@ in
     pkgs.wlogout
     pkgs.swappy
     pkgs.qalculate-gtk
-    pkgs.swaynotificationcenter
   ];
 }

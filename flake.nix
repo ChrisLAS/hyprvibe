@@ -181,6 +181,7 @@
     in {
       steam-fhs-rootfs-acceptance = steamFhsRootfsAcceptance;
       gogcli = pkgs.gogcli;
+      hokum = pkgs.callPackage ./pkgs/hokum.nix { };
       gws = pkgs.gws;
       chatgpt-desktop = pkgs.callPackage ./pkgs/chatgpt-desktop.nix {};
       voice-pe-firmware-tools = pkgs.callPackage ./pkgs/voice-pe-firmware-tools.nix {};
