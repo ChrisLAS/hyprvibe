@@ -281,7 +281,7 @@
     git-annex-remote-rclone
     usbmuxd
     magic-wormhole
-    adb-sync
+    better-adb-sync
     nextcloud-client
     gnome-firmware
     usbutils
@@ -716,7 +716,7 @@ in {
   # Nix settings - PRESERVING YOUR EXISTING CONFIG
   nix.settings = {
     download-buffer-size = 512000000;
-    experimental-features = "nix-command flakes";
+    experimental-features = [ "nix-command" "flakes" ];
     auto-optimise-store = true;
   };
 
