@@ -1,4 +1,7 @@
 {
+  "hokum": {
+    "enabled": true
+  },
   "nixvaderCodex": {
     "enabled": true
   },

@@ -177,6 +177,7 @@
       };
     in {
       gogcli = pkgs.gogcli;
+      hokum = pkgs.callPackage ./pkgs/hokum.nix { };
       gws = pkgs.gws;
       chatgpt-desktop = chatgptDesktop;
       voice-pe-firmware-tools = pkgs.callPackage ./pkgs/voice-pe-firmware-tools.nix {};

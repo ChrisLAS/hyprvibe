@@ -62,14 +62,12 @@ let
         dms)
           systemctl --user stop 'hyprvibe-legacy-*' >/dev/null 2>&1 || true
           pkill -x waybar 2>/dev/null || true
-          pkill -x swaync 2>/dev/null || true
           systemctl --user stop hyprvibe-hyprpaper.service >/dev/null 2>&1 || true
           systemctl --user restart dms.service
           ;;
         legacy)
           systemctl --user stop dms.service >/dev/null 2>&1 || true
           systemctl --user start hyprvibe-hyprpaper.service >/dev/null 2>&1 || true
-          start_unit hyprvibe-legacy-swaync ${pkgs.swaynotificationcenter}/bin/swaync
           start_unit hyprvibe-legacy-hypridle ${pkgs.hypridle}/bin/hypridle
           systemctl --user stop hyprvibe-legacy-waybar.service >/dev/null 2>&1 || true
           systemd-run --user --unit=hyprvibe-legacy-waybar --collect --property=Restart=on-failure -- \
@@ -128,6 +126,17 @@ in
   config = lib.mkIf cfg.enable {
     programs.dms-shell = {
       enable = true;
+      # DMS 1.6.1 has no switch to release the notification bus name. Keep its
+      # service API/history available, but never instantiate its NotificationServer.
+      package = lib.mkIf config.hyprvibe.notifications.enable (pkgs.dms-shell.overrideAttrs (old: {
+        nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.patch ];
+        # nixpkgs embeds QML in the Go binary with make sync-shell, so patch
+        # before that step, not a runtime copy or a nonexistent share directory.
+        preBuild = ''
+          chmod -R u+w ../quickshell
+          patch --batch --fuzz=0 -d ../quickshell -p1 < ${../../patches/dms-external-notifications.patch}
+        '' + (old.preBuild or "");
+      }));
       systemd = {
         enable = true;
         target = "nixos-fake-graphical-session.target";
@@ -138,6 +147,7 @@ in
       enableAudioWavelength = true;
       enableCalendarEvents = true;
       plugins = {
+        hokum.src = ../../configs/dms/plugins/hokum;
         nixvaderCodex.src = ../../configs/dms/plugins/nixvaderCodex;
         nixvaderWorldClock.src = ../../configs/dms/plugins/nixvaderWorldClock;
         markets.src = pkgs.fetchFromGitHub {
@@ -205,7 +215,7 @@ in
             || [ ! -e "$config_dir/plugin_settings.json" ] \
             || [ ! -e "$state_dir/session.json" ]; then
             plugin_backup_dir=""
-            for plugin_id in markets wallpaperCarousel quickCapture batteryPlus nixvaderCodex nixvaderWorldClock syncshell; do
+            for plugin_id in markets wallpaperCarousel quickCapture batteryPlus nixvaderCodex nixvaderWorldClock syncshell hokum; do
               plugin_dir="$config_dir/plugins/$plugin_id"
               if [ -e "$plugin_dir" ] && [ ! -L "$plugin_dir" ]; then
                 if [ -z "$plugin_backup_dir" ]; then

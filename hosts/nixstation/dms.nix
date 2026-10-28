@@ -14,7 +14,7 @@ let
       "nixvaderWorldClock"
       "syncshell"
       "systemTray"
-      "notificationButton"
+      "hokum"
       "controlCenterButton"
     ];
   };

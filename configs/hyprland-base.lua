@@ -23,7 +23,6 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("systemctl --user start nixos-fake-graphical-session.target")
     if not dms_enabled then
         hl.exec_cmd("waybar")
-        hl.exec_cmd("swaync")
         hl.exec_cmd("wl-paste --watch cliphist store")
         hl.exec_cmd("wl-clip-persist --clipboard regular")
         -- Hyprpaper is managed by hyprvibe-hyprpaper.service.
@@ -116,7 +115,9 @@ hl.bind("SUPER + SHIFT + K", hl.dsp.exec_cmd(shell_command("nixvader-keybinds", 
 hl.bind("SUPER + T", hl.dsp.exec_cmd(shell_command("nixvader-theme menu", "dms ipc call settings openWith theme")))
 hl.bind("SUPER + SHIFT + G", hl.dsp.exec_cmd("nixvader-gamemode"))
 hl.bind("SUPER + ALT + O", hl.dsp.exec_cmd("nixvader-blur-toggle"))
-hl.bind("SUPER + SHIFT + N", hl.dsp.exec_cmd(shell_command("swaync-client -t", "dms ipc call notifications toggle")))
+hl.bind("SUPER + SHIFT + N", hl.dsp.exec_cmd("hokum"))
+hl.bind("SUPER + ALT + N", hl.dsp.exec_cmd("hokum dismiss"))
+hl.bind("SUPER + CTRL + N", hl.dsp.exec_cmd("hokum dnd toggle"))
 hl.bind("CTRL + ALT + P", hl.dsp.exec_cmd(shell_command("wlogout", "dms ipc call powermenu toggle")))
 hl.bind("SUPER + ALT + C", hl.dsp.exec_cmd("qalculate-gtk"))
 hl.bind("SUPER + ALT + V", hl.dsp.exec_cmd(shell_command("cliphist list | vicinae dmenu -p Clipboard | cliphist decode | wl-copy", "dms ipc call clipboard toggle")))

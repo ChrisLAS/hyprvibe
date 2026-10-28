@@ -10,6 +10,7 @@ in {
   imports = [
     ./packages.nix
     ./desktop.nix
+    ./notifications.nix
     ./dms.nix
     ./hyprland.nix
     ./waybar.nix

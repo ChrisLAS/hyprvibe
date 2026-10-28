@@ -1,0 +1,20 @@
+--- a/Services/NotificationService.qml
++++ b/Services/NotificationService.qml
+@@ -650,6 +650,9 @@
+     property var expandedMessages: ({})
+     property bool popupsDisabled: false
+ 
++    // Hyprvibe uses Hokum. A Component is never instantiated, so Quickshell
++    // cannot register org.freedesktop.Notifications, including on reload.
++    property Component hyprvibeDisabledNotificationServer: Component {
+     NotificationServer {
+         id: server
+ 
+@@ -758,6 +761,7 @@
+             _recomputeGroupsLater();
+         }
+     }
++    }
+ 
+     function isFocusedScreen(screen) {
+         if (!SettingsData.notificationFocusedMonitor)

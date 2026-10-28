@@ -6,6 +6,7 @@ Host operations:
 
 - [Nixvader handoff and resume workbook](NIXVADER_HANDOFF.md)
 - [Colony opt-in remote builder](COLONY_REMOTE_BUILDER.md)
+- [Hokum notification fleet and rollout](NOTIFICATIONS.md)
 
 Tuned to squeeze every bit of performance out of your system. It's not in a drop-and-go state, but if you're willing to tweak a few things *(like replacing my username)*, you should be mostly set. 
 

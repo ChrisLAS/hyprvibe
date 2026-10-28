@@ -58,7 +58,7 @@
     "nixvaderCodex",
     "nixvaderWorldClock",
     "systemTray",
-    "notificationButton",
+    "hokum",
     {
       "id": "batteryPlus",
       "enabled": true

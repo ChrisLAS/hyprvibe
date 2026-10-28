@@ -1,0 +1,8 @@
+// Nix-managed defaults are seeded into a writable config, so Settings and DND work.
+theme "capsule"
+behaviour {
+    position "top-right"
+    stay 6
+    show-at-most 5
+    pause-on-hover #true
+}
