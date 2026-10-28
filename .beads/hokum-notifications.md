@@ -21,9 +21,6 @@
   schema migration (v32 → v66). Do not migrate independently or replace existing
   issue databases. This file preserves task context alongside existing .beads
   handoffs until a compatible tracker is available.
-- Next: implement and build package, inspect generated fleet configuration,
-  test notification routing in an isolated session, then publish and stage where
-  host policy and availability permit. Live desktop acceptance remains separate.
 - Initial evidence: Hokum builds and reports 0.1.1. All four hosts evaluate the
   new service with zero failed NixOS assertions and Dunst disabled. Full
   Nixstation evaluation exposed the pre-existing removed adb-sync alias; changed
@@ -37,6 +34,22 @@
   in real Quickshell without claiming org.freedesktop.Notifications.
 - Full toplevel derivation evaluation passes for all four hosts after the two
   narrow Nixstation compatibility fixes; none installs dunst, mako or SwayNC.
-- Next: publish migration source, transfer only the migration onto Nixstation's
-  owning rollout branch, validate via its wrapper, boot-stage exact output and
-  record receipt. Preserve the running desktop and existing host-specific diffs.
+- Published: main and feature/hokum-notifications at bf92417 (compatibility
+  prerequisite 85617fb). Nixstation-only migration cherry-pick 9f75179 is published
+  on rollout/hokum-nixstation, preserving all owning-branch differences.
+- Active: Nixstation's clean rollout/opencode2-nixstation checkout was advanced
+  by fast-forward to 9f75179. Its installed `nixstation-update validate` is running
+  the default owner-local route (verified in the deployed helper; no Colony
+  fallback). Previous active system gyxvsnd and boot-staged w1yd4p are unchanged
+  until explicit boot staging after validation. Main has not been merged there.
+- Additional checks: fleet assertion script passes, generated systemd unit has
+  graphical-session lifecycle, D-Bus readiness, seed dependency and Wayland
+  condition; old dunst/mako/swaync generated units are disabled/masked.
+- Failed approaches: the stable binary rejected the dev-only update setting
+  (removed); initial DMS patch needed writable parent directories (fixed before
+  embedding); two long checks exceeded a 120s tool timeout (resumed with no tool
+  timeout and completed). No weakened guards or runtime desktop edits.
+- Next: await the owning Nixstation validation result, publish that exact owning
+  branch through the wrapper, boot-stage the retained output and record receipt.
+  Nixvader, Nixbook and RVBee await connectivity; all physical-host notification
+  and widget acceptance awaits boot into the new generations.
