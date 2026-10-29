@@ -1516,13 +1516,13 @@ in {
     fi
 
     if grep -q '^Session=' "$accounts_file"; then
-      sed -i 's/^Session=.*/Session=hyprland/' "$accounts_file"
+      ${pkgs.gnused}/bin/sed -i 's/^Session=.*/Session=hyprland/' "$accounts_file"
     else
       printf 'Session=hyprland\n' >> "$accounts_file"
     fi
 
     if grep -q '^SessionType=' "$accounts_file"; then
-      sed -i 's/^SessionType=.*/SessionType=wayland/' "$accounts_file"
+      ${pkgs.gnused}/bin/sed -i 's/^SessionType=.*/SessionType=wayland/' "$accounts_file"
     else
       printf 'SessionType=wayland\n' >> "$accounts_file"
     fi
