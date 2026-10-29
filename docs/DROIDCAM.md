@@ -27,6 +27,11 @@ The service is **on-demand**, not enabled at boot/login. After the no-reboot
 bring-up, its start/stop commands work immediately; the app-menu entry and plain
 `droidcam-iphone` command become system-wide with the staged generation.
 
+If the phone app closes or leaves the foreground, reopen it first, then run
+`systemctl --user restart droidcam-iphone`. The classic client's process can stay
+running after the phone resets its connection, so "active" alone is not proof
+that video is flowing. Use the Firefox preview to confirm capture.
+
 The virtual camera is `/dev/video10`; it does not replace `/dev/video0`–`3`.
 1080p input does not guarantee 1080p meeting transmission: the service may cap it.
 If performance is poor, stop capture and use the lower-resolution command:

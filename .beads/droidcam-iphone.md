@@ -1,4 +1,4 @@
-# Nixvader iPhone DroidCam — USB1080p30 capture verified
+# Nixvader iPhone DroidCam — complete, USB1080p30 verified without reboot
 
 - **Request:** USB iPhone webcam for Firefox, target1080p30; avoid reboot.
 - **Approval:** Chris said “Ok lets do it” after the explicit proposal to install
@@ -35,8 +35,7 @@
   Fleet88bfe58583076c8cf81c0f228f2cbf3fb5d3ac1796150f04c04b32e4868b55b9,
   live_activation_performed=false. Per-command Git helper override reused existing
   gh auth because ~/.gitconfig references a missing old helper store path; no
-  credential rotation/config edit. Current source adds reusable on-demand user
-  unit; its final receipt/output must be checked before linking/staging it.
+  credential rotation/config edit.
 - **Scoped live bring-up:** created only declared usbmux system account/group;
   installed Apple-only group rule in `/run/udev/rules.d/90-droidcam-iphone.rules`;
   loaded exact-kernel v4l2loopback with declared options; runtime-linked generated
@@ -55,9 +54,29 @@
 - **Runtime boundaries:** /run/current-system and /run/booted-system still b5bd9aq,
   kernel unchanged. DMS/PipeWire/WirePlumber not restarted. No audio loopback,
   firewall/network change, full switch, notification activation or reboot.
-- **Remaining delivery:** validate/publish/stage the on-demand user unit, replace
-  only our transient capture service with its generated runtime-linked unit,
-  retest restart/capture and compare baseline service PIDs. Final usage:
-  `systemctl --user start|stop droidcam-iphone`; select iPhone Webcam in Firefox.
-  Meeting-site transmission resolution and app HD-watermark entitlement are not
-  proven by the local capture test; no purchase authorized.
+- **Final delivery verified:** full local validation, publication and boot stage
+  passed for on-demand-unit candidate1a2eaca0c33fb10c977a12239519cde4baca1ec3,
+  output `/nix/store/fclj3ha2i04qbjfrsmlw8aq948z1z99l-nixos-system-nixvader-26.11.20260917.e554fab`.
+  Authoritative local fleetcc35a32ff4671eff9e57959bdc91865e7eda8411125c2be11562a9e4e876f30d,
+  child9acb24cf99df40eccc65244ca2c711141672f3abfece3c3c2fdf0694e9babdd7;
+  boot_stage_verified=true, live_activation_performed=false. transfer_verified=false
+  is expected for this owner-local route. This later doc-only handoff is not a
+  different tested/staged system; the exact validated runtime candidate is above.
+- **Reusable control:** replaced only our temporary camera unit with the real
+  generated source unit, runtime-linked under /run/user/1000/systemd/user.
+  Stop confirmed inactive; no WantedBy/autostart. Final phone reconnect check
+  initially reset the stream; Chris explicitly confirmed DroidCam reopened in
+  foreground. Targeted camera restart then captured60frames at29.71fps and the
+  isolated Firefox check again passed1920x1080/30fps,5distinct nonblack decoded
+  image samples. Camera remains running for Chris. No automatic restart/retry is
+  configured. Reopen phone app then restart service after a lost connection;
+  classic client's active process alone is not proof of a live video stream.
+- **Final boundary/health audit:** exact boot ID, active/booted system, kernel,
+  DMS PID1675/PipeWire1771/WirePlumber1772 AND their start timestamps identical to
+  pre-change baseline. User units have no failures. Unrelated nixos-upgrade.service
+  failed at06:41:58PDT before this work; left unchanged, not caused/fixed here.
+- **Usage / limits:** `systemctl --user start|stop|restart droidcam-iphone`;
+  keep phone app foreground, select iPhone Webcam in Firefox and normal mic.
+  Actual meeting-site transmission resolution and app HD-watermark entitlement
+  are not proven by local capture tests; no purchase authorized. Host setup and
+  real Firefox capture are complete; no required implementation work remains.
