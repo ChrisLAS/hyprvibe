@@ -4,8 +4,10 @@
 - Chris reports basic Hyprland/keybinds work, but no bar/launcher/correct wallpaper.
   Requests a fully current Nixstation build and integration of pending Git work
   into main. Authorized diagnosis, source reconciliation/publication, input
-  refresh/build/validation and safe boot staging. No new full live switch/test or
-  reboot approved. Preserve user data, other worktrees and credentials; no agent
+  refresh/build/validation and safe boot staging. Subsequently Chris selected
+  **Reboot after validation**, explicitly approving reboot after the refreshed
+  build passes and reconciled source is on main, with app closure warned.
+  No full live switch/test approved. Preserve user data, other worktrees and credentials; no agent
   delegation requested. Previous successful boot did NOT verify full desktop.
 - Integration worktree: `/home/chrisf/build/worktrees/hyprvibe-nixstation-current-20261029`,
   branch `integration/nixstation-current-20261029`, based on current origin/main
@@ -56,6 +58,26 @@
   inputs, rerun checks and publish integrated main. Fast-forward clean owning
   Nixstation checkout, then guided owner-local validation/staging with matching
   exact receipt. Verify actual desktop, not only session/service presence.
+- Source integration7c1562a published and clean owning station checkout safely
+  fast-forwarded to it without changing owning branch name. Guided input refresh
+  is running via `nixstation-update update` (shell sh_188d6c840001TXs55JiX7pncVz);
+  no full build yet. All4 host final pre-refresh assertions/toplevel evaluations
+  passed including packaged-unit source edit. Visible login-keyring prompt is
+  user-only: do not interact with or bypass it. Launcher visual check deferred
+  while that authentication prompt is active.
+- Official GitHub latest non-prerelease Hermes stable is v0.22.5 (published
+  2026-10-23). Current-build request includes updating Desktop release pin and
+  provenance version together; Nomad/Showfactory backends remain unchanged.
+- Nixstation has three historical stashes (2026-03-13,2025-10-26,2025-09-10),
+  inspected without popping/dropping. They contain old lockfiles, Sunshine/game
+  disablement/Boost workarounds and older app-removal/communication preferences.
+  Modern main already incorporates applicable package renames/buffer sizing;
+  preserve newer explicit Sunshine/gaming and monitor-aware communication layout.
+  Stashes remain intact as history, not blindly applied as current requirements.
+- Initial refresh SSH monitor hit its240s tool timeout, but remote python15769
+  and nix15846 continue and retain wrapper.lock. Do NOT launch a duplicate update
+  or alter owning source while it runs. Await the same operation's lock release,
+  then inspect lock/source receipt before any retry. No build issued yet.
 
 ## Objective and authority
 - Chris requested review/resumption of recovery: get Nixstation back online after

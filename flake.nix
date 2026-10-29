@@ -53,7 +53,7 @@
 
     # Hermes Desktop is built during nixos-rebuild instead of at launch.
     hermes-agent = {
-      url = "github:NousResearch/hermes-agent/v0.22.2";
+      url = "github:NousResearch/hermes-agent/v0.22.5";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -80,7 +80,7 @@
       ];
     };
     hermesAgentOverlay = final: prev: let
-      desktopVersion = "0.22.2";
+      desktopVersion = "0.22.5";
       hermesMinimal =
         (builtins.getAttr prev.stdenv.hostPlatform.system hermes-agent.packages).minimal.override {
           # Preserve each owning host's reviewed Node/native dependency overlays.
