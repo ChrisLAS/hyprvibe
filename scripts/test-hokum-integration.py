@@ -10,6 +10,7 @@ import configparser
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import tempfile
 import time
@@ -48,6 +49,7 @@ def main():
                    XDG_STATE_HOME=str(home / ".local/state"), XDG_CACHE_HOME=str(home / ".cache"),
                    XDG_DATA_HOME=str(home / ".local/share"), WLR_BACKENDS="headless",
                    WLR_RENDERER="pixman", WLR_LIBINPUT_NO_DEVICES="1")
+        env.update(XDG_CURRENT_DESKTOP="sway", XDG_SESSION_DESKTOP="sway")
         for key in ("WAYLAND_DISPLAY", "DISPLAY", "SWAYSOCK", "HYPRLAND_INSTANCE_SIGNATURE"):
             env.pop(key, None)
         sway_config = home / "sway.conf"
@@ -79,6 +81,14 @@ def main():
             start([args.sway, "--unsupported-gpu", "--config", str(sway_config)], "sway")
             wait_for(lambda: bool(list(runtime.glob("wayland-*"))), "headless Wayland socket")
             env["WAYLAND_DISPLAY"] = next(p.name for p in runtime.glob("wayland-*") if p.is_socket())
+            # The private bus starts before this disposable HOME/runtime/Wayland
+            # socket exist. Give only that bus's activated portal processes the
+            # same environment; never import into the real user service manager.
+            subprocess.run([
+                "dbus-update-activation-environment", "HOME", "XDG_RUNTIME_DIR",
+                "XDG_CONFIG_HOME", "XDG_STATE_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME",
+                "XDG_CURRENT_DESKTOP", "XDG_SESSION_DESKTOP", "WAYLAND_DISPLAY",
+            ], env=env, check=True, timeout=10)
             assert not owned(), "Private bus already has a notification server"
             if args.dms:
                 assert args.quickshell, "--dms requires --quickshell"
@@ -136,9 +146,6 @@ def main():
             wait_for(owned, "Hokum restart")
             assert json.loads(run(args.hokum, "dnd", "--json"))["dnd"] is True
             run(args.hokum, "check", str(config))
-            print("PASS: private Wayland/D-Bus ownership, notify, replacement, dismiss, DND and restart persistence")
-            if args.dms:
-                print("PASS: built DMS embeds the patch; its exact server component loads without claiming Notifications")
         except Exception:
             for log in logs:
                 log.flush()
@@ -156,6 +163,18 @@ def main():
                         child.wait()
             for log in logs:
                 log.close()
+            # Private portal activation may mount GVFS/document FUSE roots.
+            # Unmount only this test's own temporary mounts before rmtree;
+            # the enclosing dbus-run-session shuts down its helpers afterward.
+            for mount in (runtime / "gvfs", runtime / "doc"):
+                if mount.is_mount():
+                    helper = shutil.which("fusermount3") or shutil.which("fusermount")
+                    assert helper, f"Cannot clean private FUSE mount: {mount}"
+                    subprocess.run([helper, "-u", str(mount)], env=env, check=True, timeout=10)
+
+    print("PASS: private Wayland/D-Bus ownership, notify, replacement, dismiss, DND and restart persistence")
+    if args.dms:
+        print("PASS: built DMS embeds the patch; its exact server component loads without claiming Notifications")
 
 
 if __name__ == "__main__":

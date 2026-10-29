@@ -1,6 +1,132 @@
 # Nixstation recovery and current-main integration (2026-10-29)
 
 ## Active continuation: full desktop and current build
+
+### Current checkpoint — diagnosed build failure; compatibility repair
+- Candidate5a3ffa54 FAILED at21:12:02Z after2h28m. Exact failing derivation:
+  vlh7zszk4523hnbfhzr1mwapl356mf4c-hypruse-0.10.0.drv. Wheel built, but the
+  runtime dependency checker correctly rejected `mcp<2,>=1.2` with MCP2.2.0.
+  Failed launcher/system-path/toplevel entries are downstream of that failure.
+  No current validation/result receipts were written; existing9f75179 receipts
+  still describe old generation375. Nothing boot-staged, activated, or rebooted.
+- Confirmed via actual immutable5a3ffa54 evaluation that PINNED nixpkgs exposes
+  python3Packages.mcp_1 version1.29.0 (default mcp2.2.0, Python3.14.8).
+  Current upstream MCP-NixOS agrees, but pinned evaluation is authoritative.
+  Small repair in pkgs/hypruse.nix selects mcp_1 with fallback to mcp on older
+  nixpkgs. No dependency relaxation, skipped checks, or service-policy changes.
+- Main build worker is failed/inactive, wrapper.lock is free; guided status has
+  no running job. Preserve cached successful outputs. Next: publish intended
+  package/harness source, fast-forward owning checkout while retaining refreshed
+  flake.lock, then restart SAME persistent validation unit with a new exact
+  guided snapshot (production source fix genuinely requires new validation).
+  Do not refresh inputs or stage/reboot before the new receipts pass.
+  Resource check at~137min: root97GiB/home31GiB/nix132GiB free,22GiB RAM available;
+  bounded kernel query has no OOM, btrfs-error or I/O-error entries.
+  current old DMS and Hokum both loaded/active at last check.
+- Operator requested more updates at19:24Z. Same build still active/running,
+  fresh work through12:24:50PDT, /nix133GiB free. Actual running Nix argv flags
+  verified (only allowlisted flags emitted): --max-jobs4, --cores2, --builders''.
+  No restart, source drift, extra build or resource-policy change.
+- Read-only milestone watcher `/tmp/opencode/nixstation-live/current-progress.py`
+  detected the failure. No watcher remains armed. Update its candidate guard
+  after the new guided snapshot is recorded, then rearm while that build runs.
+- Operator-requested status at19:14:35Z: same persistent validation unit still
+  active/running, ~31minutes elapsed, fresh build messages through12:14:34PDT.
+  Initial plan2764derivations; current work includes many JS dependency sources,
+  Chrome, Herdr and Hokum. /nix134GiB free, /home31GiB, root97GiB. Bounded journal
+  query reports no error/failing-exit entries. Existing validation.json is STILL
+  old9f75179/gen375; do not mistake it for success of current5a3ffa54 build.
+- At failure owning source abc0d1bd497b72aeb6d883d1142132152a142f6c, only refreshed
+  flake.lock dirty; no other user changes. Exact guided private candidate:
+  **5a3ffa54798ed087dde4ee6ef579aa608a54ba00**, tree96323f10da0d68a57298cfb6b81a119c1ed9214d.
+- All4 hosts now pass assertions AND toplevel derivation evaluation against
+  refreshed nixpkgs31ecbaca/Hyprland69ff6a, Dux2.0, Desktop0.22.5, SyncShell0.2.1.
+  Actual owner preflight JSON: ~/.local/state/nixstation-update/current-20261029/
+  fleet-preflight-abc0d1bd497b.json. Tmpfiles parser and migration tests pass.
+- Full owner-local validation uses persistent transient user unit
+  **nixstation-current-validation-20261029.service**, MainPID49689 at checkpoint;
+  its journal retains Nix output independently of SSH. Original terminal monitor
+  sh_188f8b0b6001bXSGKWt4wlWUJE returned failure. Existing wrapper uses4jobs/2cores,
+  builders empty. Reuse SAME unit for diagnosed source repair, no duplicate work.
+  Memory~2GiB; pre-build free root97GiB/home31GiB/nix150GiB.
+- Do NOT advance owning source, refresh inputs, promote receipts, or boot-stage
+  while this candidate builds. This local handoff edit is intentionally not yet
+  synced to the owning source, so it cannot invalidate the exact running build.
+- On success: inspect exact validation/result receipts; check actual Dux unit/QML,
+  migration+activation regressions, Desktop package/provenance/closure and new
+  Hyprland `--verify-config` (documented exact69ff6a source; does not run compositor).
+  Then guided diff/commit/push on station, fast-forward integration to its exact
+  validated candidate, publish that candidate on main without force, stage via
+  owning wrapper, inspect exact receipt, and perform the approved reboot.
+- Reboot authority persists: Chris selected **Reboot after validation**, conditioned
+  on passed refreshed build and reconciled source on main; app closure warned.
+  No live switch/test. Verify new boot ID/current+booted/profile, real loaded Dux
+  notify/no BusName and Hokum dbus units (not merely --failed), bars on4 monitors,
+  correct wallpaper, launcher, and migrated settings. Do not touch keyring auth.
+- Existing unrelated libvirtd failure: missing Downloads/image autostart pool,
+  observed before this build. No pool/data/config changes or reset performed.
+  Old stashes and original dirty Nomad checkout are preserved, not removed.
+- Read-only lsblk confirms the Ventoy USB is no longer attached; installed host
+  is booted in BIOS mode from NVMe. No firmware change or extra boot-media gate
+  is needed for the already-approved post-validation reboot.
+- Full build success, new main publication, staging and current-build reboot
+  remain UNVERIFIED. Existing recovered old desktop is still running normally.
+- Safe checks against immutable5a3ffa54 completed: all4 activation regressions
+  pass, all4 profile-migration tests pass, and Desktop0.22.5 recipe/provenance
+  override checks pass (derivation bl716vrrdjb9b5pbqlm5si3an5qp17k7).
+  Concurrent evaluation emitted an ignored eval-cache SQLite-busy warning; tests
+  succeeded, no cache/database changes needed. dbus-run-session and qs exist on
+  owner; sway is NOT on PATH. After full build, obtain only the pinned cached
+  sway verification dependency if needed; do not overlap another compiler build.
+- Completed READ-ONLY artifact probe against immutable5a3ffa54, using actual
+  nix-store --check-validity, not mere directory existence. Realized outputs:
+  Dux `/nix/store/fd6gvjsdbvcjd3zsls83hq20j8jd7f38-dux-shell-2.0.0`,
+  Hyprland `/nix/store/ndbx6dmxyb8dlck2pdy7k5lbi7g3h22d-hyprland-0.57.0+date=2026-10-29_69ff6a4`,
+  Quickshell `/nix/store/5zjsqdacgkfk1vif63cil60y023b3vnp-quickshell-0.3.2`.
+  Actual shipped Dux unit verified Type=notify/NotifyAccess=main and NO BusName.
+  Desktop `/nix/store/60vcl5mccjz6h7l6yslpqxcqznxzrhyl-hermes-desktop-0.22.5`
+  is NOT yet realized. Hokum ExecStart root5xq29zimc46ng4b06mz04syprnc26a0j.
+- Candidate Hyprland0.57 --verify-config PASSED on exact already-built immutable
+  config `/nix/store/szpdzy3nq85xqdxgzfngy2lwqamq3r7r-hyprvibe-hyprland-config/hyprland.lua`.
+  Exact69ff6a CCompositor source confirms verification returns before Wayland
+  server/backend initialization, no startup/shutdown callbacks. Test uses isolated
+  HOME/runtime. Parser prints config ok/exit0; Socket2/log-path warning occurs in
+  no-compositor verification mode, NOT a real running desktop failure.
+- Pinned Sway test output yl8mwqqr3xj01i6daa82r0kwlasvk2hk is not realized, but
+  exact cache.nixos.org narinfo returns200 (MCP current-catalog sway path differs;
+  use PINNED path only). To advance independent checks safely, verification helper
+  uses cache-only nix-store --realise with max-jobs0/builders empty, all standard
+  signature/hash checks intact; no second compiler build. Full headless private
+  D-Bus/Sway/Hokum/Dux check fetched only3cachedpaths/5.2MiB (zero compilation).
+  It passed actual Dux unit/embedded disabled component, bus ownership, notify,
+  replacement and DND operations, then FAILED at Hokum dismiss: overlay didn't
+  answer. Retained output shows private D-Bus activated portals with wrong/no
+  display, not the isolated Sway env. This is NOT a main build failure and not
+  yet proven a renderer/package bug. No actual desktop service changes.
+- Corrected LOCAL integration test harness to set XDG_CURRENT_DESKTOP=sway and
+  update activation environment on the PRIVATE bus only (NO --systemd). Do NOT
+  sync/commit this or advance the frozen owning source during main validation.
+  A first stdin-run attempt failed before testing because __file__ was <stdin>
+  and relative config assets resolved under/home; corrected via explicit owner
+  script filename in `/tmp/opencode/nixstation-live/run-current-shell-check.py`.
+  Focused rerun with proper __file__ fixed the display hypothesis: ALL functional
+  checks passed, including dismissal/restart, but teardown failed because private
+  portal activation mounted runtime/gvfs (EBUSY on TemporaryDirectory cleanup).
+  Corrected local harness to normally unmount ONLY its own runtime/gvfs and doc
+  FUSE mounts after its children terminate; no force/lazy/global unmount or pkill.
+  PASS output now emitted only after context cleanup succeeds.
+- FINAL candidate headless check (shell sh_18962bb4c001e45V8WTFyKp0v6) EXIT0:
+  private Wayland/D-Bus ownership, notifications, replacement, dismissal, DND and
+  restart persistence all pass; actual Dux unit and exact disabled QML server
+  component pass. Portal PipeWire/broken-display messages are private test
+  teardown/no-audio-environment warnings, not actual user-session failures.
+  Verified no mounts remained and removed ONLY known own failed-test directory
+  `/tmp/opencode/hokum-test-rqrtjsxi`. Successful test cleans its own sandbox.
+  Harness fixes are now included with the required Hypruse source repair, since
+  full validation must run again anyway. Earlier guards against moving owning
+  source applied while5a3ffa54 was running; it is now terminal. User informed.
+
+### Scope and completed preparation history
 - Chris reports basic Hyprland/keybinds work, but no bar/launcher/correct wallpaper.
   Requests a fully current Nixstation build and integration of pending Git work
   into main. Authorized diagnosis, source reconciliation/publication, input
@@ -54,10 +180,6 @@
   worktree; no user work was discarded. All other local/remote feature branches
   are now ancestors. Legacy beads-sync is retained as tracker history, not merged
   into the source tree; do not independently migrate its shared database.
-- Next: finish source merge/remaining pending branch inventory, refresh mutable
-  inputs, rerun checks and publish integrated main. Fast-forward clean owning
-  Nixstation checkout, then guided owner-local validation/staging with matching
-  exact receipt. Verify actual desktop, not only session/service presence.
 - Source integration7c1562a published and clean owning station checkout safely
   fast-forwarded to it without changing owning branch name. Guided input refresh
   is running via `nixstation-update update` (shell sh_188d6c840001TXs55JiX7pncVz);
@@ -124,9 +246,6 @@
   remove old profile data. Four disposable-home tests pass, including ENOSPC
   failure cleanup, private modes and rerun preservation. Bash/Nix syntax and
   diff checks pass. Current recovered desktop still runs old DMS untouched.
-- NEXT: commit/push this compatibility source, fast-forward clean owning source
-  while preserving ONLY its refreshed dirty lock. Run final toplevel preflight,
-  then persistent guided owner-local validation. No full build started yet.
 - Compatibility source06a842b is published and owning source fast-forwarded,
   retaining refreshed lock. Station failed-assertion evaluation now returns[].
   Full fleet toplevel preflight found shared tmate-unstable-2022-08-07 newly

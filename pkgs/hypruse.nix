@@ -22,7 +22,9 @@ python3Packages.buildPythonApplication rec {
   };
 
   build-system = [python3Packages.hatchling];
-  dependencies = [python3Packages.mcp];
+  # Hypruse 0.10 requires mcp>=1.2,<2; nixpkgs now defaults to MCP 2.x.
+  # Keep older nixpkgs pins usable where the default still provides MCP 1.x.
+  dependencies = [(python3Packages.mcp_1 or python3Packages.mcp)];
   nativeBuildInputs = [makeWrapper];
   nativeCheckInputs = [python3Packages.pytestCheckHook];
 
