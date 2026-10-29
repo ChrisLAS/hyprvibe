@@ -19,6 +19,7 @@ in {
     ./hardware-configuration.nix
     ./flatpak.nix
     ./firefox-mcp.nix
+    ./droidcam.nix
     ./theme.nix
     ./dms.nix
     ../../modules/sunshine-tailscale.nix
