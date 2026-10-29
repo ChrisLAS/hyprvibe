@@ -37,6 +37,18 @@ in {
   ];
 
   services.usbmuxd.enable = true;
+  # On-demand only: capture never starts just because the laptop boots/logs in.
+  # Also supplies a store-backed unit that can be linked for a no-reboot setup.
+  systemd.user.services.droidcam-iphone = {
+    description = "iPhone Webcam over USB (1080p, video only)";
+    after = ["graphical-session.target"];
+    partOf = ["graphical-session.target"];
+    serviceConfig = {
+      ExecStart = "${iphoneWebcam}/bin/droidcam-iphone";
+      KillSignal = "SIGINT";
+      TimeoutStopSec = 10;
+    };
+  };
   boot.extraModulePackages = [config.boot.kernelPackages.v4l2loopback];
   boot.kernelModules = ["v4l2loopback"];
   boot.extraModprobeConfig = ''
