@@ -83,11 +83,31 @@
 - Nixvader previous JSON validation/source/result receipts plus active/booted/
   profile/DMS-PID baseline preserved under
   `~/.local/state/nixvader-update/history/hokum-before-5c81a5d/`.
-  Owning main fast-forwarded cleanly to 5c81a5d; guided `validate --local` is
-  running for that exact candidate. Do not advance published main during this
-  build/stage sequence: Nixvader's boot guard requires its exact validated
-  revision on origin/main. Publish progress notes only on the feature branch
-  until staging finishes, then publish final handoff separately.
+  Owning main fast-forwarded cleanly to 5c81a5d. Full owner-local build succeeded,
+  retaining `/nix/store/cc6ripr6rnqaf9kzyr0rc18zvsjgzagq-nixos-system-nixvader-26.11.20260917.e554fab`.
+  The initial watcher ended after retaining the output but before updating the
+  validation receipt; original transient Nomad log was no longer available.
+  No target build remained, source was clean/unchanged, result symlinks and JSON
+  matched exact 5c81a5d, and the kernel journal showed no OOM in the relevant
+  interval. Root cause remains unknown; do not claim a compiler failure.
+- Standard `nixvader-update resume --local` safely reused the completed output
+  and recorded the matching assertions-passed validation receipt for 5c81a5d.
+  Persistent target log: `~/.local/state/nixvader-update/hokum-validation-resume.log`.
+  Actual output checks pass Hokum version/config, absent old binaries, all five
+  old/fallback units masked, correct Hokum unit, and embedded DMS disablement.
+- Nixvader guided diff/commit passed. Redundant wrapper `push` failed before any
+  staging because the user Git credential helper references a garbage-collected
+  `/nix/store/...-gh-2.97.0/bin/.gh-wrapped`. No credentials or Git config changed.
+  Read-only `git ls-remote origin refs/heads/main` proves exact validated 5c81a5d
+  is already published (same as local HEAD); source publication gate is met.
+  The original aborted sequence is preserved in
+  `~/.local/state/nixvader-update/hokum-boot-stage.log`.
+- First actual `nixvader-update boot --local` is now running for exact published
+  5c81a5d, retaining all normal source/validation/output checks. Target log:
+  `~/.local/state/nixvader-update/hokum-boot-stage-published-candidate.log`.
+  This is not a staging replay; the previous sequence stopped at push. Do not
+  advance published main until exact staging completes. Progress notes remain
+  on feature branch; final handoff publishes separately afterward.
 - Additional checks: fleet assertion script passes, generated systemd unit has
   graphical-session lifecycle, D-Bus readiness, seed dependency and Wayland
   condition. Actual Nixstation retained output reports Hokum 0.1.1, contains no
@@ -101,8 +121,8 @@
   consumed following lines of an SSH heredoc. Reran only the read-only live-state
   checks separately; never replayed staging. For future heredocs redirect guided
   commands' stdin from /dev/null when more script lines follow.
-- Next: await Nixvader's guided owner-local validation for 5c81a5d, then matching
-  commit/push/boot --local and verify exact stage/live distinction.
+- Next: verify Nixvader's exact guided boot-stage receipt and unchanged live
+  system/DMS PID, then publish final handoff without changing staged candidate.
   Nixstation/Nixbook await Chris-controlled reboot and physical-host checks from
   docs/NOTIFICATIONS.md. No reboot permission is granted. RVBee awaits
   connectivity. Do not claim staged hosts' real Hokum desktop accepted yet.
