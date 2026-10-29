@@ -8,6 +8,12 @@ scope; boot staging, live activation, reboots, backend upgrades, credential
 changes, and chat submissions are not. Preserve the two owning branches and all
 unrelated work. Nomad and Showfactory remain the configured remote backends.
 
+Subsequent explicit approval: Chris answered **Yes** to staging both validated
+upgrades for the next reboot, starting with Nixstation. Boot staging of the
+exact published/validated local outputs is now authorized; live switching,
+reboots, backend changes, and credential changes remain out of scope. Stage and
+verify Nixstation first, then Nixvader, using each matching local-route receipt.
+
 After inspection of the exact five-path Colony transfer mismatch, Chris
 explicitly selected **Local validation (Recommended)** for Nixvader. This grants
 an owner-local build/validation of the final source only, not collision
@@ -53,32 +59,49 @@ bootstrap replacement, or issue-history overwrite is authorized or attempted.
   filtered-asset follow-up removes it. Final closure diff changes only Desktop
   0.17.6 -> 0.22.2 and its install stamp, about 7.2 MiB added.
 - Isolated Xvfb launch, close/relaunch, runtime provenance, and the new app's
-  own HTTP+websocket tests passed for both Nomad and Showfactory. Runtime reports
+  own HTTP+websocket tests passed on **both hosts** for both Nomad and
+  Showfactory. Runtime reports
   appVersion/baseVersion 0.22.2, payload light, distribution nix, external update
   ownership. No chats were submitted. The original registry hash was unchanged;
   the temporary app and credential copies were removed.
 
 ## Exact source and validation state
 
-- **Nixstation complete for preparation:** candidate
+- **Nixstation validated and boot-staged:** candidate
   `da7f564f0bb8f20ada42072404201d487a0d8f12`, validated through the guided
   owner-local route, published on `rollout/opencode2-nixstation`. Retained output:
   `/nix/store/w1yd4pzhp0xkflnm57bwacd40k1zkv4v-nixos-system-nixstation-26.11.20260917.e554fab`.
   Exact receipt: `~/.local/state/nixstation-update/validation.json` on Nixstation.
-  No boot staging, live switch or reboot was performed.
-- **Nixvader blocked:** its owning main checkout is at initial candidate
-  `5438e0b57dad5e320d54d45e181d9be738f5204a`. The Colony build succeeded but
-  strict destination retention rejected the transfer. The final light/filtered
-  source is published separately at `46d82a6` on
-  `update/hermes-desktop-0.22.2`; it has not been promoted into the blocked
-  owning checkout or submitted as a new job to evade the gate.
+  Approved `nixstation-update boot --local` completed with fleet
+  `1b6cf34ce6531b524aa0ee8bdacbe2dcaa92790cc8eaf0380a8c48d52275106c`, child
+  `4805d1176ba55005454feee06d12b9fd86e7a7a097c8fc9283974de7dd6c20a0`.
+  Exported request/transaction both say `boot-staged`; exact source/output,
+  host preflight, boot assets and context hashes verified. System profile now
+  selects the candidate; active and booted systems match the recorded baseline.
+  `live_activation_performed=false`. No live switch or reboot occurred.
+- **Nixvader validated and boot-staged:** after explicit operator route approval,
+  candidate `7aca66a4b505fbdf7ac2290a0dfc69b9a4467052` passed
+  `nixvader-update validate --local` and was published on owning `main`.
+  Retained output:
+  `/nix/store/b5bd9aq53knjzzlkcdr9i2skwy66l622-nixos-system-nixvader-26.11.20260917.e554fab`.
+  Exact receipt: `~/.local/state/nixvader-update/validation.json` on Nixvader.
+  Its package and full 2,720-path host closure/launcher checks passed. The older
+  Colony build/transfer receipt below remains unresolved history; it was not
+  reconciled, retried, accepted, or silently re-keyed.
+  Approved `nixvader-update boot --local` completed with fleet
+  `cd6bfa74dc0fad35193be1cccdcfb25c1efe7a22b5e9fa4392a448ed0de702a0`, child
+  `345834142bafc09951c442f004fc8343046fc603920f5b997b3caa447dacfc98`.
+  Exported request/transaction both say `boot-staged`; exact source/output,
+  host preflight, boot assets and context hashes verified. System profile now
+  selects the candidate; active and booted systems match the recorded baseline.
+  `live_activation_performed=false`. No live switch or reboot occurred.
 - These evidence-note changes are on preparation branches only. They do not
-  replace Nixstation's exact validated/published deployment candidate above.
+  replace either exact validated/published deployment candidate above.
 - Both running clients remain 0.17.6. Nixstation's active system remains `gyxvsnd`;
   Nixvader's remains `7xq8ajs`. Their pre-existing booted/active differences were
   not changed or treated as permission to activate.
 
-## Nixvader transfer blocker / next executable action
+## Preserved Nixvader Colony transfer limitation
 
 - Fleet: `5730c24beb1655ed1eab1d7cad1176ef80c95775a51fcbe13bc308b234c82ed6`.
   Job: `16dd90c767c8483d079b8c3039f3019dc6166e8b338368f6638c174ca6f1b463`.
@@ -95,9 +118,31 @@ bootstrap replacement, or issue-history overwrite is authorized or attempted.
 - No reconciliation, collision exception, copy retry, staging, or activation
   was attempted. Prior collision approvals do
   not apply to this fleet. Do not waive verification or change request IDs.
-- Chris approved owner-local validation for the final source, preserving the
-  blocked Colony receipt as unresolved history. Next: archive the owning
-  wrapper's old source/validation/result JSON receipts, fast-forward the clean
-  owning main checkout to this final published source, and use
-  `nixvader-update validate --local`. A different route requires its own exact
-  approval and must retain all current verification boundaries.
+- Chris approved owner-local validation for the final source. Old wrapper JSON
+  receipts were archived on Nixvader under
+  `~/.local/state/nixvader-update/hermes-0222-colony-blocked-5438e0b/`, then the
+  clean owning main checkout was fast-forwarded and local validation succeeded.
+  Neither global build routing nor verification policy changed.
+
+## Remaining / next executable action
+
+Preparation, validation, and approved next-boot staging are complete for both
+desktops, in the requested order. Each host's system profile selects its exact
+validated 0.22.2 candidate, and both boot-asset checks passed. Both active and
+booted systems remain unchanged; live activation and reboot remain unauthorized.
+Both hosts' baseline and selected verification evidence are at
+`/tmp/opencode/hermes-desktop-0222-stage-{baseline,verified}.json` on their own host.
+Nomad logs are `/tmp/opencode/hermes-desktop-0222-{nixstation,nixvader}-boot-stage.log`.
+
+Next only after separately authorized host restarts: run each owning wrapper's
+health check, confirm `/run/current-system` and `/run/booted-system` match that
+host's candidate, and verify normal graphical launch/backends. Do not promote
+these evidence-note commits into either owning checkout, use the old Colony
+transfer receipt, silently change routes, replay stage workers, live-switch, or
+reboot without that approval.
+
+Nixvader's GitHub helper points at a garbage-collected gh 2.97 store path. The
+guided push succeeded using a command-scoped Git helper override to the already
+installed `/run/current-system/sw/bin/gh`, reusing existing scoped credentials.
+No credential, login, or persistent Git configuration was changed. Durable repair
+of that unrelated user Git helper is follow-up work, not a Hermes prerequisite.
