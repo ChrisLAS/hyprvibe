@@ -1,4 +1,4 @@
-# Hokum migration — Nixstation/Nixbook staged; Nixvader rollout active
+# Hokum migration — Nixstation/Nixbook/Nixvader boot-staged; acceptance pending
 
 - Request: durably replace desktop notifications across all Hyprvibe hosts,
   prioritizing Nixvader and Nixstation; remove competing notification servers
@@ -102,12 +102,20 @@
   is already published (same as local HEAD); source publication gate is met.
   The original aborted sequence is preserved in
   `~/.local/state/nixvader-update/hokum-boot-stage.log`.
-- First actual `nixvader-update boot --local` is now running for exact published
-  5c81a5d, retaining all normal source/validation/output checks. Target log:
-  `~/.local/state/nixvader-update/hokum-boot-stage-published-candidate.log`.
-  This is not a staging replay; the previous sequence stopped at push. Do not
-  advance published main until exact staging completes. Progress notes remain
-  on feature branch; final handoff publishes separately afterward.
+- Nixvader boot staging **verified**: first actual `nixvader-update boot --local`
+  succeeded for exact published 5c81a5d, retaining normal source/validation/output
+  checks. Generation **81** points to cc6ripr output above. The authoritative
+  `local_boot_stage` receipt reports state `boot-staged`,
+  `boot_stage_verified: true`, `live_activation_performed: false`; fleet
+  `9e0bae4c87bd5d53e64381101d619a7b9f4a807c5e04f67f888f460ea8dedff4`, child
+  `b85d6c1f2bfa25f8e5bbba33ffb6206cee6b0fd3cf0ceca1e9d8cce5253dfe83`.
+  Target log: `~/.local/state/nixvader-update/hokum-boot-stage-published-candidate.log`.
+  `transfer_verified: false` is expected for the selected owner-local route.
+- Nixvader live-state verification passes: active and booted systems both remain
+  b5bd9aq, DMS MainPID remains **1675**, and its quickshell still owns the
+  notification bus. Owning checkout remains clean main at exact staged 5c81a5d.
+  No live switch, test, DMS restart or reboot occurred. Final evidence publishes
+  separately from that candidate; do not restage merely to include handoff docs.
 - Additional checks: fleet assertion script passes, generated systemd unit has
   graphical-session lifecycle, D-Bus readiness, seed dependency and Wayland
   condition. Actual Nixstation retained output reports Hokum 0.1.1, contains no
@@ -121,8 +129,9 @@
   consumed following lines of an SSH heredoc. Reran only the read-only live-state
   checks separately; never replayed staging. For future heredocs redirect guided
   commands' stdin from /dev/null when more script lines follow.
-- Next: verify Nixvader's exact guided boot-stage receipt and unchanged live
-  system/DMS PID, then publish final handoff without changing staged candidate.
-  Nixstation/Nixbook await Chris-controlled reboot and physical-host checks from
-  docs/NOTIFICATIONS.md. No reboot permission is granted. RVBee awaits
-  connectivity. Do not claim staged hosts' real Hokum desktop accepted yet.
+- Next: Nixstation, Nixbook and Nixvader await Chris-controlled reboots and
+  physical-host card/bell/keybinding/DND checks from docs/NOTIFICATIONS.md.
+  No reboot permission is granted. RVBee awaits connectivity. Do not claim any
+  staged host's real Hokum desktop accepted yet. Separate Nixvader follow-ups:
+  pre-existing legacy automatic-upgrade failure and stale Git credential helper;
+  neither was hidden/reset or repaired outside this migration's scope.

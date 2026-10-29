@@ -74,6 +74,20 @@ only this migration, not a merge of unrelated host changes. Do not update inputs
 as part of this migration. Chris selected **boot staging only** on 2026-10-28:
 no live switch/test, DMS restart, or reboot is approved.
 
+Verified boot staging as of 2026-10-28 (not live desktop acceptance):
+
+| Host | Generation | Exact candidate | State |
+| --- | --- | --- | --- |
+| Nixstation | 375 | `9f75179` | Boot-stage receipt verified; running DMS unchanged |
+| Nixbook | 102 | `c44a980` | ESP assets verified; running Hyprland/Dunst unchanged |
+| Nixvader | 81 | `5c81a5d` | Boot-stage receipt verified; running DMS unchanged |
+| RVBee | — | Shared source published | Offline; not deployed |
+
+Exact outputs/receipts and remaining operational issues are recorded in
+`.beads/hokum-notifications.md` and `.beads/nixbook-update-20261028.md`.
+Evidence-only commits published afterward do not require restaging these exact
+candidates. Reboots and real-desktop notification checks remain separate.
+
 After the owner reboots into the staged generation:
 
 ```console
