@@ -127,6 +127,14 @@
 - NEXT: commit/push this compatibility source, fast-forward clean owning source
   while preserving ONLY its refreshed dirty lock. Run final toplevel preflight,
   then persistent guided owner-local validation. No full build started yet.
+- Compatibility source06a842b is published and owning source fast-forwarded,
+  retaining refreshed lock. Station failed-assertion evaluation now returns[].
+  Full fleet toplevel preflight found shared tmate-unstable-2022-08-07 newly
+  blocked as insecure/CVE-2018-19387. Chris explicitly chose **Remove tmate**
+  from shared base packages; SSH/tmux unaffected. No insecure-package exception.
+- First preflight SSH command had a quoting syntax error before execution;
+  corrected using a reviewed local bash script over stdin, not nested quoting.
+  Actual preflight then ran and produced the package blocker above.
 
 ## Objective and authority
 - Chris requested review/resumption of recovery: get Nixstation back online after
