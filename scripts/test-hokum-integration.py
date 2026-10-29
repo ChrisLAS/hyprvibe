@@ -6,6 +6,7 @@ Usage: dbus-run-session -- python3 scripts/test-hokum-integration.py \
 """
 
 import argparse
+import configparser
 import json
 import os
 from pathlib import Path
@@ -81,6 +82,13 @@ def main():
             assert not owned(), "Private bus already has a notification server"
             if args.dms:
                 assert args.quickshell, "--dms requires --quickshell"
+                # Check the shipped service too, not merely QML: systemd refuses
+                # duplicate BusName registrations before the desktop can start.
+                unit_path = Path(args.dms).resolve().parent.parent / "lib/systemd/user/dms.service"
+                unit = configparser.ConfigParser(interpolation=None)
+                assert unit.read(unit_path), f"Missing DMS service: {unit_path}"
+                assert unit["Service"]["Type"] == "simple", unit["Service"]
+                assert not unit["Service"].get("BusName"), unit["Service"]
                 # Resolve/extract the built binary's embedded UI through read-only
                 # IPC discovery, using a fake qs so no full shell is started.
                 fake_bin = home / "bin"

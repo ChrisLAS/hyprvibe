@@ -716,7 +716,10 @@ in {
   # Nix settings - PRESERVING YOUR EXISTING CONFIG
   nix.settings = {
     download-buffer-size = 512000000;
-    experimental-features = [ "nix-command" "flakes" ];
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
     auto-optimise-store = true;
   };
 
@@ -850,6 +853,18 @@ in {
     tailscale = {
       enable = true;
       useRoutingFeatures = lib.mkForce "client";
+    };
+
+    # Podcast clip downloads on the tailnet use nixstation's residential egress.
+    # Bind only to the Tailscale address; never expose the proxy on the LAN.
+    tinyproxy = {
+      enable = true;
+      settings = {
+        Listen = "100.75.168.43";
+        Port = 8888;
+        Allow = ["100.64.0.0/10"];
+        ConnectPort = [443];
+      };
     };
 
     # Enable the OpenSSH daemon - PRESERVING YOUR EXISTING CONFIG
@@ -1175,6 +1190,13 @@ in {
       openldap = prev.openldap.overrideAttrs (_: {
         doCheck = false;
       });
+      # Normalize Flatpak build paths so split-debug build IDs match across hosts.
+      flatpak = prev.flatpak.overrideAttrs (old: {
+        preConfigure = (old.preConfigure or "") + ''
+          export NIX_CFLAGS_COMPILE="''${NIX_CFLAGS_COMPILE-} -ffile-prefix-map=$NIX_BUILD_TOP=/build"
+          export NIX_CXXFLAGS_COMPILE="''${NIX_CXXFLAGS_COMPILE-} -ffile-prefix-map=$NIX_BUILD_TOP=/build"
+        '';
+      });
     })
   ];
 
@@ -1496,13 +1518,13 @@ in {
     fi
 
     if grep -q '^Session=' "$accounts_file"; then
-      sed -i 's/^Session=.*/Session=hyprland/' "$accounts_file"
+      ${pkgs.gnused}/bin/sed -i 's/^Session=.*/Session=hyprland/' "$accounts_file"
     else
       printf 'Session=hyprland\n' >> "$accounts_file"
     fi
 
     if grep -q '^SessionType=' "$accounts_file"; then
-      sed -i 's/^SessionType=.*/SessionType=wayland/' "$accounts_file"
+      ${pkgs.gnused}/bin/sed -i 's/^SessionType=.*/SessionType=wayland/' "$accounts_file"
     else
       printf 'SessionType=wayland\n' >> "$accounts_file"
     fi
@@ -1549,6 +1571,13 @@ in {
       # Send KILL signal if service doesn't stop in time
       SendSIGKILL = true;
     };
+  };
+
+  # The proxy cannot bind until tailscaled has brought up its address.
+  systemd.services.tinyproxy = {
+    requires = ["tailscaled.service"];
+    after = ["tailscaled.service"];
+    serviceConfig.RestartSec = "5s";
   };
 
   # System version

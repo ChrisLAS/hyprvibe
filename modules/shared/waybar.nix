@@ -25,7 +25,16 @@ in {
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ pkgs.waybar ];
+    # The activation script is one shared shell for every snippet, and its
+    # final `ln -sfn ... /run/current-system` is what systemd's switch_root
+    # chases to find the init. A snippet that leaves errexit enabled can
+    # therefore abort the whole activation script, and the machine then
+    # fails to boot with "Switch root target contains no usable init" even
+    # though only a desktop config file failed to be written. Keep strict
+    # mode scoped to this snippet so a failure here can never take the
+    # system down with it.
     system.activationScripts.waybar = lib.mkAfter ''
+      (
       set -euo pipefail
       trap 'echo "[hyprvibe][waybar] ERROR at line $LINENO"' ERR
       echo "[hyprvibe][waybar] starting activation"
@@ -58,6 +67,13 @@ in {
       chown ${userName}:${userGroup} ${userHome}/.local ${userHome}/.local/bin
       chown ${userName}:${userGroup} ${userHome}/.local/bin/rofi-brightness 2>/dev/null || true
       echo "[hyprvibe][waybar] activation complete"
+      )
+      _waybar_status=$?
+      if [ "$_waybar_status" -ne 0 ]; then
+        _status=1
+        _localstatus=$_waybar_status
+        echo "[hyprvibe][waybar] activation failed (status $_waybar_status); continuing"
+      fi
     '';
     # Move setup to systemd --user oneshot
     systemd.user.services.hyprvibe-setup-waybar = {

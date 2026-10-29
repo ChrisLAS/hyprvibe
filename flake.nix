@@ -136,26 +136,20 @@
     in {
       hermes-desktop = hermesDesktop;
     };
-    chatgptPatchedNixpkgs = nixpkgs.legacyPackages.x86_64-linux.applyPatches {
+    deterministicNixpkgs = nixpkgs.legacyPackages.x86_64-linux.applyPatches {
       name = "nixpkgs-fhs-rootfs-deterministic";
       src = nixpkgs;
       patches = [./patches/nixpkgs-fhs-rootfs-deterministic.patch];
     };
-    # Steam and other FHS environments share the same randomized path chooser.
-    # Use the patched builder across both workstation package sets.
     deterministicFhsOverlay = final: prev: let
-      patchedFhsBuilder =
-        final.callPackage
-        (chatgptPatchedNixpkgs + "/pkgs/build-support/build-fhsenv-bubblewrap") {};
+      buildFHSEnvBubblewrap = final.callPackage (deterministicNixpkgs + "/pkgs/build-support/build-fhsenv-bubblewrap") {};
     in {
-      buildFHSEnvBubblewrap = patchedFhsBuilder;
-      buildFHSEnv = patchedFhsBuilder;
+      buildFHSEnv = buildFHSEnvBubblewrap;
+      buildFHSEnvBubblewrap = buildFHSEnvBubblewrap;
     };
-    chatgptPkgs = import chatgptPatchedNixpkgs {
-      system = "x86_64-linux";
-      config.allowUnfree = true;
+    deterministicFhsModule = {...}: {
+      nixpkgs.overlays = [deterministicFhsOverlay];
     };
-    chatgptDesktop = chatgptPkgs.callPackage ./pkgs/chatgpt-desktop.nix {};
   in {
     # Formatter (optional)
     formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
@@ -166,6 +160,7 @@
         system = "x86_64-linux";
         config.allowUnfree = true;
         overlays = [
+          deterministicFhsOverlay
           (import ./overlays/gogcli.nix gogcli-src)
           (final: prev: {
             gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
@@ -175,11 +170,21 @@
           })
         ];
       };
+      steamFhsRootfs = builtins.map (package: package.fhsenv)
+        (builtins.filter
+          (package: package ? fhsenv && builtins.match "^(steam|steam-run)-.*" package.name != null)
+          self.nixosConfigurations.nixstation.config.environment.systemPackages);
+      steamFhsRootfsAcceptance = pkgs.linkFarm
+        "nixstation-steam-fhs-rootfs-acceptance"
+        (nixpkgs.lib.lists.imap0
+          (index: path: {name = "rootfs-${toString index}"; inherit path;})
+          steamFhsRootfs);
     in {
+      steam-fhs-rootfs-acceptance = steamFhsRootfsAcceptance;
       gogcli = pkgs.gogcli;
       hokum = pkgs.callPackage ./pkgs/hokum.nix { };
       gws = pkgs.gws;
-      chatgpt-desktop = chatgptDesktop;
+      chatgpt-desktop = pkgs.callPackage ./pkgs/chatgpt-desktop.nix {};
       voice-pe-firmware-tools = pkgs.callPackage ./pkgs/voice-pe-firmware-tools.nix {};
       voice-pe-hermes-bridge = pkgs.callPackage ./pkgs/voice-pe-hermes-bridge.nix {};
       codexbar = pkgs.callPackage ./pkgs/codexbar.nix { };
@@ -202,6 +207,7 @@
       rvbee = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
+          deterministicFhsModule
           ./hosts/rvbee/system.nix
           ./hosts/rvbee/ai-memory-stack.nix
           # Shared overlays for custom flake packages
@@ -232,21 +238,38 @@
       nixstation = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
+          deterministicFhsModule
           ./hosts/nixstation/system.nix
           ./modules/colony-builder-client.nix
           (
             {...}: {
               nixpkgs.overlays = [
-                deterministicFhsOverlay
                 (final: prev: {
                   gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;
                   codex-latest = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.default;
                   codex-node = codex-cli-nix.packages.${prev.stdenv.hostPlatform.system}.codex-node;
                   codex-acp = final.callPackage ./pkgs/codex-acp.nix {};
                   codexbar = final.callPackage ./pkgs/codexbar.nix {};
-                  chatgpt-desktop = self.packages.${prev.stdenv.hostPlatform.system}.chatgpt-desktop;
+                  chatgpt-desktop = final.callPackage ./pkgs/chatgpt-desktop.nix {};
+                })
+                # Match Nixvader's cache-compatible Node 26.9.0 derivation.
+                # Only the environment-sensitive setuid-mode check is skipped
+                # (nixpkgs #564449); the remaining test suite stays enabled.
+                (final: prev: let
+                  node26CheckFix = old: {
+                    checkFlags = map (
+                      flag:
+                        if final.lib.hasPrefix "CI_SKIP_TESTS=" flag
+                        then "${flag},test-fs-cp-async-file-modes"
+                        else flag
+                    ) (old.checkFlags or []);
+                  };
+                in {
+                  nodejs-slim_26 = prev.nodejs-slim_26.overrideAttrs node26CheckFix;
+                  nodejs_26 = prev.nodejs_26.overrideAttrs node26CheckFix;
                 })
                 hermesAgentOverlay
+                # Keep systemd cache-identical to the pinned upstream packages.
               ];
             }
           )
@@ -264,6 +287,7 @@
       nixbook = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
+          deterministicFhsModule
           ./hosts/nixbook/system.nix
           (
             {...}: {
@@ -289,12 +313,12 @@
       nixvader = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
+          deterministicFhsModule
           ./hosts/nixvader/system.nix
           nixos-hardware.nixosModules.dell-latitude-7490
           (
             {...}: {
               nixpkgs.overlays = [
-                deterministicFhsOverlay
                 (import ./overlays/gogcli.nix gogcli-src)
                 (final: prev: {
                   gws = googleworkspace-cli.packages.${prev.stdenv.hostPlatform.system}.default;

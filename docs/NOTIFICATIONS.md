@@ -68,11 +68,20 @@ the notification bus. It never starts the full DMS shell or touches a real seat.
 
 ## Rollout and post-reboot acceptance
 
-Use each owning checkout/branch and the guided update workflow. Nixstation's
-`rollout/opencode2-nixstation` has intentional differences from `main`; transfer
-only this migration, not a merge of unrelated host changes. Do not update inputs
-as part of this migration. Chris selected **boot staging only** on 2026-10-28:
-no live switch/test, DMS restart, or reboot is approved.
+Use each owning checkout/branch and the guided update workflow. The original
+2026-10-28 migration was boot-stage only and transferred just the notification
+change to Nixstation's divergent rollout branch. On 2026-10-29 Chris explicitly
+requested reconciling pending work into main and preparing a fully current
+Nixstation build; preserve reviewed host fixes and newer main features together.
+Full live switching or another reboot still requires explicit approval.
+
+DMS must not declare the notification bus name in its packaged systemd unit.
+Its original `Type=dbus` / `BusName=org.freedesktop.Notifications` causes a unit
+**load error** alongside Hokum, even with the QML NotificationServer disabled.
+Patch the shipped unit to `Type=simple` and remove BusName altogether. An empty
+`BusName=` drop-in is invalid in systemd 261 and does not clear the inherited
+name. `systemctl --user --failed` alone does not detect this load error: verify
+both `dms.service` and `hokum.service` have `LoadState=loaded` and no LoadError.
 
 Verified boot staging as of 2026-10-28 (not live desktop acceptance):
 

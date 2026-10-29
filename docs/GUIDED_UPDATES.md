@@ -1,28 +1,32 @@
 # Guided desktop updates
 
-Default host workflow, approved by Chris on 2026-09-22: use `nixvader-update`
-on Nixvader or `nixstation-update` on Nixstation. The shared implementation is
-pinned from Nomad by `colony-client`; persistent host values stay in this repo.
+Use **`nixstation-update`** by default on this host. It builds in Nixstation's
+local store because Colony has unresolved cross-store NAR mismatches. `--colony`
+remains available for explicit parity work and requires full owner verification.
+The shared implementation is pinned by `colony-client`; host configuration and
+the owning branch remain in this repository.
 
 ```console
-nixvader-update update [INPUT...]
-nixvader-update validate
-nixvader-update diff
-nixvader-update commit
-nixvader-update push
-nixvader-update boot
+nixstation-update update [INPUT...]
+nixstation-update validate
+nixstation-update diff
+nixstation-update commit
+nixstation-update push
+nixstation-update boot
 # After a separately approved reboot:
-nixvader-update health
+nixstation-update health
 ```
 
-Use the same commands with `nixstation-update` on Nixstation. `all [INPUT...]`
-runs update, validation, promotion, push and boot staging. `build` builds and
-retains the output only. `resume` continues validation without updating inputs.
-`status` shows the coordinator phase, job/attempt and retained transfer evidence.
+`all [INPUT...]` performs update → validate → promote → push → boot-stage.
+`build` builds/transfers only. `resume` continues validation without choosing
+newer inputs. `status` reports the existing fleet/job/attempt and transfer.
+The corresponding wrapper on Nixvader is `nixvader-update`.
 
-Colony is the default for these wrappers, not for ordinary Nix commands.
-`build --local`, `validate --local`, and `boot --local` are explicit local-route
-operations; no failure or unavailable builder causes a silent local fallback.
+Nixstation guided commands default to the owner-local route. Ordinary `nix build`
+and `nixos-rebuild` also stay local. Use `build --colony`, `validate --colony` and
+`boot --colony` only for explicit Colony parity work. Nixvader guided commands
+default to Colony; use their `--local` option for an explicit owner-local build.
+There is no silent fallback.
 
 Kernel exception: systemd 261 `hwdb.bin` has a reviewed owning-host route because
 Colony's 5.4 kernel lacks required statx mount-ID support. The coordinator binds
@@ -58,7 +62,9 @@ shared Beads database migration is needed for this workflow.
 
 Nixvader uses `/home/chrisf/build/config` on `main` and systemd-boot. Nixstation
 uses `/home/chrisf/build/config/hyprvibe` on `rollout/opencode2-nixstation` and
-BIOS GRUB. Do not move the rollout branch or infer another host's bootloader.
+BIOS GRUB. Keep the deployed wrapper's owning-branch guard: the 2026-10-29
+main reconciliation can fast-forward that branch to the same published main
+revision, rather than weakening its policy or discarding host-specific fixes.
 
 Boot staging requires a clean owning checkout, exact published branch revision,
 matching validation receipt, retained output, dry activation and exact boot

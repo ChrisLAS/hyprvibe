@@ -136,6 +136,13 @@ in
           chmod -R u+w ../quickshell
           patch --batch --fuzz=0 -d ../quickshell -p1 < ${../../patches/dms-external-notifications.patch}
         '' + (old.preBuild or "");
+        # Empty BusName= drop-ins are rejected by systemd's bus-name parser,
+        # leaving the inherited name intact. Remove it from the packaged unit.
+        postInstall = (old.postInstall or "") + ''
+          substituteInPlace "$out/lib/systemd/user/dms.service" \
+            --replace-fail 'Type=dbus' 'Type=simple' \
+            --replace-fail 'BusName=org.freedesktop.Notifications' '# Notifications are owned by Hokum.'
+        '';
       }));
       systemd = {
         enable = true;
@@ -237,6 +244,12 @@ in
     systemd.user.services.dms = {
       after = [ "hyprvibe-setup-dms.service" ];
       requires = [ "hyprvibe-setup-dms.service" ];
+      # The packaged unit is Type=dbus and claims Notifications. Disabling the
+      # QML server alone is insufficient: systemd rejects this unit when Hokum
+      # declares the same BusName, before DMS can even start its desktop shell.
+      serviceConfig = lib.mkIf config.hyprvibe.notifications.enable {
+        Type = "simple";
+      };
     };
   };
 }

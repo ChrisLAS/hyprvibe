@@ -22,12 +22,15 @@ in
     assert lib.all (name: !c.systemd.user.services.${name}.enable) masks;
     assert unit.serviceConfig.Type == "dbus";
     assert unit.serviceConfig.BusName == "org.freedesktop.Notifications";
+    assert !dms || c.systemd.user.services.dms.serviceConfig.Type == "simple";
+    assert !dms || (c.systemd.user.services.dms.serviceConfig.BusName or "") == "";
     assert builtins.elem "nixos-fake-graphical-session.target" unit.wantedBy;
     assert builtins.elem "nixos-fake-graphical-session.target" unit.partOf;
     assert builtins.elem "hyprvibe-setup-hokum.service" unit.requires;
     assert lib.all (a: a.assertion) c.assertions;
     assert !dms || (builtins.elem "hokum" widgets && !(builtins.elem "notificationButton" widgets)); {
       inherit dms;
+      dmsServiceType = if dms then c.systemd.user.services.dms.serviceConfig.Type else null;
       package = "hokum 0.1.1";
       oldServers = lib.intersectLists oldServers packages;
       maskedServices = masks;
