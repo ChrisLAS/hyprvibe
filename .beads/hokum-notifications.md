@@ -1,4 +1,4 @@
-# Hokum migration — Nixstation/Nixbook boot-staged; desktop acceptance pending
+# Hokum migration — Nixstation/Nixbook staged; Nixvader rollout active
 
 - Request: durably replace desktop notifications across all Hyprvibe hosts,
   prioritizing Nixvader and Nixstation; remove competing notification servers
@@ -63,6 +63,31 @@
 - Nixbook independent background work completed: candidate c44a980, generation
   **102**, output bvp3am6, ESP kernel/initrd byte-verified and live Hyprland/Dunst
   unchanged. Handoff published separately at 2a7dc61. No input refresh attempted.
+- Nixvader online/ready per Chris on 2026-10-28. Verified clean owning checkout
+  `/home/chrisf/build/config`, main at 68540b4, systemd-boot generation 80; active,
+  booted and profile output all b5bd9aq. DMS MainPID **1675**, AC power online,
+  285 GiB root / 848 MiB ESP available; no target build jobs observed.
+  Last successful wrapper validation used route **local** at 68540b4 (l1c3jik
+  retained output). Explicitly select `nixvader-update validate --local` upfront
+  for this new migration candidate, matching the proven owner-local route and
+  preserving the historical unresolved Colony transfer mismatch. This is not a
+  failure-triggered fallback or replay under a new request key. No new input
+  refresh, live activation, service restart or reboot is in scope.
+- Nixvader pre-existing failure: `nixos-upgrade.service` failed because its
+  legacy channel command cannot find `nixos-config`. Next timer is ~02:43 Oct 29,
+  eight hours after admission. Preserve the failure evidence; no unrelated
+  auto-upgrade repair or failed-unit reset as part of notification migration.
+- Nixvader exact selected source is published main 5c81a5d; only notification changes,
+  the already-reviewed Nixstation compatibility fixes and handoff docs differ
+  from its clean 68540b4 checkout. `flake.lock` is unchanged.
+- Nixvader previous JSON validation/source/result receipts plus active/booted/
+  profile/DMS-PID baseline preserved under
+  `~/.local/state/nixvader-update/history/hokum-before-5c81a5d/`.
+  Owning main fast-forwarded cleanly to 5c81a5d; guided `validate --local` is
+  running for that exact candidate. Do not advance published main during this
+  build/stage sequence: Nixvader's boot guard requires its exact validated
+  revision on origin/main. Publish progress notes only on the feature branch
+  until staging finishes, then publish final handoff separately.
 - Additional checks: fleet assertion script passes, generated systemd unit has
   graphical-session lifecycle, D-Bus readiness, seed dependency and Wayland
   condition. Actual Nixstation retained output reports Hokum 0.1.1, contains no
@@ -76,8 +101,8 @@
   consumed following lines of an SSH heredoc. Reran only the read-only live-state
   checks separately; never replayed staging. For future heredocs redirect guided
   commands' stdin from /dev/null when more script lines follow.
-- Next: Chris-controlled reboot of Nixstation and Nixbook, then physical-host
-  notification/bell/keybinding checks from docs/NOTIFICATIONS.md. No reboot
-  permission is granted. Nixvader awaits Chris's readiness; RVBee awaits
-  connectivity. Source is published for all four; do not claim either offline
-  host deployed, or either staged host's real Hokum desktop accepted yet.
+- Next: await Nixvader's guided owner-local validation for 5c81a5d, then matching
+  commit/push/boot --local and verify exact stage/live distinction.
+  Nixstation/Nixbook await Chris-controlled reboot and physical-host checks from
+  docs/NOTIFICATIONS.md. No reboot permission is granted. RVBee awaits
+  connectivity. Do not claim staged hosts' real Hokum desktop accepted yet.
