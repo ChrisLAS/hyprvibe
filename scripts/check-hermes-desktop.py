@@ -20,6 +20,19 @@ def require(condition, message):
         raise SystemExit(message)
 
 
+def derivation(path):
+    data = json.loads(run("nix", "derivation", "show", path))
+    return next(iter(data.get("derivations", data).values()))
+
+
+def input_derivation(recipe, pattern):
+    inputs = recipe.get("inputDrvs", recipe.get("inputs", {}).get("drvs", {}))
+    matches = [path for path in inputs if re.search(pattern, path)]
+    require(len(matches) == 1, f"Expected one input matching {pattern}: {matches}")
+    path = matches[0]
+    return path if path.startswith("/nix/store/") else "/nix/store/" + path
+
+
 def check_closure(output):
     closure = run("nix-store", "--query", "--requisites", str(output)).splitlines()
     forbidden = re.compile(r"-(?:hermes-agent(?:-env)?-\d|hermes-agent-env-|hermes-tui-|hermes-web-|hermes-pm-runtime)")
@@ -40,13 +53,29 @@ def main():
     version = tag.removeprefix("v")
     recipe = json.loads(run(
         "nix", "eval", "--json", "--no-update-lock-file", "--no-write-lock-file",
-        f".#nixosConfigurations.{args.host}.pkgs.hermes-desktop", "--apply",
-        "p: { inherit (p) version; recipe = p.installPhase; derivation = p.drvPath; }",
+        f".#nixosConfigurations.{args.host}.pkgs", "--apply",
+        "pkgs: let p = pkgs.hermes-desktop; in { inherit (p) version; "
+        "recipe = p.installPhase; derivation = p.drvPath; "
+        "buildNode = pkgs.nodejs_26.outPath; buildNodeVersion = pkgs.nodejs_26.version; }",
     ))
     require(recipe["version"] == version, "Desktop version does not match its release pin")
     require("HERMES_DESKTOP_HERMES" in recipe["recipe"], "Missing explicit backend override")
     require(not re.search(r"-hermes-agent-\d", recipe["recipe"]), "Recipe embeds a local agent")
     print(f"{args.host}: release {tag}, recipe {recipe['derivation']}")
+    renderer = derivation(input_derivation(derivation(recipe["derivation"]),
+                                          r"-hermes-desktop-renderer-[^/]+\.drv$"))
+    node = derivation(input_derivation(renderer, r"-nodejs-26-npm-12\.drv$"))
+    require(recipe["buildNode"] in node["env"]["buildCommand"],
+            "Renderer does not use the native nixpkgs Node build")
+    npm = derivation(input_derivation(node, r"-npm-\d[^/]*\.drv$"))
+    require(recipe["buildNode"] in npm["env"]["installPhase"],
+            "Pinned npm wrapper does not use the native nixpkgs Node build")
+    require(renderer["env"].get("doCheck") == "1", "Renderer checks are disabled")
+    require("--typecheck" in renderer["env"]["buildPhase"], "Renderer typechecking is disabled")
+    require("--runtime=electron" in renderer["env"]["buildPhase"],
+            "Native node-pty build no longer targets Electron")
+    print(f"{args.host}: renderer and pinned npm use native Node {recipe['buildNodeVersion']}; "
+          "typecheck and Electron native checks enabled")
 
     if args.package:
         package = args.package.resolve(strict=True)

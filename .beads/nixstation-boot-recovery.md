@@ -2,7 +2,63 @@
 
 ## Active continuation: full desktop and current build
 
-### Current checkpoint — diagnosed build failure; compatibility repair
+### Current checkpoint — second failure: Hermes npm segfault
+- Candidate608f10f5 FAILED at21:48:01Z after29minutes. Exact first failure:
+  qh1s8q47p51j93yknn3g30392cx4dpbv-hermes-desktop-renderer-0.22.5.drv,
+  configurePhase/npmConfigHook, `npm config set offline true` segfault/exit139.
+  Package/system-path/toplevel failures are downstream; this is NOT Hypruse.
+  Worker failed/inactive; no watcher armed, no new validation receipt, no boot
+  staging/activation/reboot. Last read-only plan was117derivations at16minutes.
+- Focused disposable-HOME Node/npm diagnostic running as
+  sh_189a35d15001Q3o8ZZTYQrM38P using exact failed renderer native inputs.
+  Initial diagnostic hit Nix2.34 derivation JSON schema change (top-level
+  derivations/version, inputs.drvs); corrected after inspecting actual keys,
+  before any runtime probes. Never dump whole environments or credentials.
+  Renderer selects `/nix/store/s0hrvb9ffjpm4n45m9jcjvb3k566zh0d-nodejs-26-npm-12`.
+  Establish whether Node/npm itself fails outside builder before changing source.
+- Focused probe completed: exact renderer node/npm --version, node -e and
+  npm offline-config all SIGSEGV(-11), without sandbox/build/npm package work.
+  Its node resolves to gzr0j5myxq37b4kqh64cnnfsw6hjy88i-node-26.12.1, an
+  upstream prebuilt pm artifact processed by autoPatchelf. Bounded kernel entries
+  place the repeated crash in ld-linux-x86-64.so.2 at the same offset. Host is
+  Intel i7-5820K. This rules out TypeScript/app compilation and build-only env;
+  exact ELF corruption/loader mechanism remains unproven, do not overclaim it.
+- Source-backed diagnosis: pinned Hermes nix/lib.nix always uses pmPackages.node,
+  so the existing final.callPackage override does NOT select nixpkgs Node for it.
+  Small supported-argument repair: set pmPackages.node=final.nodejs_26, preserving
+  the rest of upstream pm packages, pinned npm12 and Electron header/native ABI.
+  Actual pinned nixpkgs Node version also26.12.1, but not yet built/valid. No
+  widening of local backend/credential scope; still remote-only Desktop.
+- Added recipe regression to scripts/check-hermes-desktop.py: inspect actual
+  renderer/composed Node/pinned npm derivations and require native nixpkgs Node
+  in BOTH node farm and npm wrapper; require typechecking/doCheck/Electron native
+  target retained. Handles Nix2.34 and older derivation JSON layouts.
+  Python syntax/Nix parsing/git diff checks pass. Next publish/owner preflight,
+  then restart SAME validation unit. No source refresh or blind unchanged retry.
+- Published repair5c48d12e2f1a64f288ee4272d8ea80d2941119a6, owning checkout
+  fast-forwarded with dirty refreshed lock hash preserved. All4 fleet assertions
+  and toplevel evaluations pass; actual Hypruse dependency is MCP1.29.0.
+- SAME worker restarted at21:19:00Z, MainPID961642. Exact now-failed
+  guided candidate **608f10f57195b01147b6af94b38ae55a817cff6e**, tree
+  **b9301b9cae223cfdd8a195ff8cd7d88659b46ae2**. This is the only candidate
+  candidate must be diagnosed before retry; NOT valid for promotion.
+- Latest scheduled milestone:26.2minutes into608f10f5, worker active/running,
+  fresh ZFS user tools, frontend sources, ZIP completions and libvirt12.8.0.
+  No failure reported.
+  Hypruse original failure is now VERIFIED FIXED: repaired output
+  `/nix/store/h8cag36x0j9x56l0qbfrvy6y5zfj9ah5-hypruse-0.10.0` is valid;
+  actual log90gxy8vd7zg2j9q384k1c4n0lpzvhc8v shows runtime dependency checker
+  and import phase passed,585tests passed/4skipped/13deselected. Dependency is
+  actual python3.14-mcp-1.29.0. Main full-system validation still pending.
+- Read-only watcher608f10f5/sh_1899fdeef001JkbINnwyB2hC0a detected terminal
+  failure and has ended. No compiler build remains active in this worker.
+- Read-only remaining-plan dry-run (no-link/no-build) EXIT0:592 derivations
+  remain for608f10f5, versus2764 in the original plan. This verifies substantial
+  completed-output reuse, NOT a time estimate or final successful build.
+- At16min, updated remaining-plan dry-run EXIT0:117derivations remain (down
+  from592 near repaired-build start). Not a time estimate or validation receipt.
+  Resource check: root97GiB/home31GiB/nix131GiB free,42GiB RAM available; no OOM,
+  btrfs-error or I/O-error journal entries (grep exit1 means no matches).
 - Candidate5a3ffa54 FAILED at21:12:02Z after2h28m. Exact failing derivation:
   vlh7zszk4523hnbfhzr1mwapl356mf4c-hypruse-0.10.0.drv. Wheel built, but the
   runtime dependency checker correctly rejected `mcp<2,>=1.2` with MCP2.2.0.
@@ -14,12 +70,9 @@
   Current upstream MCP-NixOS agrees, but pinned evaluation is authoritative.
   Small repair in pkgs/hypruse.nix selects mcp_1 with fallback to mcp on older
   nixpkgs. No dependency relaxation, skipped checks, or service-policy changes.
-- Main build worker is failed/inactive, wrapper.lock is free; guided status has
-  no running job. Preserve cached successful outputs. Next: publish intended
-  package/harness source, fast-forward owning checkout while retaining refreshed
-  flake.lock, then restart SAME persistent validation unit with a new exact
-  guided snapshot (production source fix genuinely requires new validation).
-  Do not refresh inputs or stage/reboot before the new receipts pass.
+- Before repair worker was failed/inactive, wrapper.lock free, guided status had
+  no running job. Successful cached outputs preserved. New validation is required
+  because production source changed. Do not stage/reboot before new receipts pass.
   Resource check at~137min: root97GiB/home31GiB/nix132GiB free,22GiB RAM available;
   bounded kernel query has no OOM, btrfs-error or I/O-error entries.
   current old DMS and Hokum both loaded/active at last check.
@@ -28,8 +81,7 @@
   verified (only allowlisted flags emitted): --max-jobs4, --cores2, --builders''.
   No restart, source drift, extra build or resource-policy change.
 - Read-only milestone watcher `/tmp/opencode/nixstation-live/current-progress.py`
-  detected the failure. No watcher remains armed. Update its candidate guard
-  after the new guided snapshot is recorded, then rearm while that build runs.
+  detected the failure; it is now following the repaired candidate listed above.
 - Operator-requested status at19:14:35Z: same persistent validation unit still
   active/running, ~31minutes elapsed, fresh build messages through12:14:34PDT.
   Initial plan2764derivations; current work includes many JS dependency sources,

@@ -85,6 +85,12 @@
         (builtins.getAttr prev.stdenv.hostPlatform.system hermes-agent.packages).minimal.override {
           # Preserve each owning host's reviewed Node/native dependency overlays.
           callPackage = final.callPackage;
+          # Upstream's autoPatchelf'd pm Node crashes in the dynamic loader on
+          # Nixstation, even for --version. Use the same release built natively
+          # by nixpkgs; upstream still owns npm and Electron's native ABI.
+          pmPackages = (final.callPackage (hermes-agent + "/nix/pm-packages.nix") {}) // {
+            node = final.nodejs_26;
+          };
         };
       hermesLocalStub = final.writeShellScriptBin "hermes" ''
         echo "This Hermes Desktop installation is configured for a remote backend." >&2
