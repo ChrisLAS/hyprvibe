@@ -21,6 +21,11 @@ server. `notify-send` and applications keep using `org.freedesktop.Notifications
   **uninstantiated QML Component**, keeping the rest of DMS intact. Patch before
   `make sync-shell` embeds QML in the Go executable. Strict patch context/fuzz=0
   makes an incompatible upstream change fail the build, not silently compete.
+  The packaged systemd unit must also use `Type=simple` with **no BusName**;
+  the QML patch alone leaves DMS claiming `org.freedesktop.Notifications` and
+  makes systemd reject one of the two services before the shell can start.
+  Remove the packaged declaration rather than using an empty `BusName=` drop-in:
+  systemd 261 rejects that empty value and retains the inherited name.
 - `configs/dms/plugins/hokum/`: replaces DMS's built-in notification bell in both
   bars. Watches Hokum's DND property through its CLI; reconnects after restart.
 
@@ -65,6 +70,20 @@ and restart persistence. The optional check extracts the **built DMS binary's**
 embedded UI through read-only IPC discovery with a fake `qs`, then loads the
 exact disabled server component in real Quickshell and confirms it cannot own
 the notification bus. It never starts the full DMS shell or touches a real seat.
+It also checks the actual packaged DMS service type and absence of BusName.
+
+On desktop hosts, keep installed portal activation files off the **private**
+test bus. Otherwise portal discovery can stall Hokum's test overlay while
+trying to contact unavailable desktop backends. Set these only for the test
+command, never in the real session or Hokum service:
+
+```console
+XDG_DATA_DIRS=/tmp/opencode/hokum-empty-system-data \
+XDG_DATA_HOME=/tmp/opencode/hokum-empty-user-data \
+dbus-run-session -- python3 scripts/test-hokum-integration.py \
+  --hokum /path/to/hokum --sway /path/to/sway \
+  --dms /path/to/dms --quickshell /path/to/qs
+```
 
 ## Rollout and post-reboot acceptance
 
@@ -108,10 +127,20 @@ Exact outputs/receipts and remaining operational issues are recorded in
 Evidence-only commits published afterward do not require restaging these exact
 candidates. Reboots and real-desktop notification checks remain separate.
 
+**2026-10-29 correction:** the original DMS-host migration missed its packaged
+systemd BusName. Nixvader's corrected candidate `827eb4e` is now verified and
+boot-staged as default generation **84**, replacing the unsafe default83. The
+actual built units and private-headless integration pass. Its running desktop
+and audio remain unchanged; physical acceptance awaits a separately approved
+reboot. Nixbook already booted its Hokum generation and has no DMS service or
+competing notification units; it was at the greeter during inspection. See
+`.beads/nixvader-hokum-busname-20261029.md` for exact receipts and test isolation.
+
 After the owner reboots into the staged generation:
 
 ```console
 systemctl --user status hokum.service
+systemctl --user show dms.service hokum.service -p Id -p LoadState -p LoadError -p Type -p BusName
 busctl --user call org.freedesktop.Notifications /org/freedesktop/Notifications org.freedesktop.Notifications GetServerInformation
 systemctl --user is-enabled dunst.service mako.service swaync.service
 notify-send 'Hokum' 'Notification migration test'
@@ -122,6 +151,9 @@ Expect server `Hokum`, old services masked, a visible card, working settings /
 DND bell and keybindings, and no notification-ownership failures in either
 `journalctl --user -u hokum -u dms`. Verify on each physical host, not just one.
 Offline hosts cannot be claimed deployed or live-verified.
+For DMS hosts, require both services to have `LoadState=loaded`, no LoadError,
+and only Hokum to declare the notification BusName. A unit **load error** can
+be absent from `systemctl --user --failed`; that command alone is insufficient.
 
 Rollback: select the previous boot generation, then revert the migration source
 and rebuild/boot-stage through the owning workflow. Never hand-edit the embedded
