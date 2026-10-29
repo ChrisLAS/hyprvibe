@@ -23,7 +23,8 @@
   branch `fix/nixstation-activation-resilience`, based on deployed 9f751797.
 - Source fix commit 0581cad910db673490ab54f21f1f13349dc6b6be: isolate Waybar
   strict mode/trap in subshell with explicit failure accounting; use explicit
-  gnused paths in AccountsService activation. Not built/deployed/published yet.
+  gnused paths in AccountsService activation. Published on the fix branch;
+  not built into a new system or deployed.
 - Beads CLI is blocked by remote schema v32 -> v66 coordination gate. No
   migration/bootstrap performed. This handoff follows existing `.beads/*.md`
   practice, not a second tracker.
@@ -97,11 +98,14 @@
   These local tests do not execute full activation or write real host configs.
 - `git diff --check` passes. No full build, deployment, extra reboot, firmware
   edit, bootloader edit, or deletion of user data beyond earlier cache cleanup.
+- Follow-up 17:53:54Z: Tailscale IP100.75.168.43, system still `running`, same boot.
+- Published source fix0581cad and regression/evidence commitcaf910e to
+  `origin/fix/nixstation-activation-resilience`; push succeeded and upstream set.
 
 ## Remaining delivery and optional follow-up
 - Recovery objective achieved: actual installed boot plus healthy services verified.
-- Finish committing/publishing focused regression test and this evidence with
-  source fix0581cad. No resilience-fix build/staging/live activation is implied.
+- Fix and regression tests are published; this handoff records the final evidence.
+  No resilience-fix build/staging/live activation is implied.
 - Future approved owning-host guided update should include the resilience fix;
   current running generation remains vulnerable if home fills again.
 - Further capacity cleanup requires Chris's choice; leave large user-data dirs.
