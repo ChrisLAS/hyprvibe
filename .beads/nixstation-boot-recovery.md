@@ -135,6 +135,14 @@
 - First preflight SSH command had a quoting syntax error before execution;
   corrected using a reviewed local bash script over stdin, not nested quoting.
   Actual preflight then ran and produced the package blocker above.
+- All10 generated Dropbox/Uplink tmpfiles rules now pass field checks AND real
+  systemd-tmpfiles --create --dry-run in an isolated synthetic root; target dirs
+  were not created. No real Syncthing folders modified by this verification.
+- After approved tmate removal, fleet preflight reaches RVBee's single obsolete
+  boot.initrd.verbose assertion (scripted stage1 removed upstream). Remove that
+  no-effect setting in source only; no RVBee access/deployment. Other console
+  verbosity remains unchanged. Final all-host preflight gates the owner-local
+  full build; do not rerun mutable input selection.
 
 ## Objective and authority
 - Chris requested review/resumption of recovery: get Nixstation back online after

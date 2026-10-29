@@ -837,7 +837,6 @@ in {
       "systemd.log_target=console"
     ];
     consoleLogLevel = 7;
-    initrd.verbose = true;
     # v4l2loopback for virtual webcam support (OBS, conferencing apps)
     # Keep it out of early boot to avoid potential boot-time panics.
     extraModulePackages = with config.boot.kernelPackages; [v4l2loopback];
