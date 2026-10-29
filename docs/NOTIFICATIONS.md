@@ -78,10 +78,21 @@ Full live switching or another reboot still requires explicit approval.
 DMS must not declare the notification bus name in its packaged systemd unit.
 Its original `Type=dbus` / `BusName=org.freedesktop.Notifications` causes a unit
 **load error** alongside Hokum, even with the QML NotificationServer disabled.
-Patch the shipped unit to `Type=simple` and remove BusName altogether. An empty
-`BusName=` drop-in is invalid in systemd 261 and does not clear the inherited
-name. `systemctl --user --failed` alone does not detect this load error: verify
-both `dms.service` and `hokum.service` have `LoadState=loaded` and no LoadError.
+The recovery for that old release changes the shipped unit to `Type=simple`
+and removes BusName altogether. An empty `BusName=` drop-in is invalid in
+systemd 261 and does not clear the inherited name. Current Dux Shell 2.0 already
+ships `Type=notify` without BusName; preserve its native readiness handshake,
+while still disabling its QML NotificationServer for Hokum. The integration
+check verifies the actual built unit as well as the embedded QML.
+`systemctl --user --failed` alone does not detect a load error: verify both
+`dms.service` and `hokum.service` have `LoadState=loaded` and no LoadError.
+
+The current shell uses `~/.config/dms` and `~/.local/state/dms`. The setup
+oneshot copies legacy `DankMaterialShell` directories only when the new
+destination is absent, using a staged rename so ENOSPC cannot leave a partial
+profile marked as migrated. Legacy data and existing new profiles are not
+overwritten. Managed Git settings are then merged with normal timestamped backups.
+The local module/CLI names remain `hyprvibe.dms`, `hyprvibe-dms-config`, and `dms`.
 
 Verified boot staging as of 2026-10-28 (not live desktop acceptance):
 

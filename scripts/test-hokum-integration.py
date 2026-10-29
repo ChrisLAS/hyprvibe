@@ -87,7 +87,8 @@ def main():
                 unit_path = Path(args.dms).resolve().parent.parent / "lib/systemd/user/dms.service"
                 unit = configparser.ConfigParser(interpolation=None)
                 assert unit.read(unit_path), f"Missing DMS service: {unit_path}"
-                assert unit["Service"]["Type"] == "simple", unit["Service"]
+                assert unit["Service"]["Type"] == "notify", unit["Service"]
+                assert unit["Service"]["NotifyAccess"] == "main", unit["Service"]
                 assert not unit["Service"].get("BusName"), unit["Service"]
                 # Resolve/extract the built binary's embedded UI through read-only
                 # IPC discovery, using a fake qs so no full shell is started.
@@ -98,7 +99,7 @@ def main():
                 fake_qs.chmod(0o755)
                 probe_env = env | {"PATH": str(fake_bin) + ":" + env["PATH"]}
                 subprocess.run([args.dms, "ipc", "list"], env=probe_env, capture_output=True, timeout=10)
-                embedded = list(runtime.glob("danklinux-shell/*/Services/NotificationService.qml"))
+                embedded = list(runtime.rglob("Services/NotificationService.qml"))
                 assert len(embedded) == 1, embedded
                 source = embedded[0].read_text()
                 assert "property Component hyprvibeDisabledNotificationServer: Component {" in source

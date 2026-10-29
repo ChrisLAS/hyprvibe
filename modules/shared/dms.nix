@@ -86,7 +86,7 @@ let
 in
 {
   options.hyprvibe.dms = {
-    enable = lib.mkEnableOption "DankMaterialShell desktop shell profile";
+    enable = lib.mkEnableOption "Dux Shell desktop profile (formerly DankMaterialShell)";
     settingsProfile = lib.mkOption {
       type = lib.types.path;
       default = ../../configs/dms/portable-settings.json;
@@ -124,11 +124,11 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    programs.dms-shell = {
+    programs.dux-shell = {
       enable = true;
-      # DMS 1.6.1 has no switch to release the notification bus name. Keep its
-      # service API/history available, but never instantiate its NotificationServer.
-      package = lib.mkIf config.hyprvibe.notifications.enable (pkgs.dms-shell.overrideAttrs (old: {
+      # Keep the notification API/history available, but never instantiate its
+      # NotificationServer: Hokum is the sole notification server.
+      package = lib.mkIf config.hyprvibe.notifications.enable (pkgs.dux-shell.overrideAttrs (old: {
         nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.patch ];
         # nixpkgs embeds QML in the Go binary with make sync-shell, so patch
         # before that step, not a runtime copy or a nonexistent share directory.
@@ -136,23 +136,14 @@ in
           chmod -R u+w ../quickshell
           patch --batch --fuzz=0 -d ../quickshell -p1 < ${../../patches/dms-external-notifications.patch}
         '' + (old.preBuild or "");
-        # Empty BusName= drop-ins are rejected by systemd's bus-name parser,
-        # leaving the inherited name intact. Remove it from the packaged unit.
-        postInstall = (old.postInstall or "") + ''
-          substituteInPlace "$out/lib/systemd/user/dms.service" \
-            --replace-fail 'Type=dbus' 'Type=simple' \
-            --replace-fail 'BusName=org.freedesktop.Notifications' '# Notifications are owned by Hokum.'
-        '';
       }));
       systemd = {
         enable = true;
         target = "nixos-fake-graphical-session.target";
         restartIfChanged = true;
       };
-      enableVPN = true;
-      enableDynamicTheming = true;
-      enableAudioWavelength = true;
-      enableCalendarEvents = true;
+      # Dux 2 includes matugen/cava and detects networking at runtime. Calendar
+      # backends remain separately installed by each owning host's calendar module.
       plugins = {
         hokum.src = ../../configs/dms/plugins/hokum;
         nixvaderCodex.src = ../../configs/dms/plugins/nixvaderCodex;
@@ -197,10 +188,11 @@ in
         RemainAfterExit = true;
         ExecStart = pkgs.writeShellScript "hyprvibe-setup-dms" ''
           set -euo pipefail
-          config_dir=${lib.escapeShellArg user.home}/.config/DankMaterialShell
-          state_dir=${lib.escapeShellArg user.home}/.local/state/DankMaterialShell
+          ${pkgs.bash}/bin/bash ${../../scripts/migrate-dms-profile.sh} ${lib.escapeShellArg user.home}
+          config_dir=${lib.escapeShellArg user.home}/.config/dms
+          state_dir=${lib.escapeShellArg user.home}/.local/state/dms
           migration_dir=${lib.escapeShellArg user.home}/.config/hyprvibe
-          marker="$migration_dir/dms-profile-v2"
+          marker="$migration_dir/dms-profile-v3"
           mkdir -p "$config_dir" "$state_dir" "$migration_dir"
 
           merge_json() {
@@ -244,12 +236,8 @@ in
     systemd.user.services.dms = {
       after = [ "hyprvibe-setup-dms.service" ];
       requires = [ "hyprvibe-setup-dms.service" ];
-      # The packaged unit is Type=dbus and claims Notifications. Disabling the
-      # QML server alone is insufficient: systemd rejects this unit when Hokum
-      # declares the same BusName, before DMS can even start its desktop shell.
-      serviceConfig = lib.mkIf config.hyprvibe.notifications.enable {
-        Type = "simple";
-      };
+      # Dux 2 ships Type=notify without the obsolete Notifications BusName.
+      # Preserve its readiness handshake instead of downgrading it to simple.
     };
   };
 }

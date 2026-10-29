@@ -94,6 +94,39 @@
   failed to escape spaces in `/scary/Dropbox/Chris Fisher`. Correct shared path
   rendering using same \\x20 representation already used by station Uplink rule.
   This changes parsing, not Syncthing folder IDs/modes/sync directions.
+- Final input preparation succeeded at18:16:39Z after that source correction,
+  using the SAME persistent prep unit (Result=success/ExecMainStatus0). Current
+  station source aa0ad78 has ONLY flake.lock dirty. Private prepared snapshot
+  5dad1a07653a47db494f7535d890cf16fa6bc557, treecd3b790b53e16d50b298a079b945890a3576c30a.
+  No full build has used it yet. Refreshed nixpkgs31ecbaca (Oct27), Hyprland69ff6a
+  (Oct29), Desktop0.22.5/bf0203a, SyncShell0.2.1/622dbb45, and mutable inputs.
+- Concurrent main827eb4e adopted the identical DMS source fix/checks during
+  preparation. Merged that published lineage into integration; only its Nixvader
+  handoff note was newly added. Before full validation, fast-forward the owning
+  checkout to final integration WITHOUT overwriting its refreshed dirty lock;
+  guided validation snapshots that final source+lock, not the obsolete5dad prep.
+- Pre-current baseline JSON is `/tmp/opencode/nixstation-live/pre-current-baseline.json`
+  on Nomad. Source-revision-specific preflight assertions are running against
+  prepared5dad (same code); inspect any exact evaluation error before full build.
+- Fresh nixpkgs preflight returns four failed removed-option assertions: upstream
+  DMS is now Dux Shell2.0.0/programs.dux-shell; VPN/dynamic-theming/audio-wavelength/
+  calendar feature toggles were removed (dependencies built in/runtime detected,
+  calendar backend remains separately installed). This is a real compatibility
+  boundary, not permission to drop desktop features or pin an old whole system.
+- Adapted canonical package/module, removed only those obsolete toggles, kept
+  `dms` CLI/unit and stable local hyprvibe.dms interface. Upstream2.0 unit already
+  Type=notify/NotifyAccess=main with NO BusName: remove legacy unit patch/Type
+  override and retain native readiness. Keep QML server disablement for Hokum;
+  its exact patch applies to2.0 with zero fuzz (offset46 only), tested upstream
+  source. Updated built-unit test for notify readiness and extracted QML discovery.
+- Dux2 uses .config/dms and .local/state/dms. Added copy-only, staged-rename
+  legacy migration before profile seed; do not overwrite existing new dirs or
+  remove old profile data. Four disposable-home tests pass, including ENOSPC
+  failure cleanup, private modes and rerun preservation. Bash/Nix syntax and
+  diff checks pass. Current recovered desktop still runs old DMS untouched.
+- NEXT: commit/push this compatibility source, fast-forward clean owning source
+  while preserving ONLY its refreshed dirty lock. Run final toplevel preflight,
+  then persistent guided owner-local validation. No full build started yet.
 
 ## Objective and authority
 - Chris requested review/resumption of recovery: get Nixstation back online after

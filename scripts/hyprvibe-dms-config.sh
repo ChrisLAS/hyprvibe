@@ -38,7 +38,7 @@ fi
   exit 1
 }
 
-config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/DankMaterialShell"
+config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/dms"
 settings="$config_dir/settings.json"
 plugins="$config_dir/plugin_settings.json"
 portable="$repo/configs/dms/portable-settings.json"
