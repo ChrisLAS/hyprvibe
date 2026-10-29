@@ -78,6 +78,22 @@
   and nix15846 continue and retain wrapper.lock. Do NOT launch a duplicate update
   or alter owning source while it runs. Await the same operation's lock release,
   then inspect lock/source receipt before any retry. No build issued yet.
+- That refresh ended without writing a lock/snapshot (old9f receipt unchanged).
+  Informed retry moved monitoring into persistent transient user unit
+  nixstation-current-inputs-20261029.service, source d83b9cf with Desktop0.22.5.
+  Retained journal establishes actual blocker: syncshell-dms/v0.2.0 tag no longer
+  exists (GitHub422). Official tags/latest release confirm v0.2.1/622dbb45 is the
+  supported privacy-hardened release. Upgrade that explicit input, then restart
+  the SAME prep unit; do not create duplicate work or rerun a full build.
+- Read-only later health check finds libvirtd failed at17:53:58Z (four seconds
+  after last earlier healthy snapshot), after startup reports missing autostart
+  storage pool directory `/home/chrisf/Downloads/image`. Do not disable pools,
+  fabricate VM data, remove files, or hide its failure. Track separately from DMS;
+  no libvirt restart or configuration change performed.
+- Also observed boot tmpfiles errors resolving user0750: shared Syncthing rules
+  failed to escape spaces in `/scary/Dropbox/Chris Fisher`. Correct shared path
+  rendering using same \\x20 representation already used by station Uplink rule.
+  This changes parsing, not Syncthing folder IDs/modes/sync directions.
 
 ## Objective and authority
 - Chris requested review/resumption of recovery: get Nixstation back online after

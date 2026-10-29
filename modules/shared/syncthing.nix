@@ -5,6 +5,7 @@
 }: let
   cfg = config.hyprvibe.services.syncthing;
   user = config.hyprvibe.user;
+  tmpfilesPath = path: lib.replaceStrings [" "] ["\\x20"] path;
   hostname = config.networking.hostName;
   devices = {
     aurora.id = "4CD2OSH-B6OBHJ2-3LZS3NI-LFYCVLQ-POGG2SS-LNEKDXA-RBG5ZKS-X3UJ3QK";
@@ -114,13 +115,13 @@ in {
       mode = "0400";
     };
     systemd.tmpfiles.rules =
-      ["d ${cfg.folderPath} 0750 ${user.name} ${user.group} -"]
+      ["d ${tmpfilesPath cfg.folderPath} 0750 ${user.name} ${user.group} -"]
       ++ lib.optionals cfg.agentConfigs.enable [
-        "d ${user.home}/Sync 0750 ${user.name} ${user.group} -"
-        "d ${cfg.agentConfigs.path} 0750 ${user.name} ${user.group} -"
+        "d ${tmpfilesPath "${user.home}/Sync"} 0750 ${user.name} ${user.group} -"
+        "d ${tmpfilesPath cfg.agentConfigs.path} 0750 ${user.name} ${user.group} -"
       ]
       ++ lib.optionals cfg.dropbox.enable (lib.mapAttrsToList (
-          _id: folder: "d ${cfg.dropbox.root}/${folder.directory} 0750 ${user.name} ${user.group} -"
+          _id: folder: "d ${tmpfilesPath "${cfg.dropbox.root}/${folder.directory}"} 0750 ${user.name} ${user.group} -"
         )
         dropboxFolders);
     services.syncthing = {
