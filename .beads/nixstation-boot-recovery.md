@@ -9,7 +9,7 @@
   delegation requested. Previous successful boot did NOT verify full desktop.
 - Integration worktree: `/home/chrisf/build/worktrees/hyprvibe-nixstation-current-20261029`,
   branch `integration/nixstation-current-20261029`, based on current origin/main
-  8c7691e. In-progress merge of fix branch80e4ee3 brings station rollout history
+  8c7691e. Merge b79503a of fix branch80e4ee3 brings station rollout history
   and activation resilience into main without dropping Nixvader webcam/Firefox,
   Steam, Sunshine, or current documentation. Main's intentional release pins
   remain distinct from mutable flake-input refresh.
@@ -44,6 +44,14 @@
 - All4 host assertions/toplevel derivation evaluations passed after merge/DMS
   serviceConfig changes (before final packaged-unit postInstall edit); rerun on
   final source. No full current build dispatched yet.
+- Completed pending source/history integration: station recovery/rollout,
+  both Hermes staging-note branches, and the local station Uplink branch.
+  Remaining Nixvader rollout has ZERO patch-non-equivalent commits against the
+  integrated tree; preserve it rather than reintroduce old source snapshots.
+  A trial merge of that duplicate branch was cleanly aborted in this isolated
+  worktree; no user work was discarded. All other local/remote feature branches
+  are now ancestors. Legacy beads-sync is retained as tracker history, not merged
+  into the source tree; do not independently migrate its shared database.
 - Next: finish source merge/remaining pending branch inventory, refresh mutable
   inputs, rerun checks and publish integrated main. Fast-forward clean owning
   Nixstation checkout, then guided owner-local validation/staging with matching
