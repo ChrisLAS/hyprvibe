@@ -2,14 +2,92 @@
 
 ## Active continuation: full desktop and current build
 
-### Current checkpoint — second failure: Hermes npm segfault
+### Current checkpoint — exact build deployed; monitor detection gap remains
+- Verified at2026-10-30T04:42:26Z: original persistent worker completed SUCCESS
+  at01:04:39Z after3h11m for exact candidate
+  **e0942f2c0747b6196ecf35863f1eb66282364bc5**, tree
+  **8c2ef7e49be99b3c1fe87c1b7e35a530410d5cc5**. Source/result/validation
+  receipts ALL match; assertions_passed=true. Verified retained output:
+  **/nix/store/dncvls4npcpsnnllb43ags0s0aqikakx-nixos-system-nixstation-26.11.20261027.31ecbac**.
+  All future promotion/publication/staging must retain that exact identity.
+- Approved reboot PERFORMED once. New bootID
+  **16973a05-2a78-4233-a6a7-8c55fa3584ba**; current/booted/profile ALL match
+  exactdncvls... output. Kernel6.18.59. SSH/Tailscale/display-manager active;
+  guided health PASS; ZERO failed system or user units. No current-boot OOM,
+  Btrfs or I/O errors. Disk free root92GiB/home31GiB/nix131GiB.
+  Final systemctl is-system-running=running; all3historical stashes and
+  generation375 remain intact. Owning source exacte0942f2c and clean.
+- Real Dux/Hokum units loaded+running, Dux Type=notify/NotifyAccess=main and NO
+  BusName; Hokum Type=dbus owns Notifications. No runtime recovery override
+  remains (Dux FragmentPath=/etc/systemd/user/dms.service). hypruse-mcp active;
+  an initial probe of hypruse.service used the wrong unit name, NOT a failure.
+- Real Hyprland0.57 has NO config errors; desktop/screenshot verifies Dux bar,
+  expected mountain wallpaper and launcher. Dux welcome panel dismissed via its
+  Let's-go button; screenshot verifies application launcher including Hermes
+  Desktop (Remote Gateways). Launcher closed again, only bar layer remains.
+  Share chooser and Hyprland update notice left alone; no sharing approval or
+  authentication interaction. Both old DankMaterialShell and new dms config/
+  state directories remain; setup migration exits0 and preserves existing data.
+- REMAINING ACCEPTANCE GAP: only DP-2 detected after reboot (1280x1024 mode,
+  transform1). Kernel DRM reports DP-1/DP-3/HDMI-A-1 disconnected, not merely
+  compositor-disabled; four-monitor source config is intact and uses preferred
+  modes. Kernel also logs `amdgpu: [drm] enabling link 1 failed: 15` during boot.
+  Physical power/input/cable/KVM state versus driver/link regression is NOT yet
+  established. Do NOT invent a config/kernel fix or claim all four work. Need
+  operator confirmation other three monitors are powered/connected/on correct
+  inputs before deciding the next focused diagnostic.
+- Ancillary tool gap: Hypruse0.10 binds are readable, but use_bind SUPER+SPACE
+  refuses new Lua-dispatcher serialization `HL.Dispatcher(exec_cmd)` (no native
+  Lua form). Not an authentication/seat refusal; no bypass. Verified launcher
+  instead with existing dms IPC; ordinary physical keybind was NOT verified.
+  AT-SPI unavailable for Dux panel, so used screenshot+zoom+pointer. layer_close
+  waiter missed already-closed event; fresh desktop confirms launcher gone.
+- Reconnect helper initially used a Bash heredoc in remote Fish and timed out on
+  syntax errors despite SSH being up. Fixed helper to quote python3 -c; fresh
+  direct acceptance and corrected helper both verify exact new boot. No second
+  reboot, stage replay, service restarts or credential changes.
+- Final Desktop package AND HOST closure check PASS (296/3457paths): actual
+  Desktop `/nix/store/y80scjlkrwi6h3h8hjr3q9kz0jwiki4k-hermes-desktop-0.22.5`,
+  exact release provenance, icon/Electron native module, remote-only stub and
+  immutable remote launcher; no full upstream source/local agent/TUI/web/pm
+  runtime retained. Recipe confirms native Node/npm and typecheck/native checks.
+- Node26.12.1/npm12.0.2 runtime verified on the new actual composed output:
+  --version and formerly crashing npm offline-config command all exit0 in a
+  disposable HOME. Hypruse MCP1.29 repair verified with585tests passed earlier.
+- Actual built Dux unit and generated overrides verified Type=notify,
+  NotifyAccess=main, NO BusName. Built Hokum unit owns Notifications with Type=dbus.
+  Prior headless Dux/Hokum integration PASS; packages unchanged since that check.
+- Final exact-candidate Hyprland --verify-config PASS (no compositor started).
+  Final activation regressions4/4 and migration regressions4/4 PASS on exact
+  e0942f2c. Ignored concurrent SQLite eval-cache-busy
+  warning did not stop config verification; no cache/database changes needed.
+- Guided commit/push on owner SUCCESS, exact validatede0942f2c promoted clean on
+  owning rollout/opencode2-nixstation branch and published. Local integration
+  fast-forwarded to SAME snapshot, preserving this handoff-only edit. Published
+  exacte0942f2c to integration AND MAIN without force (main wasba38975).
+- Guided owner-local boot staging SUCCESS (43s), exact candidate/output.
+  Root receipt `/var/lib/colony-jobs/staging/318aeefac77b341644e7ac421f39e1d1e0f7cf24d20b71482b1845f1cc9713f4.json`
+  state boot-staged, preflight/dry-activation/boot-verification accepted,
+  live_activation_performed=false. Previous live/profileysix5... retained.
+  Direct followup verifies kernel/initrd hashes match receipt, BIOS GRUB default
+  entry0 boots exactdncvls.../init with kernel6.18.59, current system STILL old375,
+  new profile selectsdncvls..., generation375 symlink remains intact.
+- Old bootIDf71204ef-8473-45b9-8113-886083694137 is replaced. Previous generation
+  preserved; no staging replay/live switch. Publish this evidence separately as
+  docs-only followup; keep owning checkout on exact validated/deployede0942f2c.
+- Chris's reboot approval persists: after passed refreshed build and reconciled
+  source on main; app closure already warned. No live switch/test; preserve
+  previous generations, user data, historical stashes and unrelated source work.
+- No build watcher remains needed. Do not restart/rebuild/update the inputs.
+
+### Prior failure and focused repair evidence
 - Candidate608f10f5 FAILED at21:48:01Z after29minutes. Exact first failure:
   qh1s8q47p51j93yknn3g30392cx4dpbv-hermes-desktop-renderer-0.22.5.drv,
   configurePhase/npmConfigHook, `npm config set offline true` segfault/exit139.
   Package/system-path/toplevel failures are downstream; this is NOT Hypruse.
   Worker failed/inactive; no watcher armed, no new validation receipt, no boot
   staging/activation/reboot. Last read-only plan was117derivations at16minutes.
-- Focused disposable-HOME Node/npm diagnostic running as
+- Focused disposable-HOME Node/npm diagnostic completed as
   sh_189a35d15001Q3o8ZZTYQrM38P using exact failed renderer native inputs.
   Initial diagnostic hit Nix2.34 derivation JSON schema change (top-level
   derivations/version, inputs.drvs); corrected after inspecting actual keys,
