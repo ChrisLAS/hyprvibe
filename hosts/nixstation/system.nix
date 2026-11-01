@@ -578,6 +578,8 @@ in {
     ../../modules/shared
     # DankMaterialShell profile and four-monitor bar layout
     ./dms.nix
+    # Local dictation and Annotate, supervised with the desktop session
+    ./hex.nix
     # AI/LLM stack (Ollama + Open WebUI)
     ./ai-memory-stack.nix
     # Tailnet-only OpenAI-compatible Qwen3.8 GGUF server

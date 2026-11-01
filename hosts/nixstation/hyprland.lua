@@ -3,6 +3,10 @@ require("hyprland-base")
 require("hyprland-monitors")
 require("hyprland-local")
 
+-- Modifier-free shortcuts keep Alt out of Hex's synthetic paste shortcut.
+hl.bind("F8", hl.dsp.global("anomaly.hex:dictation-F8"))
+hl.bind("F9", hl.dsp.global("anomaly.hex:capture-F9"))
+
 hl.on("hyprland.start", function()
     hl.exec_cmd("r2-mount")
 end)
