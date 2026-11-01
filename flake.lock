@@ -303,6 +303,28 @@
         "type": "github"
       }
     },
+    "hex": {
+      "inputs": {
+        "home-manager": "home-manager_2",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793537390,
+        "narHash": "sha256-Ej/t18cQrqiO/KvxNoBKLHqKgk9kQnKbv8KXhFOc6IQ=",
+        "owner": "anomalyco",
+        "repo": "hex",
+        "rev": "b0e7196c7b723e0e366b4e49167f2b2a50f62031",
+        "type": "github"
+      },
+      "original": {
+        "owner": "anomalyco",
+        "repo": "hex",
+        "rev": "b0e7196c7b723e0e366b4e49167f2b2a50f62031",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -316,6 +338,27 @@
         "owner": "nix-community",
         "repo": "home-manager",
         "rev": "f404edbfa4117810c96b97048299242fc50e5362",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "home-manager_2": {
+      "inputs": {
+        "nixpkgs": [
+          "hex",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1787797243,
+        "narHash": "sha256-8+Q7NOB7RPajRjA4pbCDLzqH+MTjnG9x6LUPLfL2joA=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "99c9ec63390f1d8c14d95d9e8b17cc29cfbd4e11",
         "type": "github"
       },
       "original": {
@@ -869,6 +912,7 @@
         "gogcli-src": "gogcli-src",
         "googleworkspace-cli": "googleworkspace-cli",
         "hermes-agent": "hermes-agent",
+        "hex": "hex",
         "hyprland": "hyprland",
         "llama-cpp": "llama-cpp",
         "nixos-hardware": "nixos-hardware",

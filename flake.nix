@@ -20,6 +20,12 @@
     hyprland.url = "github:hyprwm/Hyprland";
     hyprland.inputs.nixpkgs.follows = "nixpkgs";
 
+    # Tested Hex 3.1.1; share the host runtime so Mesa can load its Vulkan driver.
+    hex = {
+      url = "github:anomalyco/hex/b0e7196c7b723e0e366b4e49167f2b2a50f62031";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
     codex-cli-nix.inputs.nixpkgs.follows = "nixpkgs";
 
