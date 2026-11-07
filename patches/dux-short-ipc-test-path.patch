@@ -1,0 +1,30 @@
+--- a/cmd/dms/server_client_test.go
++++ b/cmd/dms/server_client_test.go
+@@ -3,6 +3,7 @@
+ import (
+ 	"bufio"
+ 	"net"
++	"os"
+ 	"path/filepath"
+ 	"strings"
+ 	"testing"
+@@ -13,7 +14,18 @@
+ 
+ func fakeServer(t *testing.T, handle func(net.Conn)) {
+ 	t.Helper()
+-	dir := t.TempDir()
++	// t.TempDir includes the full test name, exceeding Unix-socket path
++	// limits beneath long Nix build roots. Keep the same private temp area
++	// but use a short prefix; no tests or socket checks are skipped.
++	dir, err := os.MkdirTemp("", "dms-")
++	if err != nil {
++		t.Fatal(err)
++	}
++	t.Cleanup(func() {
++		if err := os.RemoveAll(dir); err != nil {
++			t.Errorf("remove IPC test directory: %v", err)
++		}
++	})
+ 	t.Setenv("XDG_RUNTIME_DIR", dir)
+ 	t.Setenv("WAYLAND_DISPLAY", "")
+ 

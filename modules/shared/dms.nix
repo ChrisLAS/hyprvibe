@@ -136,27 +136,11 @@ in
           chmod -R u+w ../quickshell
           patch --batch --fuzz=0 -d ../quickshell -p1 < ${../../patches/dms-external-notifications.patch}
         '' + (old.preBuild or "");
-        # Go's t.TempDir includes the test name. Colony's longer build root
-        # otherwise pushes the IPC tests past Linux's Unix-socket path limit.
-        # Keep every test enabled and restore the build TMPDIR after checks.
-        preCheck = (old.preCheck or "") + ''
-          duxCheckPreviousTmpDir="$TMPDIR"
-          duxCheckHadGoTmpDir="''${GOTMPDIR+x}"
-          duxCheckPreviousGoTmpDir="''${GOTMPDIR-}"
-          # Colony's /tmp is noexec: Go must still execute test binaries in
-          # its original executable build area, not the short socket root.
-          export GOTMPDIR="''${GOTMPDIR:-$TMPDIR}"
-          duxCheckTmpDir="$(mktemp -d /tmp/dux-check.XXXXXXXX)"
-          export TMPDIR="$duxCheckTmpDir"
-        '';
-        postCheck = (old.postCheck or "") + ''
-          export TMPDIR="$duxCheckPreviousTmpDir"
-          if [[ -n "$duxCheckHadGoTmpDir" ]]; then
-            export GOTMPDIR="$duxCheckPreviousGoTmpDir"
-          else
-            unset GOTMPDIR
-          fi
-          rmdir "$duxCheckTmpDir" || true
+        # Shorten only the IPC test fixture's directory prefix. Go 1.27 uses
+        # GOTMPDIR for both test binaries and t.TempDir, and Colony /tmp is
+        # noexec, so changing the Go environment is not the right workaround.
+        postPatch = (old.postPatch or "") + ''
+          patch --batch --fuzz=0 -p1 < ${../../patches/dux-short-ipc-test-path.patch}
         '';
       }));
       systemd = {
