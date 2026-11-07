@@ -136,6 +136,18 @@ in
           chmod -R u+w ../quickshell
           patch --batch --fuzz=0 -d ../quickshell -p1 < ${../../patches/dms-external-notifications.patch}
         '' + (old.preBuild or "");
+        # Go's t.TempDir includes the test name. Colony's longer build root
+        # otherwise pushes the IPC tests past Linux's Unix-socket path limit.
+        # Keep every test enabled and restore the build TMPDIR after checks.
+        preCheck = (old.preCheck or "") + ''
+          duxCheckPreviousTmpDir="$TMPDIR"
+          duxCheckTmpDir="$(mktemp -d /tmp/dux-check.XXXXXXXX)"
+          export TMPDIR="$duxCheckTmpDir"
+        '';
+        postCheck = (old.postCheck or "") + ''
+          export TMPDIR="$duxCheckPreviousTmpDir"
+          rmdir "$duxCheckTmpDir" || true
+        '';
       }));
       systemd = {
         enable = true;
