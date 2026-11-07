@@ -38,9 +38,26 @@ class DuxCheckTempdir(unittest.TestCase):
                             sock.bind(str(path))
 
     def test_evaluated_hooks_allow_sockets_and_restore_build_environment(self):
+        self.run_evaluated_hooks(None)
+
+    def test_existing_go_tempdir_is_preserved_and_restored(self):
+        self.run_evaluated_hooks("custom")
+
+    def test_explicitly_empty_go_tempdir_is_restored_as_empty(self):
+        self.run_evaluated_hooks("")
+
+    def run_evaluated_hooks(self, go_tmpdir):
         with tempfile.TemporaryDirectory(prefix="dux-long-", dir="/tmp/opencode") as directory:
             original = str(Path(directory) / "nix-3972986-788049123")
             Path(original).mkdir()
+            environment = {**os.environ, "TMPDIR": original, "ORIGINAL_TMPDIR": original}
+            environment.pop("GOTMPDIR", None)
+            if go_tmpdir == "custom":
+                go_tmpdir = str(Path(directory) / "go-executable-area")
+                Path(go_tmpdir).mkdir()
+            if go_tmpdir is not None:
+                environment["GOTMPDIR"] = go_tmpdir
+            environment["EXPECTED_GO_TMPDIR"] = go_tmpdir or original
             # Reproduce Go's t.TempDir test-name/random/001 layout, including
             # both exact failing test names and the actual socket basename.
             body = PACKAGE["preCheck"] + "\n" + r'''
@@ -48,6 +65,13 @@ test "$TMPDIR" != "$ORIGINAL_TMPDIR"
 test "${#TMPDIR}" -le 24
 test "$(stat -c %a "$TMPDIR")" = 700
 short_tmpdir="$TMPDIR"
+test "$GOTMPDIR" = "$EXPECTED_GO_TMPDIR"
+test "$GOTMPDIR" != "$TMPDIR"
+exec_smoke="$GOTMPDIR/dux-executable-smoke"
+printf '#!/bin/sh\nexit 0\n' > "$exec_smoke"
+chmod 700 "$exec_smoke"
+"$exec_smoke"
+rm -- "$exec_smoke"
 python3 - <<'PY'
 import os, socket, tempfile
 from pathlib import Path
@@ -63,9 +87,13 @@ PY
 '''
             body += PACKAGE["postCheck"] + "\n"
             body += 'test "$TMPDIR" = "$ORIGINAL_TMPDIR"\ntest ! -e "$short_tmpdir"\n'
+            if go_tmpdir is None:
+                body += 'test -z "${GOTMPDIR+x}"\n'
+            else:
+                environment["ORIGINAL_GO_TMPDIR"] = go_tmpdir
+                body += 'test "${GOTMPDIR+x}" = x\ntest "$GOTMPDIR" = "$ORIGINAL_GO_TMPDIR"\n'
             result = subprocess.run(["bash", "-euc", body], text=True, capture_output=True,
-                                    env={**os.environ, "TMPDIR": original,
-                                         "ORIGINAL_TMPDIR": original}, timeout=20)
+                                    env=environment, timeout=20)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
 

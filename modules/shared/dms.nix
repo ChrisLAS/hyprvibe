@@ -141,11 +141,21 @@ in
         # Keep every test enabled and restore the build TMPDIR after checks.
         preCheck = (old.preCheck or "") + ''
           duxCheckPreviousTmpDir="$TMPDIR"
+          duxCheckHadGoTmpDir="''${GOTMPDIR+x}"
+          duxCheckPreviousGoTmpDir="''${GOTMPDIR-}"
+          # Colony's /tmp is noexec: Go must still execute test binaries in
+          # its original executable build area, not the short socket root.
+          export GOTMPDIR="''${GOTMPDIR:-$TMPDIR}"
           duxCheckTmpDir="$(mktemp -d /tmp/dux-check.XXXXXXXX)"
           export TMPDIR="$duxCheckTmpDir"
         '';
         postCheck = (old.postCheck or "") + ''
           export TMPDIR="$duxCheckPreviousTmpDir"
+          if [[ -n "$duxCheckHadGoTmpDir" ]]; then
+            export GOTMPDIR="$duxCheckPreviousGoTmpDir"
+          else
+            unset GOTMPDIR
+          fi
           rmdir "$duxCheckTmpDir" || true
         '';
       }));
