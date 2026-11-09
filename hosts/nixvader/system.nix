@@ -187,7 +187,6 @@ in {
     # This trusted client host intentionally does not use the NixOS firewall.
     firewall.enable = false;
   };
-  systemd.services.NetworkManager-wait-online.enable = false;
 
   boot.loader = {
     systemd-boot.enable = true;
@@ -310,14 +309,37 @@ in {
   programs.steam.enable = true;
   time.timeZone = "America/Los_Angeles";
 
-  # Automatic boot-time updates from Hyprvibe main, no auto-reboot.
-  system.autoUpgrade = {
-    enable = true;
-    operation = "boot";
-    randomizedDelaySec = "45min";
-    allowReboot = false;
-    dates = "02:00";
+  # Updates are performed explicitly through the guided host update workflow.
+  system.autoUpgrade.enable = false;
+
+  # Daily opportunities accommodate nights when the laptop is left awake.
+  # Calendar timers also expire during suspend: ExecCondition prevents a missed
+  # overnight run from starting when the laptop resumes during the day.
+  nix.gc.dates = lib.mkForce "*-*-* 02:00:00";
+  services.fstrim.interval = lib.mkForce "*-*-* 04:00:00";
+  systemd.timers = {
+    nix-gc.timerConfig = {
+      Persistent = lib.mkForce false;
+      RandomizedDelaySec = lib.mkForce 0;
+      AccuracySec = "1min";
+    };
+    fstrim.timerConfig = {
+      Persistent = lib.mkForce false;
+      RandomizedDelaySec = lib.mkForce 0;
+      AccuracySec = "1min";
+    };
   };
+  systemd.services = { NetworkManager-wait-online.enable = false; } // lib.genAttrs [ "nix-gc" "fstrim" ] (name: {
+    serviceConfig = {
+      # Escape % for systemd's specifier expansion.
+      ExecCondition = "${pkgs.runtimeShell} -c 'test \"$(${pkgs.coreutils}/bin/date +%%H)\" = ${if name == "nix-gc" then "02" else "04"}'";
+      Nice = 19;
+      IOSchedulingClass = "idle";
+      IOWeight = 10;
+      TimeoutStartSec = "45min";
+      TimeoutStopSec = "30s";
+    };
+  });
   # Performance-oriented VM tuning; never auto-reboot on panic.
   boot.kernel.sysctl = {
     "vm.swappiness" = 10;
