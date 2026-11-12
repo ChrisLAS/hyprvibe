@@ -71,6 +71,8 @@
   # A review client is not a clone of the permanent clients' fleet identity.
   hyprvibe.opencode.enable = lib.mkForce false;
   hyprvibe.opencode2Client.enable = true;
+  # Remote client chdirs to the server project path before attaching.
+  systemd.tmpfiles.rules = [ "d /home/chrisf/build/nomad-nixos 0755 chrisf users -" ];
   hyprvibe.hypruse.enable = false;
   hyprvibe.herdr.enable = false;
   hyprvibe.services.syncthing.enable = false;
