@@ -1,4 +1,9 @@
-{ self, lib, pkgs, ... }:
+{
+  self,
+  lib,
+  pkgs,
+  ...
+}:
 {
   imports = [
     ./hardware-configuration.nix
@@ -43,6 +48,15 @@
     efi.canTouchEfiVariables = true;
   };
   hyprvibe.system.kernelPackages = pkgs.linuxPackages_latest;
+  # DA14260: CVS camera wake GPIO collides with all four audio amplifiers.
+  # Preserve camera IRQ support without reserving the shared speaker-ID line.
+  # Provenance and boot validation: HARDWARE-IMPROVEMENTS.md.
+  boot.kernelPatches = [
+    {
+      name = "intel-cvs-shared-wake-gpio";
+      patch = ./patches/intel-cvs-wake-irq.patch;
+    }
+  ];
   # Intel pstate's powersave governor still boosts; power-profiles-daemon
   # supplies balanced/performance/power-saver without pinning the review to
   # Nixvader's maximum-performance and disabled-deep-idle configuration.
@@ -56,10 +70,22 @@
   hardware = {
     graphics = {
       enable = true;
-      extraPackages = [ pkgs.intel-media-driver ];
+      # VA-API media plus Panther Lake OpenCL/Level Zero compute support.
+      # Keep these coupled to the flake's tested Mesa/IGC versions.
+      extraPackages = with pkgs; [
+        intel-media-driver
+        intel-compute-runtime
+        level-zero
+      ];
     };
-    bluetooth = { enable = true; powerOnBoot = true; };
-    ipu7 = { enable = true; platform = "ipu75xa"; };
+    bluetooth = {
+      enable = true;
+      powerOnBoot = true;
+    };
+    ipu7 = {
+      enable = true;
+      platform = "ipu75xa";
+    };
   };
 
   hyprvibe.shell = {
@@ -83,26 +109,79 @@
   # The broad base group also contains Jan and Google Cloud/GWS. Keep the
   # familiar desktop but omit unrelated heavyweight cloud/AI runtimes.
   hyprvibe.packages.base.enable = lib.mkForce false;
-  environment.systemPackages = let
-    hermesRemote = pkgs.callPackage ../../pkgs/hermes-desktop-nomad.nix { };
-  in with pkgs; [
-    hermes-desktop hermesRemote.wrapper hermesRemote.entry
-    git gh curl wget jq ripgrep fd fzf bat eza tree file unzip zip
-    btop htop lsof rsync restic python3 nixfmt
-    firefox chromium obsidian libreoffice slack telegram-desktop
-    self.packages.${pkgs.stdenv.hostPlatform.system}.chatgpt-desktop
-    kdePackages.dolphin kdePackages.ark kdePackages.kio-extras
-    mpv vlc ffmpeg audacity imv localsend
-    qalculate-gtk wlogout
-    pciutils usbutils smartmontools lm_sensors powertop
-    libva-utils intel-gpu-tools vulkan-tools v4l-utils alsa-utils
-    adwaita-icon-theme papirus-icon-theme
-  ];
+  environment.systemPackages =
+    let
+      hermesRemote = pkgs.callPackage ../../pkgs/hermes-desktop-nomad.nix { };
+    in
+    with pkgs;
+    [
+      hermes-desktop
+      hermesRemote.wrapper
+      hermesRemote.entry
+      git
+      gh
+      curl
+      wget
+      jq
+      ripgrep
+      fd
+      fzf
+      bat
+      eza
+      tree
+      file
+      unzip
+      zip
+      btop
+      htop
+      lsof
+      rsync
+      restic
+      python3
+      nixfmt
+      firefox
+      chromium
+      obsidian
+      libreoffice
+      slack
+      telegram-desktop
+      self.packages.${pkgs.stdenv.hostPlatform.system}.chatgpt-desktop
+      kdePackages.dolphin
+      kdePackages.ark
+      kdePackages.kio-extras
+      mpv
+      vlc
+      ffmpeg
+      audacity
+      imv
+      localsend
+      qalculate-gtk
+      wlogout
+      pciutils
+      usbutils
+      smartmontools
+      lm_sensors
+      powertop
+      libva-utils
+      intel-gpu-tools
+      vulkan-tools
+      clinfo
+      v4l-utils
+      alsa-utils
+      adwaita-icon-theme
+      papirus-icon-theme
+    ];
 
   nix = {
     settings = {
-      experimental-features = [ "nix-command" "flakes" ];
-      trusted-users = [ "root" "@wheel" ];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      trusted-users = [
+        "root"
+        "@wheel"
+      ];
       builders = lib.mkForce "";
       max-jobs = 2;
       cores = 6;
