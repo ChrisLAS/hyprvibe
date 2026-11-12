@@ -1,4 +1,21 @@
-{ lib, pkgs, modulesPath, targetSystem, sourceTree, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  targetSystem,
+  sourceTree,
+  ...
+}:
+let
+  # The newc archive format cannot represent a single file >= 4 GiB.
+  storeChunks = pkgs.runCommand "review-store-chunks" { } ''
+    mkdir "$out"
+    split -b 1073741824 -d -a 4 ${config.system.build.squashfsStore} "$out/chunk-"
+    hash=$(sha256sum ${config.system.build.squashfsStore} | cut -d ' ' -f1)
+    printf '%s  nix-store.squashfs\n' "$hash" > "$out/squashfs.sha256"
+  '';
+in
 {
   imports = [ (modulesPath + "/installer/netboot/netboot-minimal.nix") ];
   networking.hostName = "review-xps14-installer";
@@ -19,8 +36,66 @@
   documentation.man.enable = lib.mkForce false;
   nix.channel.enable = lib.mkForce false;
   system.extraDependencies = lib.mkForce [ ];
-  netboot.storeContents = [ targetSystem sourceTree ];
+  netboot.storeContents = [
+    targetSystem
+    sourceTree
+  ];
   netboot.squashfsCompression = "zstd -Xcompression-level 6";
+  system.build.netbootRamdisk = lib.mkForce (
+    (pkgs.makeInitrdNG {
+      inherit (config.boot.initrd) compressor compressorArgs;
+      prepend = [ "${config.system.build.initialRamdisk}/initrd" ];
+      contents = [
+        {
+          source = storeChunks;
+          target = "/review-store-chunks";
+        }
+      ];
+    }).overrideAttrs
+      (old: {
+        # Propagate cpio errors rather than accepting a truncated RAM store.
+        buildCommand = "set -o pipefail\n" + old.buildCommand;
+      })
+  );
+  # kexec_file_load cannot read this >4 GiB initrd; the legacy load API can.
+  # Never change lockdown or other security settings to make loading succeed.
+  system.build.kexecScript = lib.mkForce (
+    pkgs.writeScript "kexec-boot" ''
+      #!/usr/bin/env bash
+      set -euo pipefail
+      if [[ -r /sys/kernel/security/lockdown ]] && ! grep -q '\[none\]' /sys/kernel/security/lockdown; then
+        echo "Kernel lockdown is active; stop and review boot policy." >&2
+        exit 1
+      fi
+      SCRIPT_DIR=$(cd -- "$(dirname -- "''${BASH_SOURCE[0]}")" && pwd)
+      kexec --kexec-syscall --load "$SCRIPT_DIR/bzImage" \
+        --initrd="$SCRIPT_DIR/initrd.gz" \
+        --command-line "init=${config.system.build.toplevel}/init ${toString config.boot.kernelParams}"
+      kexec --exec
+    ''
+  );
+  boot.initrd.systemd.services.review-reassemble-store = {
+    description = "Reassemble and verify complete review installer RAM store";
+    requiredBy = [ "sysroot.mount" ];
+    before = [ "sysroot.mount" ];
+    unitConfig.DefaultDependencies = false;
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    path = [ pkgs.coreutils ];
+    script = ''
+      set -euo pipefail
+      : > /nix-store.squashfs
+      for chunk in /review-store-chunks/chunk-*; do
+        cat "$chunk" >> /nix-store.squashfs
+        # These are disposable initrd RAM copies, never the physical disk.
+        rm "$chunk"
+      done
+      cd /
+      sha256sum -c /review-store-chunks/squashfs.sha256
+    '';
+  };
   users.users.root.openssh.authorizedKeys.keys = import ./ssh-keys.nix;
   services.openssh.settings = {
     PermitRootLogin = lib.mkForce "prohibit-password";
@@ -38,14 +113,23 @@
   # A successful live SSH check disarms this before the explicit installation.
   systemd.timers.review-installer-recovery = {
     wantedBy = [ "timers.target" ];
-    timerConfig = { OnBootSec = "8min"; Unit = "review-installer-recovery.service"; };
+    timerConfig = {
+      OnBootSec = "8min";
+      Unit = "review-installer-recovery.service";
+    };
   };
   systemd.services.review-installer-recovery = {
     unitConfig.ConditionPathExists = "!/run/review-xps14/confirmed";
-    serviceConfig = { Type = "oneshot"; ExecStart = "${pkgs.systemd}/bin/systemctl reboot"; };
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.systemd}/bin/systemctl reboot";
+    };
   };
   nix.settings = {
-    experimental-features = [ "nix-command" "flakes" ];
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
     builders = lib.mkForce "";
     max-jobs = 2;
     cores = 6;
@@ -62,7 +146,14 @@
     umount /run/review-xps14-esp
   '';
   environment.systemPackages = with pkgs; [
-    git jq rsync gptfdisk e2fsprogs dosfstools pciutils usbutils
+    git
+    jq
+    rsync
+    gptfdisk
+    e2fsprogs
+    dosfstools
+    pciutils
+    usbutils
     (writeShellScriptBin "review-xps14-install" ''
       export REVIEW_TARGET_SYSTEM=${targetSystem}
       export REVIEW_SOURCE_TREE=${sourceTree}

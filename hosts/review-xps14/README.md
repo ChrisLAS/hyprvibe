@@ -52,7 +52,12 @@ SSH private keys belong in this directory, the Nix store, or issue notes.
 
 Build `.#nixosConfigurations.review-xps14.config.system.build.reviewInstaller`
 on Ubuntu on the Dell. It carries the exact complete client closure in a compressed
-RAM store. Before kexec, privately stage current Wi-Fi profiles, SSH host keys,
+RAM store. The store is archived as 1 GiB chunks because newc has a 4 GiB
+per-file limit. Early boot reconstructs and SHA-256 verifies the image before
+mounting the root filesystem, freeing each consumed chunk to bound RAM use.
+The launch helper uses the legacy kexec load API because kexec_file_load rejects
+the large initrd, and stops if kernel lockdown is active. No security settings
+are changed automatically. Before kexec, privately stage current Wi-Fi profiles, SSH host keys,
 login hash and a clean source snapshot in the ESP handoff archive. The installer
 loads that archive read-only before starting networking. It never erases disks on
 boot. Verify root SSH, the active Wi-Fi connection, RAM/store integrity, hardware
