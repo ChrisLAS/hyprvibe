@@ -1,11 +1,12 @@
-{ self, nixpkgs, hyprland }:
+{ self, nixpkgs, hyprland, hermesAgentOverlay }:
 let
   installed = nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
-    specialArgs = { inherit self; };
+    specialArgs = { inherit self; inputs = self.inputs; };
     modules = [
       hyprland.nixosModules.default
       self.inputs.sops-nix.nixosModules.sops
+      { nixpkgs.overlays = [ hermesAgentOverlay ]; }
       ./system.nix
       {
         # The entire built client is carried in the RAM installer. No build,

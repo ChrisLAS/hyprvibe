@@ -21,7 +21,7 @@
   };
   users.users.root.hashedPassword = "!";
   services.openssh.settings = {
-    PasswordAuthentication = false;
+    PasswordAuthentication = true;
     KbdInteractiveAuthentication = false;
     PermitRootLogin = "no";
   };
@@ -70,7 +70,7 @@
   };
   # A review client is not a clone of the permanent clients' fleet identity.
   hyprvibe.opencode.enable = lib.mkForce false;
-  hyprvibe.opencode2Client.enable = false;
+  hyprvibe.opencode2Client.enable = true;
   hyprvibe.hypruse.enable = false;
   hyprvibe.herdr.enable = false;
   hyprvibe.services.syncthing.enable = false;
@@ -79,10 +79,14 @@
   # The broad base group also contains Jan and Google Cloud/GWS. Keep the
   # familiar desktop but omit unrelated heavyweight cloud/AI runtimes.
   hyprvibe.packages.base.enable = lib.mkForce false;
-  environment.systemPackages = with pkgs; [
+  environment.systemPackages = let
+    hermesRemote = pkgs.callPackage ../../pkgs/hermes-desktop-nomad.nix { };
+  in with pkgs; [
+    hermes-desktop hermesRemote.wrapper hermesRemote.entry
     git gh curl wget jq ripgrep fd fzf bat eza tree file unzip zip
     btop htop lsof rsync restic python3 nixfmt
-    firefox chromium obsidian libreoffice
+    firefox chromium obsidian libreoffice slack telegram-desktop
+    self.packages.${pkgs.stdenv.hostPlatform.system}.chatgpt-desktop
     kdePackages.dolphin kdePackages.ark kdePackages.kio-extras
     mpv vlc ffmpeg audacity imv localsend
     qalculate-gtk wlogout
