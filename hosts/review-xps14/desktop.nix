@@ -4,6 +4,9 @@ let
   barTemplate = builtins.fromJSON (builtins.readFile ../../configs/dms/bar-template.json);
 in
 {
+  # GDM must select the installed standalone Hyprland session explicitly.
+  services.displayManager.defaultSession = "hyprland";
+
   hyprvibe.hyprland = {
     shellBackend = "dms";
     monitorsFile = ./monitors.lua;
