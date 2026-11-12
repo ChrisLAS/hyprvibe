@@ -75,6 +75,8 @@
   hyprvibe.herdr.enable = false;
   hyprvibe.services.syncthing.enable = false;
   hyprvibe.services.nebula.enable = false;
+  # Owner-approved enrollment for remote OpenCode and Hermes backends.
+  services.tailscale.enable = true;
 
   # The broad base group also contains Jan and Google Cloud/GWS. Keep the
   # familiar desktop but omit unrelated heavyweight cloud/AI runtimes.
