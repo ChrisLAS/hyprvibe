@@ -59,7 +59,10 @@ The launch helper uses the legacy kexec load API because kexec_file_load rejects
 the large initrd, and stops if kernel lockdown is active. No security settings
 are changed automatically. Before kexec, privately stage current Wi-Fi profiles, SSH host keys,
 login hash and a clean source snapshot in the ESP handoff archive. The installer
-loads that archive read-only before starting networking. It never erases disks on
+loads that archive read-only through an explicitly ordered systemd service before
+NetworkManager and SSH. The legacy postBootCommands hook is disabled because
+the pinned nixos-init does not execute it. Diagnostics are saved to the ESP
+every 90 seconds until live SSH checks confirm the installer. It never erases disks on
 boot. Verify root SSH, the active Wi-Fi connection, RAM/store integrity, hardware
 and the selected closure first; Ubuntu remains bootable until the explicit install.
 The Ubuntu-side staging helper is `sudo python3 hosts/review-xps14/prepare-handoff.py`;
