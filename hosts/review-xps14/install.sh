@@ -29,7 +29,8 @@ install -d -m0700 /mnt/var/lib/review-xps14 /mnt/etc/NetworkManager/system-conne
 install -m0600 /var/lib/review-xps14/login-password-hash /mnt/var/lib/review-xps14/login-password-hash
 cp -a /etc/NetworkManager/system-connections/*.nmconnection /mnt/etc/NetworkManager/system-connections/
 cp -a /etc/ssh/ssh_host_* /mnt/etc/ssh/
-mkdir -p /mnt/home/chrisf/build/hyprvibe
+# Pre-create writable user directories before activation creates root-owned parents.
+mkdir -p /mnt/home/chrisf/{build/hyprvibe,.config,.cache,.local}
 tar -xzf /run/review-xps14/source.tar.gz -C /mnt/home/chrisf/build/hyprvibe
 chown -R 1000:100 /mnt/home/chrisf
 ln -s /home/chrisf/build/hyprvibe /mnt/etc/nixos
