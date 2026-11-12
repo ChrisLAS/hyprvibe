@@ -19,6 +19,11 @@ in
     githubToken.enable = lib.mkEnableOption "Export GITHUB_TOKEN from ~/.config/secrets/github_token in Fish";
     kittyIntegration.enable = lib.mkEnableOption "Enable kitty shell integration snippet in Fish";
     kittyConfig.enable = lib.mkEnableOption "Write a shared kitty.conf to the user's config";
+    kittyConfig.fontSize = lib.mkOption {
+      type = lib.types.ints.positive;
+      default = 12;
+      description = "Kitty font size in points for this host.";
+    };
     ohMyPoshDefault = lib.mkOption {
       type = lib.types.lines;
       default = ''
@@ -172,7 +177,7 @@ in
           cat > ${userHome}/.config/kitty/kitty.conf << 'EOF'
           # Hyprvibe Kitty Terminal Configuration
           font_family FiraCode Nerd Font
-          font_size 12
+          font_size ${toString cfg.kittyConfig.fontSize}
           bold_font auto
           italic_font auto
           bold_italic_font auto

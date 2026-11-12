@@ -93,6 +93,7 @@
     kittyAsDefault = true;
     kittyIntegration.enable = true;
     kittyConfig.enable = true;
+    kittyConfig.fontSize = 13;
   };
   # A review client is not a clone of the permanent clients' fleet identity.
   hyprvibe.opencode.enable = lib.mkForce false;
