@@ -210,6 +210,7 @@
     };
 
     nixosConfigurations = {
+      review-xps14 = import ./hosts/review-xps14 { inherit self nixpkgs hyprland; };
       rvbee = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
