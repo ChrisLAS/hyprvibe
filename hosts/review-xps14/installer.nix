@@ -20,7 +20,8 @@ in
   imports = [ (modulesPath + "/installer/netboot/netboot-minimal.nix") ];
   networking.hostName = "review-xps14-installer";
   networking.networkmanager.enable = lib.mkForce true;
-  networking.wireless.enable = lib.mkForce false;
+  # NetworkManager enables wireless in D-Bus-controlled mode; do not disable
+  # its wpa_supplicant backend with a forced wireless.enable = false.
   networking.networkmanager.wifi.powersave = false;
   hardware.enableRedistributableFirmware = lib.mkForce true;
   hardware.firmware = [ pkgs.sof-firmware ];
