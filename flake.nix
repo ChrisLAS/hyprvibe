@@ -6,6 +6,11 @@
       flake = false;
     };
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    # Keep Hex on the host nixpkgs pin to match its GUI and Vulkan runtime ABI.
+    hex = {
+      url = "github:anomalyco/hex";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # Match both backend TUI plugin store paths independently of host updates.
     opencode-plugin-nixpkgs.url = "github:NixOS/nixpkgs/e554fab72f81915600f3f449b786fd9af40439a5";
     nixpkgsPgsearch.url = "github:nixos/nixpkgs/c8c34e946ef639a0e1e7ddfc3f3aac1cfecb43a9";
@@ -61,6 +66,7 @@
   outputs = {
     self,
     nixpkgs,
+    hex,
     prettyswitch,
     hyprland,
     codex-cli-nix,
@@ -210,7 +216,7 @@
     };
 
     nixosConfigurations = {
-      review-xps14 = import ./hosts/review-xps14 { inherit self nixpkgs hyprland hermesAgentOverlay; };
+      review-xps14 = import ./hosts/review-xps14 { inherit self nixpkgs hyprland hermesAgentOverlay hex; };
       rvbee = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [

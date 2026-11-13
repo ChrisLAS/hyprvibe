@@ -1,10 +1,11 @@
-{ self, nixpkgs, hyprland, hermesAgentOverlay }:
+{ self, nixpkgs, hyprland, hermesAgentOverlay, hex }:
 let
   installed = nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     specialArgs = { inherit self; inputs = self.inputs; };
     modules = [
       hyprland.nixosModules.default
+      hex.nixosModules.hex
       self.inputs.sops-nix.nixosModules.sops
       { nixpkgs.overlays = [ hermesAgentOverlay ]; }
       ./system.nix

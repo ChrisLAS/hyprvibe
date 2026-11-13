@@ -1,4 +1,5 @@
 {
+  config,
   self,
   lib,
   pkgs,
@@ -30,6 +31,30 @@
     PasswordAuthentication = true;
     KbdInteractiveAuthentication = false;
     PermitRootLogin = "no";
+  };
+
+  programs.hex.enable = true;
+
+  # Hex stays a per-user process and follows the Hyprland graphical-session lifecycle.
+  systemd.user.services.hex = {
+    description = "Hex local voice dictation";
+    after = [ "nixos-fake-graphical-session.target" ];
+    wantedBy = [ "nixos-fake-graphical-session.target" ];
+    unitConfig = {
+      ConditionUser = "chrisf";
+      PartOf = "nixos-fake-graphical-session.target";
+    };
+    serviceConfig = {
+      Type = "notify";
+      NotifyAccess = "main";
+      ExecStart = "${config.programs.hex.package}/bin/hex service";
+      Environment = [ "HEX_APPLICATION_SUPPORT_DIR=${config.hyprvibe.user.home}/.local/share/hex" ];
+      Restart = "on-failure";
+      RestartSec = 5;
+      TimeoutStartSec = 35;
+      TimeoutStopSec = 30;
+      UMask = "0077";
+    };
   };
 
   networking = {
