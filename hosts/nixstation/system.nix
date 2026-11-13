@@ -646,6 +646,8 @@ in {
       nebulaIp = "192.168.100.11/24";
     };
   };
+  # Let Showfactory fetch LUP directly without depending on Nomad relaying it.
+  services.syncthing.settings.folders."04-lup".devices = lib.mkAfter ["showfactory"];
   services.syncthing.settings.folders."100-uplink" = {
     id = "100-uplink";
     label = "100 Uplink";
