@@ -48,3 +48,16 @@ OpenVINO requirements: https://docs.openvino.ai/nightly/about-openvino/release-n
 ## Deferred and acceptance
 Build success does not equal hardware success. Do not mark audio/camera/power acceptance complete without the tests above.
 No BIOS flash, forced kernel downgrade, camera blacklist, live service restart, security setting change, or AI service was performed as part of this configuration.
+
+## NPU inference support (2026-11-12)
+
+`npu.nix` enables Intel NPU support only on this review laptop and pins a
+newer nixpkgs revision for the NPU driver/compiler and the OpenVINO diagnostic.
+The shared flake pin predates upstream compiler and loader fixes. After the
+shared input catches up, remove this temporary pin and use its packages instead.
+
+After booting the updated generation, run `review-xps14-npu-check` without
+`LD_LIBRARY_PATH` or `ZE_ENABLE_ALT_DRIVERS`. It must discover the NPU, compile
+and run a static model, verify the output, and observe the NPU busy counter.
+This is an integration smoke test, not an LLM or speech benchmark. Existing
+applications using older OpenVINO packages may still lack the loader fix.

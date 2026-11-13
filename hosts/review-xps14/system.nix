@@ -8,6 +8,7 @@
   imports = [
     ./hardware-configuration.nix
     ./desktop.nix
+    ./npu.nix
     ../../modules/shared
   ];
 
