@@ -6,6 +6,8 @@
       flake = false;
     };
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    # Baud keeps its own upstream-tested compiler and nixpkgs pins.
+    baud.url = "github:baud-terminal/baud";
     # Keep Hex on the host nixpkgs pin to match its GUI and Vulkan runtime ABI.
     hex = {
       url = "github:anomalyco/hex";

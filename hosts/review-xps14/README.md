@@ -24,6 +24,7 @@ removing a flake entry does not erase a laptop.
 - Shared Hyprland Lua desktop, Dux Shell, Hokum, Fish/Kitty; internal panel
   preferred mode at 1.5x scale. Balanced power management, no old Latitude quirks.
 - Firmware tools are installed but firmware updates are never automatic.
+- Baud is an additional terminal; upstream considers Linux/Wayland experimental and its licence is CC BY-NC-SA 4.0.
 - Curated local desktop/development utilities rather than permanent-host AI/cloud
   runtimes and production synchronization state.
 

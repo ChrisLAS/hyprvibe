@@ -142,6 +142,7 @@
     in
     with pkgs;
     [
+      self.inputs.baud.packages.${pkgs.stdenv.hostPlatform.system}.default
       hermes-desktop
       hermesRemote.wrapper
       hermesRemote.entry
