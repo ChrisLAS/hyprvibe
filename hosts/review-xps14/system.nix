@@ -33,6 +33,16 @@
     PermitRootLogin = "no";
   };
 
+  # Match the standard Hyprvibe gaming setup without RVBee's VR overrides.
+  programs.gamemode.enable = true;
+  programs.steam = {
+    enable = true;
+    gamescopeSession.enable = true;
+    remotePlay.openFirewall = true;
+    dedicatedServer.openFirewall = true;
+  };
+  hardware.steam-hardware.enable = true;
+
   programs.hex.enable = true;
 
   # Hex stays a per-user process and follows the Hyprland graphical-session lifecycle.
