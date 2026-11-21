@@ -77,13 +77,13 @@ in {
   config = lib.mkIf cfg.enable {
     # V2 clients use backend-owned config; retire the V1 config generator here.
     hyprvibe.opencode.enable = lib.mkForce false;
-    # The Nomad server advertises the TUI entrypoint by its immutable store
-    # path. Keep the plugin in every remote client closure so that path exists
-    # when the OpenCode TUI loads the server's active plugin list.
+    # Keep the old Goal plugin store path available while either backend still
+    # advertises it. Remove this client closure after both backends activate
+    # native goals; no historical Goal state is migrated by this client.
     environment.etc."opencode2/plugins/goal-mode".source = opencodeGoalPlugin;
 
     systemd.tmpfiles.rules = [
-      # OpenCode 2.0.20's remote TUI needs this server-side path to exist
+      # The remote TUI needs this server-side path to exist
       # locally too; workspace reads and writes still run on Showfactory.
       "d /var/lib/hermes 0755 root root -"
       "d /var/lib/hermes/workspace 0755 root root -"
