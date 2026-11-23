@@ -4,6 +4,7 @@
   pkgs,
   self,
   hyprland,
+  hex,
   ...
 }: let
   # Remote-only Hermes Desktop launcher + .desktop entry. Shared helper at
