@@ -56,6 +56,12 @@
       url = "github:NousResearch/hermes-agent/v0.22.5";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Stable Hex release; share the host nixpkgs to match its graphics runtime.
+    hex = {
+      url = "github:anomalyco/hex/v3.4.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -72,6 +78,7 @@
     googleworkspace-cli,
     gogcli-src,
     hermes-agent,
+    hex,
     ...
   }: let
     prettySwitchModule = {pkgs, ...}: {
@@ -362,7 +369,7 @@
           sops-nix.nixosModules.sops
         ];
         specialArgs = {
-          inherit self hyprland;
+          inherit self hyprland hex;
           inputs = self.inputs;
         };
       };

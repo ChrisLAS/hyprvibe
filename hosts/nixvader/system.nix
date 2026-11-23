@@ -15,6 +15,7 @@
   hermesDesktopRemoteEntry = hermesDesktopRemoteHelper.entry;
 in {
   imports = [
+    hex.nixosModules.hex
     hyprland.nixosModules.default
     ./hardware-configuration.nix
     ./flatpak.nix
@@ -29,6 +30,7 @@ in {
 
   hyprvibe.enable = true;
   programs.syncshell-dms.enable = true;
+  programs.hex.enable = true;
   hyprvibe.user = {
     name = "chrisf";
     group = "users";
