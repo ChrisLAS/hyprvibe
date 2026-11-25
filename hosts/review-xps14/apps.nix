@@ -57,7 +57,7 @@ in
     plugins = with pkgs; [ thunar-archive-plugin thunar-volman ];
   };
 
-  # Syncthing is installed only: no device identity, default folder, peer, or service.
+  # Syncthing service and production shares are declared in system.nix.
   # Sunshine is limited to the host’s existing Tailscale connection.
   services.sunshine = {
     enable = true;

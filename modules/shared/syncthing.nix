@@ -16,7 +16,11 @@
     showfactory.id = "6VWD4YN-ONN7JJE-5ZUX2KT-RHABTOM-3WTOETG-JAQFNEC-VMAKH6R-KW3X3A3";
     nixvader.id = "P3H46TL-T5GMIQO-LXE4SWA-TJO6NXP-2ASG63D-SFS6IY3-N4XCEO6-TZSYIQE";
   };
+  reviewDevice = {
+    review-xps14.id = "T4F3U3M-F6MBPUO-G7V2KCM-43GI3PJ-KTEHVQM-LVUNPVH-Z4XAHGP-MJ3RFQS";
+  };
   knownHosts = lib.attrNames devices;
+  allKnownHosts = knownHosts ++ ["review-xps14"];
   peerNames = lib.filter (name: name != hostname) knownHosts;
   dropboxPeers = ["nixstation" "aurora" "nomad"];
   dropboxFolders = {
@@ -27,6 +31,7 @@
     "04-lup" = {
       directory = "04-LUP";
       label = "04 LUP";
+      showfactory = true;
     };
     "05-twib" = {
       directory = "05-TWIB";
@@ -62,10 +67,19 @@
       studioBackup = true;
     };
   };
+  selectedDropboxFolders =
+    lib.filterAttrs (_: folder:
+      cfg.dropbox.includeBackups || (!(folder.backup or false) && !(folder.studioBackup or false)))
+      dropboxFolders;
   secretsFile = ../../secrets/syncthing + "/${hostname}.yaml";
 in {
   options.hyprvibe.services.syncthing = {
     enable = lib.mkEnableOption "Declarative Syncthing mesh for Hyprvibe hosts";
+    hostsFolder.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Share the Hyprvibe hosts folder.";
+    };
     folderPath = lib.mkOption {
       type = lib.types.str;
       default = "${user.home}/build/hosts";
@@ -81,6 +95,11 @@ in {
     };
     dropbox = {
       enable = lib.mkEnableOption "shared Dropbox replacement folders";
+      includeBackups = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Include the receive-only backup folders.";
+      };
       root = lib.mkOption {
         type = lib.types.str;
         default = "${user.home}/Dropbox/Chris Fisher";
@@ -91,8 +110,8 @@ in {
   config = lib.mkIf cfg.enable {
     assertions = [
       {
-        assertion = lib.elem hostname knownHosts;
-        message = "hyprvibe.services.syncthing only has device IDs for: ${lib.concatStringsSep ", " knownHosts}";
+        assertion = lib.elem hostname allKnownHosts;
+        message = "hyprvibe.services.syncthing only has device IDs for: ${lib.concatStringsSep ", " allKnownHosts}";
       }
       {
         assertion = lib.all (name: lib.elem name knownHosts) dropboxPeers;
@@ -115,7 +134,7 @@ in {
       mode = "0400";
     };
     systemd.tmpfiles.rules =
-      ["d ${tmpfilesPath cfg.folderPath} 0750 ${user.name} ${user.group} -"]
+      lib.optionals cfg.hostsFolder.enable ["d ${tmpfilesPath cfg.folderPath} 0750 ${user.name} ${user.group} -"]
       ++ lib.optionals cfg.agentConfigs.enable [
         "d ${tmpfilesPath "${user.home}/Sync"} 0750 ${user.name} ${user.group} -"
         "d ${tmpfilesPath cfg.agentConfigs.path} 0750 ${user.name} ${user.group} -"
@@ -123,7 +142,7 @@ in {
       ++ lib.optionals cfg.dropbox.enable (lib.mapAttrsToList (
           _id: folder: "d ${tmpfilesPath "${cfg.dropbox.root}/${folder.directory}"} 0750 ${user.name} ${user.group} -"
         )
-        dropboxFolders);
+        selectedDropboxFolders);
     services.syncthing = {
       enable = true;
       user = user.name;
@@ -138,9 +157,9 @@ in {
       overrideDevices = true;
       overrideFolders = true;
       settings = {
-        devices = devices;
+        devices = devices // lib.optionalAttrs (hostname == "nixstation" || hostname == "review-xps14") reviewDevice;
         folders =
-          {
+          lib.optionalAttrs cfg.hostsFolder.enable {
             hyprvibe-hosts = {
               id = "hyprvibe-hosts";
               label = "Hyprvibe hosts";
@@ -177,8 +196,9 @@ in {
                 else "sendreceive";
               devices =
                 lib.filter (name: name != hostname) dropboxPeers
+                ++ lib.optional (hostname == "nixstation" && !(folder.backup or false) && !(folder.studioBackup or false)) "review-xps14"
                 ++ lib.optional (folder.showfactory or false) "showfactory"
-                ++ lib.optional (folder.nixvader or false) "nixvader";
+                 ++ lib.optional (hostname != "review-xps14" && (folder.nixvader or false)) "nixvader";
             }
             // lib.optionalAttrs (
               ((folder.backup or false) && hostname != "nomad")
@@ -195,7 +215,7 @@ in {
                 };
               };
             })
-          dropboxFolders);
+          selectedDropboxFolders);
       };
     };
   };
