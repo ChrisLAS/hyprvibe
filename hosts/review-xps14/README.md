@@ -11,10 +11,10 @@ profile, and installation helper. The only external registration is the
 `nixosConfigurations.review-xps14` entry in `flake.nix`. Remove that entry and this
 directory to retire the host configuration. The Baud input/lock entry can be
 removed separately if no other host uses it; shared fixes remain independent.
-Tailscale is enrolled for the owner-approved remote clients. Syncthing is installed
-but not started or enrolled; Nebula, Hypruse and Colony builder enrollment are
-not provisioned automatically. Revoke the existing Tailscale identity and any
-other identities added later before returning the unit.
+Tailscale and Syncthing are enrolled. Nebula, Hypruse and Colony builder enrollment
+are not provisioned automatically. Before returning the unit, remove the laptop
+from each Syncthing peer's declarative device and folder lists, retire its SOPS
+device secret and revoke its Tailscale identity.
 Reinstall the factory OS and remove personal data before returning review hardware;
 removing a flake entry does not erase a laptop.
 
@@ -31,8 +31,23 @@ removing a flake entry does not erase a laptop.
   Flatseal and AkiZip are reconciled from Flathub by a bounded system service.
 - Sunshine binds only to this host's Tailscale address. Firefox MCP listens only
   on loopback and requires launching the dedicated Firefox MCP entry.
-- Dux integrations are enabled but Syncthing peers/folders and app credentials
-  are intentionally not provisioned. Install/enroll them separately if desired.
+- Dux integrations are enabled; app credentials are managed separately.
+
+## Production Syncthing
+
+The Nix-managed system service runs as `chrisf`. Seven send-and-receive production
+folders live beneath `/home/chrisf/syncthing`: `03-ChrisLAS-PRODS`, `04-LUP`,
+`05-TWIB`, `06-Launch`, `07-WYAB`, `10-FRIDAY`, and `50-Heremes`. No backup,
+Hyprvibe-hosts or agent-configs folders are enrolled. Laptop edits and deletions
+propagate to peers: Syncthing is not a backup.
+
+Nomad and Nixstation share all seven; Showfactory shares LUP, WYAB and Heremes.
+The unique Syncthing identity is SOPS-encrypted to this laptop's SSH host key.
+The web GUI listens only on `127.0.0.1:8384`; access it locally or use an SSH
+tunnel. Check `systemctl status syncthing syncthing-init`, the GUI or
+`syncthing cli show connections` for health and direct peer connections.
+Initial sync can consume over 100 GiB; check disk space and folder completion
+before relying on an offline copy.
 
 ## Zed external agents on NixOS
 
