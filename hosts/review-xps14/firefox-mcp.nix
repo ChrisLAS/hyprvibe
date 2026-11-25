@@ -1,0 +1,74 @@
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  firefoxMcpStart = pkgs.writeShellApplication {
+    name = "review-xps14-firefox-mcp-start";
+    runtimeInputs = [
+      pkgs.netcat-openbsd
+      pkgs.procps
+    ];
+    text = ''
+      if nc -z -w 1 127.0.0.1 2828 && nc -z -w 1 127.0.0.1 9223; then
+        echo "review-xps14 Firefox is already available for MCP." >&2
+        exit 0
+      fi
+      if pgrep -u "$(id -u)" -f '(^|/)(firefox|\.firefox-wrapped)( |$)' >/dev/null; then
+        echo "Quit Firefox on review-xps14, then run review-xps14-firefox-mcp-start to reopen your existing profile with MCP enabled." >&2
+        exit 1
+      fi
+      exec ${lib.getExe config.programs.firefox.finalPackage} --marionette --remote-debugging-port=9223 "$@"
+    '';
+  };
+  firefoxMcpLauncher = pkgs.writeShellApplication {
+    name = "firefox-mcp";
+    text = ''
+      exec ${lib.getExe firefoxMcpStart} "$@"
+    '';
+  };
+  firefoxMcp = pkgs.writeShellApplication {
+    name = "review-xps14-firefox-mcp";
+    runtimeInputs = [
+      pkgs.netcat-openbsd
+      pkgs.util-linux
+    ];
+    text = ''
+      if ! nc -z -w 1 127.0.0.1 2828 || ! nc -z -w 1 127.0.0.1 9223; then
+        echo "firefox-review-xps14: review-xps14 is online, but Firefox MCP is unavailable. In its graphical session, quit Firefox and run review-xps14-firefox-mcp-start (or use Firefox — review-xps14 MCP)." >&2
+        exit 1
+      fi
+      # Marionette supports one controlling WebDriver session at a time.
+      state_dir="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+      exec 9>"$state_dir/review-xps14-firefox-mcp.lock"
+      if ! flock -n 9; then
+        echo "firefox-review-xps14: another MCP connection is already controlling Firefox on review-xps14." >&2
+        exit 1
+      fi
+      exec ${lib.getExe pkgs.firefox-devtools-mcp} --connect-existing --marionette-port 2828 --enable-script
+    '';
+  };
+in
+{
+  environment.systemPackages = [
+    firefoxMcpStart
+    firefoxMcpLauncher
+    firefoxMcp
+    (pkgs.makeDesktopItem {
+      name = "review-xps14-firefox-mcp";
+      desktopName = "Firefox — review-xps14 MCP";
+      comment = "Open your existing Firefox profile for remote OpenCode control from Nomad";
+      exec = "${lib.getExe firefoxMcpLauncher} %U";
+      icon = "firefox";
+      categories = [
+        "Network"
+        "WebBrowser"
+      ];
+      terminal = false;
+    })
+  ];
+  # Firefox's default Marionette and Remote Agent listeners are loopback-only.
+  # Transport MCP stdio over authenticated SSH; no browser ports are opened.
+}

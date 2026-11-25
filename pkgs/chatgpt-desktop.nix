@@ -6,6 +6,7 @@
   fetchurl,
   dpkg,
   patchelf,
+  writeShellScript,
 }: let
   version = "26.1007.21434";
   filename = "pool/main/c/chatgpt/chatgpt_${version}_amd64.deb";
@@ -99,7 +100,17 @@ in
         zlib
       ];
 
-    runScript = "/lib/chatgpt/ChatGPT";
+    # The vendor Electron binary does not consume NIXOS_OZONE_WL. XWayland
+    # windows become blurry under fractional compositor scaling (e.g. 1.5x).
+    # Select Wayland explicitly when available; retain X11-only sessions and
+    # pass user flags last so an explicit --ozone-platform override still works.
+    runScript = writeShellScript "chatgpt-desktop-launch" ''
+      args=()
+      if [ -n "''${WAYLAND_DISPLAY:-}" ]; then
+        args+=(--ozone-platform=wayland)
+      fi
+      exec /lib/chatgpt/ChatGPT "''${args[@]}" "$@"
+    '';
 
     extraInstallCommands = ''
       cp -r ${unpacked}/share "$out/share"
