@@ -11,6 +11,7 @@
     ./desktop.nix
     ./npu.nix
     ./apps.nix
+    ./hedgedoc-mcp.nix
     ../../modules/shared
   ];
 

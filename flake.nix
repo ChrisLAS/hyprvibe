@@ -30,6 +30,10 @@
     llama-cpp.url = "github:ggml-org/llama.cpp/b10430";
     llama-cpp.inputs.nixpkgs.follows = "nixpkgs";
 
+    # HedgeDoc MCP tracks upstream via flake.lock; update deliberately.
+    hedgedoc-mcp.url = "github:noblepayne/hedgedoc-mcp";
+    hedgedoc-mcp.inputs.nixpkgs.follows = "nixpkgs";
+
     freshrss-mcp.url = "github:ChrisLAS/freshrss-mcp";
     freshrss-mcp.inputs.nixpkgs.follows = "nixpkgs";
 
