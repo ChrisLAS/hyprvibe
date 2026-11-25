@@ -34,6 +34,20 @@ removing a flake entry does not erase a laptop.
 - Dux integrations are enabled but Syncthing peers/folders and app credentials
   are intentionally not provisioned. Install/enroll them separately if desired.
 
+## Zed external agents on NixOS
+
+Zed can use `/run/current-system/sw/bin/codex-acp` as a custom external agent.
+The Nix package avoids the registry-downloaded generic Linux binaries that do
+not run unmodified on NixOS. Codex uses its existing local authentication.
+
+For Nomad-backed OpenCode, use a Zed Terminal Thread running the host's existing
+`opencode` command. Its remote-client wrapper connects to Nomad; OpenCode ACP
+instead starts a private local server and does not support `--server`. Terminal
+Threads use the backend's own MCP configuration, not Zed's MCP server entries;
+the local HedgeDoc MCP is not automatically forwarded to Nomad. Remote sessions
+also operate on Nomad's paths, not the laptop's local Documents folder. Zed
+settings remain user-managed.
+
 ## Zed HedgeDoc MCP
 
 Zed's `hedgedoc` context server invokes a user-local bridge at

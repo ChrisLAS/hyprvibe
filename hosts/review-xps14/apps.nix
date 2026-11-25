@@ -46,7 +46,7 @@ in
 
   environment.systemPackages = with pkgs; [
     brave google-chrome signal-desktop element-desktop obs-studio handbrake
-    easyeffects yt-dlp zed-editor ghostty codex
+    easyeffects yt-dlp zed-editor ghostty codex codex-acp
     (callPackage ../../pkgs/codexbar.nix { })
     beadsPkgs.beads rclone mosh moonlight-qt gradia gnome-firmware
     losslesscut lmstudio discord syncthing
