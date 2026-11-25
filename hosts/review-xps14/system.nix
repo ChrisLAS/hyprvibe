@@ -152,6 +152,7 @@
   # This mobile host does not expose its management interface to the LAN.
   services.syncthing.guiAddress = lib.mkForce "127.0.0.1:8384";
   services.syncthing.guiPasswordFile = lib.mkForce null;
+  systemd.tmpfiles.rules = ["d /home/chrisf/syncthing 0750 chrisf users -"];
   hyprvibe.services.nebula.enable = false;
   # Owner-approved enrollment for remote OpenCode and Hermes backends.
   services.tailscale.enable = true;
