@@ -138,7 +138,9 @@ in {
       overrideDevices = true;
       overrideFolders = true;
       settings = {
-        devices = devices;
+        devices = devices // lib.optionalAttrs (hostname == "nixstation") {
+          review-xps14.id = "T4F3U3M-F6MBPUO-G7V2KCM-43GI3PJ-KTEHVQM-LVUNPVH-Z4XAHGP-MJ3RFQS";
+        };
         folders =
           {
             hyprvibe-hosts = {
@@ -176,7 +178,8 @@ in {
                   else "receiveonly"
                 else "sendreceive";
               devices =
-                lib.filter (name: name != hostname) dropboxPeers
+                 lib.filter (name: name != hostname) dropboxPeers
+                 ++ lib.optional (hostname == "nixstation" && !(folder.backup or false) && !(folder.studioBackup or false)) "review-xps14"
                 ++ lib.optional (folder.showfactory or false) "showfactory"
                 ++ lib.optional (folder.nixvader or false) "nixvader";
             }
