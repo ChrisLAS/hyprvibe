@@ -297,6 +297,26 @@
         "type": "github"
       }
     },
+    "hedgedoc-mcp": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795327080,
+        "narHash": "sha256-mFNwUymWZyDREGom/a0GMQdr01sPWrLMJDQDwOQHp2U=",
+        "owner": "noblepayne",
+        "repo": "hedgedoc-mcp",
+        "rev": "d858f3c55df6ad608191ba35580bec9f6325ae90",
+        "type": "github"
+      },
+      "original": {
+        "owner": "noblepayne",
+        "repo": "hedgedoc-mcp",
+        "type": "github"
+      }
+    },
     "hermes-agent": {
       "inputs": {
         "flake-parts": "flake-parts",
@@ -981,6 +1001,7 @@
         "freshrss-mcp": "freshrss-mcp",
         "gogcli-src": "gogcli-src",
         "googleworkspace-cli": "googleworkspace-cli",
+        "hedgedoc-mcp": "hedgedoc-mcp",
         "hermes-agent": "hermes-agent",
         "hex": "hex",
         "hyprland": "hyprland",

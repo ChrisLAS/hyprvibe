@@ -34,6 +34,25 @@ removing a flake entry does not erase a laptop.
 - Dux integrations are enabled but Syncthing peers/folders and app credentials
   are intentionally not provisioned. Install/enroll them separately if desired.
 
+## Zed HedgeDoc MCP
+
+Zed's `hedgedoc` context server invokes a user-local bridge at
+`~/.local/bin/zed-hedgedoc-mcp`; after boot it delegates to the declarative
+`/run/current-system/sw/bin/zed-hedgedoc-mcp`. The bridge preserves startup
+using the temporary user-profile package until the staged generation is booted.
+The Nix-managed launcher reads the existing two-line bot email/password file
+`~/.config/secrets/hdocs` at startup; no credential is placed in the Nix store or
+Zed settings. The server defaults to `https://h.docs.lol` and no particular note.
+Zed's settings remain user-managed, so preserve the `context_servers.hedgedoc`
+entry when editing them. The upstream server allows edits that the bot account
+can perform; use a dedicated bot account and review tool approvals in Zed.
+
+The upstream flake is pinned in `flake.lock`; it does not update itself. To take
+an upstream update deliberately, use `nix flake lock --update-input hedgedoc-mcp`,
+review the lock change, validate/build on this laptop, commit/publish it, and
+stage a boot using this host's normal process. Whole-document replacement is
+not enabled. Review the server's own concurrency and verification limitations.
+
 ## Local-only build and updates
 
 All downloads and compilation for this unit run on the Dell. Builders are empty,
