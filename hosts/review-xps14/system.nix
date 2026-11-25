@@ -137,7 +137,10 @@
   hyprvibe.opencode.enable = lib.mkForce false;
   hyprvibe.opencode2Client.enable = true;
   # Remote client chdirs to the server project path before attaching.
-  systemd.tmpfiles.rules = [ "d /home/chrisf/build/nomad-nixos 0755 chrisf users -" ];
+  systemd.tmpfiles.rules = [
+    "d /home/chrisf/build/nomad-nixos 0755 chrisf users -"
+    "d /home/chrisf/syncthing 0750 chrisf users -"
+  ];
   hyprvibe.hypruse.enable = false;
   hyprvibe.herdr.enable = false;
   hyprvibe.services.syncthing = {
@@ -152,7 +155,6 @@
   # This mobile host does not expose its management interface to the LAN.
   services.syncthing.guiAddress = lib.mkForce "127.0.0.1:8384";
   services.syncthing.guiPasswordFile = lib.mkForce null;
-  systemd.tmpfiles.rules = ["d /home/chrisf/syncthing 0750 chrisf users -"];
   hyprvibe.services.nebula.enable = false;
   # Owner-approved enrollment for remote OpenCode and Hermes backends.
   services.tailscale.enable = true;
