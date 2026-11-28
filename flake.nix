@@ -53,7 +53,7 @@
 
     # Hermes Desktop is built during nixos-rebuild instead of at launch.
     hermes-agent = {
-      url = "github:NousResearch/hermes-agent/v0.22.5";
+      url = "github:NousResearch/hermes-agent/v0.23.5";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -87,7 +87,7 @@
       ];
     };
     hermesAgentOverlay = final: prev: let
-      desktopVersion = "0.22.5";
+      desktopVersion = "0.23.5";
       hermesMinimal =
         (builtins.getAttr prev.stdenv.hostPlatform.system hermes-agent.packages).minimal.override {
           # Preserve each owning host's reviewed Node/native dependency overlays.
@@ -138,8 +138,8 @@
       # consuming those avoids building the full agent venv just to render art.
       hermesDesktop = hermesMinimal.hermesDesktop.override {
         hermesNpmLib = hermesMinimal.hermesNpmLib // {
-          buildNpmPackage = attrs:
-            hermesMinimal.hermesNpmLib.buildNpmPackage (attrs // {version = desktopVersion;});
+          buildPnpmPackage = attrs:
+            hermesMinimal.hermesNpmLib.buildPnpmPackage (attrs // {version = desktopVersion;});
         };
         hermesAgent = hermesLocalStub;
         installStampFile = hermesDesktopStamp;

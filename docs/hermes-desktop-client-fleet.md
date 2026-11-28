@@ -4,7 +4,7 @@ This flake manages two kinds of Hermes hosts:
 
 - **Nomad** is the production Hermes host. It owns the full Hermes agent stack,
   gateways, profiles, skills, services, and the remote dashboard/API.
-- **Nixvader and Nixstation** are front-end clients. They should install only
+- **Nixvader, Nixstation, and review-xps14** are front-end clients. They should install only
   the Electron Hermes Desktop application and remote-gateway launcher. They must not
   install a local Hermes agent environment, TUI, web application, or optional
   Python integration groups.
@@ -32,6 +32,7 @@ flake.nix
 pkgs/hermes-desktop-nomad.nix
 hosts/nixvader/system.nix
 hosts/nixstation/system.nix
+hosts/review-xps14/system.nix
 hosts/nixvader/hermes-pin.md
 ```
 
@@ -41,7 +42,7 @@ host.
 
 ## Package Design
 
-The root `flake.nix` selects the stable `v0.22.2` release; `flake.lock` records
+The root `flake.nix` selects the stable `v0.23.5` release; `flake.lock` records
 its exact commit. The shared `hermesAgentOverlay` derives upstream
 `minimal.hermesDesktop`, not the full `desktop` package, and overrides its
 supported `hermesAgent` argument with a failing explanatory stub. It does not
@@ -56,6 +57,8 @@ icons. The renderer and Electron remain; `hermes-agent-env`, the local agent,
 `hermes-tui`, `hermes-web`, and the Hermes package-manager runtime must not be in
 the realized client closure. Upstream now uses `electron.headers`, so the old
 fixed Electron-header hash patch is retired.
+The Desktop renderer now uses upstream's frozen pnpm workspace and its pinned
+dependency store. Preserve the host's native nixpkgs Node override.
 
 Active-gateway and multi-source roster routing are upstream-owned. Keep
 Nomad/Showfactory compatibility checks alongside each Desktop upgrade; a current
@@ -190,6 +193,8 @@ For a client host, evaluate and build the host-specific toplevel:
 ```bash
 nix build .#nixosConfigurations.nixstation.config.system.build.toplevel --no-link
 nix build .#nixosConfigurations.nixvader.config.system.build.toplevel --no-link
+# Run on the Dell only:
+nix build .#nixosConfigurations.review-xps14.config.system.build.toplevel --no-link
 ```
 
 Inspect the realized closure. It should contain `hermes-desktop` and Electron,
@@ -211,8 +216,8 @@ The repeatable, secret-free packaging check is:
 
 ```bash
 python3 scripts/check-hermes-desktop.py --host nixstation
-python3 scripts/check-hermes-desktop.py --host nixstation --package /nix/store/...-hermes-desktop-0.22.2 --system /nix/store/...-nixos-system-nixstation-...
-# Repeat with --host nixvader and that host's exact retained outputs.
+python3 scripts/check-hermes-desktop.py --host nixstation --package /nix/store/...-hermes-desktop-0.23.5 --system /nix/store/...-nixos-system-nixstation-...
+# Repeat for nixvader and review-xps14 on their owning hosts.
 ```
 
 Without outputs it checks release/recipe consistency. With built outputs it
@@ -239,6 +244,7 @@ rollout branch and Nixvader main branch distinct; never merge their unrelated
 host configuration differences just to share this upgrade. Use each owning
 host's guided validation route (Nixstation owner-local, Nixvader Colony) before
 separately approved boot staging, live activation, or reboot.
+Build and validate review-xps14 locally on the Dell, without Colony.
 
 If an upstream revision changes the desktop package shape, update the overlay
 and this validation before deploying it to either client. Do not restore the
