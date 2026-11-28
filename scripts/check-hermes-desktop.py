@@ -43,7 +43,7 @@ def check_closure(output):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--host", required=True, choices=("nixstation", "nixvader"))
+    parser.add_argument("--host", required=True, choices=("nixstation", "nixvader", "review-xps14"))
     parser.add_argument("--package", type=Path, help="already built Desktop output")
     parser.add_argument("--system", type=Path, help="already built host toplevel")
     args = parser.parse_args()
@@ -70,12 +70,16 @@ def main():
     npm = derivation(input_derivation(node, r"-npm-\d[^/]*\.drv$"))
     require(recipe["buildNode"] in npm["env"]["installPhase"],
             "Pinned npm wrapper does not use the native nixpkgs Node build")
+    pnpm_store = renderer["env"].get("pnpmDeps")
+    require(pnpm_store and pnpm_store.startswith("/nix/store/"),
+            "Renderer does not use a pinned pnpm workspace store")
+    input_derivation(renderer, r"-pnpm-12\.[^/]+\.drv$")
     require(renderer["env"].get("doCheck") == "1", "Renderer checks are disabled")
     require("--typecheck" in renderer["env"]["buildPhase"], "Renderer typechecking is disabled")
     require("--runtime=electron" in renderer["env"]["buildPhase"],
             "Native node-pty build no longer targets Electron")
-    print(f"{args.host}: renderer and pinned npm use native Node {recipe['buildNodeVersion']}; "
-          "typecheck and Electron native checks enabled")
+    print(f"{args.host}: pinned pnpm workspace and native Node {recipe['buildNodeVersion']}; "
+          "renderer typecheck and Electron native checks enabled")
 
     if args.package:
         package = args.package.resolve(strict=True)
